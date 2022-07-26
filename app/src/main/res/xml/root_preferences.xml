@@ -1,0 +1,39 @@
+<PreferenceScreen xmlns:app="http://schemas.android.com/apk/res-auto" app:title="@string/settingsLabelText">
+
+    <PreferenceCategory app:title="Binance">
+        <EditTextPreference
+            app:key="binanceApiKey"
+            app:title="@string/apiKeyLabelText"
+            app:useSimpleSummaryProvider="true" />
+        <EditTextPreference
+            app:key="binanceApiSecrets"
+            app:title="@string/apiSecretsLabelText"
+            app:useSimpleSummaryProvider="false" />
+    </PreferenceCategory>
+
+    <PreferenceCategory app:title="Crypto.com">
+        <EditTextPreference
+            app:key="cryptoComApiKey"
+            app:title="@string/apiKeyLabelText"
+            app:useSimpleSummaryProvider="true" />
+        <EditTextPreference
+            app:key="cryptoComApiSecrets"
+            app:title="@string/apiSecretsLabelText"
+            app:useSimpleSummaryProvider="false" />
+    </PreferenceCategory>
+
+    <PreferenceCategory app:title="GitHub">
+        <EditTextPreference
+            app:key="gitHubAuthorizationToken"
+            app:title="@string/authorizationTokenLabelText"
+            app:useSimpleSummaryProvider="false" />
+    </PreferenceCategory>
+
+    <PreferenceCategory app:title="General settings">
+        <EditTextPreference
+            app:key="intervalBetweenRequestGroups"
+            app:title="@string/intervalBetweenRequestGroupsTextLabel"
+            app:useSimpleSummaryProvider="false" />
+    </PreferenceCategory>
+
+</PreferenceScreen>

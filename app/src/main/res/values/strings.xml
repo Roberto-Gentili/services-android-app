@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?><!DOCTYPE resources [<!ENTITY reportUrl "https://github.com/Roberto-Gentili/services/blob/main/src/main/resources/crypto-report.xlsx?raw=true">]>
+<resources>
+    <string name="app_name">RGServices</string>
+
+    <string name="apiKeyLabelText">API key</string>
+    <string name="apiSecretsLabelText">API secret</string>
+    <string name="authorizationTokenLabelText">Authorization token</string>
+    <string name="backLabelText">Back</string>
+    <string name="balanceText">Balance:</string>
+    <string name="cryptoInfoLabelText">Crypto info</string>
+    <string name="intervalBetweenRequestGroupsTextLabel">Interval between request groups (in milliseconds)</string>
+    <string name="linkToReport"><a href="&reportUrl;">Download latest report</a></string>
+    <string name="loadingDataText">Loading data</string>
+    <string name="pureBalanceText">Pure balance:</string>
+    <string name="reportUrl">&reportUrl;</string>
+    <string name="settingsLabelText">Settings</string>
+    <string name="updateReportText">Update report</string>
+
+</resources>
