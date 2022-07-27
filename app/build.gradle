@@ -35,8 +35,6 @@ android {
         exclude 'META-INF/DEPENDENCIES'
     }
 
-    //useLibrary 'org.apache.http.legacy'
-
 }
 
 dependencies {
@@ -51,8 +49,8 @@ dependencies {
     implementation 'org.springframework.android:spring-android-rest-template:1.0.1.RELEASE'
     implementation 'org.burningwave:jvm-driver:8.9.0'
     implementation 'org.apache.httpcomponents:httpclient:4.3.4'
+    implementation 'log4j:log4j:1.2.17'
     implementation 'androidx.preference:preference:1.2.0'
-    //api 'com.github.ok2c.hc4.android:httpclient-android:0.1.0'
     testImplementation 'junit:junit:4.13.2'
     androidTestImplementation 'androidx.test.ext:junit:1.1.3'
     androidTestImplementation 'androidx.test.espresso:espresso-core:3.4.0'
