@@ -29,7 +29,6 @@ import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collection;
 import java.util.LinkedHashMap;
 import java.util.Map;
@@ -39,8 +38,6 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.ForkJoinPool;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
-import java.util.concurrent.atomic.AtomicBoolean;
-import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Supplier;
 
 import org.rg.finance.BinanceWallet;
@@ -281,7 +278,7 @@ public class MainFragment extends Fragment {
                 ((String)wFInfo.get("path")).endsWith("/[R] update crypto report.yml")
             ).findFirst().get();
         String workflowId = String.valueOf((Integer) updateCryptoReportViaRestWorkflowInfo.get("id"));
-        Supplier<Boolean> runningChecker = buildRunningChecker(gitHubActionToken, username, workflowId);
+        Supplier<Boolean> runningChecker = buildUpdateCryptoReportRunningChecker(gitHubActionToken, username, workflowId);
         if (!runningChecker.get()) {
             uriComponents = UriComponentsBuilder.newInstance().scheme("https").host("api.github.com")
                     .pathSegment("repos")
@@ -319,7 +316,7 @@ public class MainFragment extends Fragment {
         return runningChecker;
     }
 
-    private Supplier<Boolean> buildRunningChecker(String gitHubActionToken, String username, String workflowId) {
+    private Supplier<Boolean> buildUpdateCryptoReportRunningChecker(String gitHubActionToken, String username, String workflowId) {
         HttpHeaders headers = new HttpHeaders();
         headers.add("Authorization", "token " + gitHubActionToken);
         return () -> {
