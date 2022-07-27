@@ -29,6 +29,7 @@ import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.LinkedHashMap;
 import java.util.Map;
@@ -215,7 +216,37 @@ public class MainFragment extends Fragment {
             if (updateButton.isEnabled()) {
                 updateButton.setEnabled(false);
                 try {
-                    launchCryptoReportUpdate();
+                    Supplier<Boolean> alreadyRunningChecker = launchCryptoReportUpdate();
+                    ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(1);
+                    scheduler.schedule(() -> {
+                        int remainedAttempts = 12;
+                        while (remainedAttempts >= 0) {
+                            try {
+                                if (alreadyRunningChecker.get()) {
+                                    synchronized (alreadyRunningChecker) {
+                                        try {
+                                            alreadyRunningChecker.wait(5000);
+                                        } catch (InterruptedException exc) {
+
+                                        }
+                                    }
+                                } else {
+                                    break;
+                                }
+                            } catch (Throwable exc) {
+                                remainedAttempts--;
+                            }
+                        }
+                        if (remainedAttempts < 0) {
+                            Toast.makeText(getActivity(), "Maximum number of attempts reached", Toast.LENGTH_LONG).show();
+                        }
+                        getActivity().runOnUiThread(() -> {
+                            updateButton.setEnabled(true);
+                            scheduler.shutdownNow();
+                            Intent browserIntent = new Intent(Intent.ACTION_VIEW, Uri.parse(getResources().getString(R.string.reportUrl)));
+                            startActivity(browserIntent);
+                        });
+                    }, 30, TimeUnit.SECONDS);
                 } catch (Throwable exc) {
                     Toast.makeText(getActivity(), "Could not update report: " + exc.getMessage(), Toast.LENGTH_LONG).show();
                     getActivity().runOnUiThread(() -> {
@@ -223,20 +254,11 @@ public class MainFragment extends Fragment {
                     });
                     return;
                 }
-                ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(1);
-                scheduler.schedule(() -> {
-                    getActivity().runOnUiThread(() -> {
-                        updateButton.setEnabled(true);
-                        scheduler.shutdownNow();
-                        Intent browserIntent = new Intent(Intent.ACTION_VIEW, Uri.parse(getResources().getString(R.string.reportUrl)));
-                        startActivity(browserIntent);
-                    });
-                }, 120, TimeUnit.SECONDS);
             }
         }
     }
 
-    private void launchCryptoReportUpdate() {
+    private Supplier<Boolean> launchCryptoReportUpdate() {
         String gitHubActionToken = appPreferences.getString("gitHubAuthorizationToken", null);
         HttpHeaders headers = new HttpHeaders();
         headers.add("Authorization", "token " + gitHubActionToken);
@@ -258,38 +280,64 @@ public class MainFragment extends Fragment {
             .stream().filter(wFInfo ->
                 ((String)wFInfo.get("path")).endsWith("/[R] update crypto report.yml")
             ).findFirst().get();
-        uriComponents = UriComponentsBuilder.newInstance().scheme("https").host("api.github.com")
-            .pathSegment("repos")
-            .pathSegment(username)
-            .pathSegment("services")
-            .pathSegment("actions")
-            .pathSegment("workflows")
-            .pathSegment(String.valueOf((Integer)updateCryptoReportViaRestWorkflowInfo.get("id")))
-            .pathSegment("dispatches")
-            .build();
-        Map<String, Object> requestBody = new LinkedHashMap<>();
-        try {
-            requestBody.put("ref", "main");
-            if (canRun()) {
-                Map<String, Object> inputs = new LinkedHashMap<>();
-                requestBody.put("inputs", inputs);
-                String binanceApiKey = appPreferences.getString("binanceApiKey", null);
-                String binanceApiSecret = appPreferences.getString("binanceApiSecret", null);
-                String cryptoComApiKey = appPreferences.getString("cryptoComApiKey", null);
-                String cryptoComApiSecret = appPreferences.getString("cryptoComApiSecret", null);
-                if (isStringNotEmpty(cryptoComApiKey) && isStringNotEmpty(cryptoComApiSecret)) {
-                    inputs.put("cryptoComApiKey", cryptoComApiKey);
-                    inputs.put("cryptoComApiSecret", cryptoComApiSecret);
+        String workflowId = String.valueOf((Integer) updateCryptoReportViaRestWorkflowInfo.get("id"));
+        Supplier<Boolean> runningChecker = buildRunningChecker(gitHubActionToken, username, workflowId);
+        if (!runningChecker.get()) {
+            uriComponents = UriComponentsBuilder.newInstance().scheme("https").host("api.github.com")
+                    .pathSegment("repos")
+                    .pathSegment(username)
+                    .pathSegment("services")
+                    .pathSegment("actions")
+                    .pathSegment("workflows")
+                    .pathSegment(workflowId)
+                    .pathSegment("dispatches")
+                    .build();
+            Map<String, Object> requestBody = new LinkedHashMap<>();
+            try {
+                requestBody.put("ref", "main");
+                if (canRun()) {
+                    Map<String, Object> inputs = new LinkedHashMap<>();
+                    requestBody.put("inputs", inputs);
+                    String binanceApiKey = appPreferences.getString("binanceApiKey", null);
+                    String binanceApiSecret = appPreferences.getString("binanceApiSecret", null);
+                    String cryptoComApiKey = appPreferences.getString("cryptoComApiKey", null);
+                    String cryptoComApiSecret = appPreferences.getString("cryptoComApiSecret", null);
+                    if (isStringNotEmpty(cryptoComApiKey) && isStringNotEmpty(cryptoComApiSecret)) {
+                        inputs.put("cryptoComApiKey", cryptoComApiKey);
+                        inputs.put("cryptoComApiSecret", cryptoComApiSecret);
+                    }
+                    if (isStringNotEmpty(binanceApiKey) && isStringNotEmpty(binanceApiSecret)) {
+                        inputs.put("binanceApiKey", binanceApiKey);
+                        inputs.put("binanceApiSecret", binanceApiSecret);
+                    }
                 }
-                if (isStringNotEmpty(binanceApiKey) && isStringNotEmpty(binanceApiSecret)) {
-                    inputs.put("binanceApiKey", binanceApiKey);
-                    inputs.put("binanceApiSecret", binanceApiSecret);
-                }
+            } catch (Throwable exc) {
+                Throwables.sneakyThrow(exc);
             }
-        } catch (Throwable exc) {
-            Throwables.sneakyThrow(exc);
+            restTemplate.exchange(uriComponents.toString(), HttpMethod.POST, new HttpEntity<Map<String, Object>>(requestBody, headers), Map.class);
         }
-        restTemplate.exchange(uriComponents.toString(), HttpMethod.POST, new HttpEntity<Map<String, Object>>(requestBody, headers), Map.class);
+        return runningChecker;
+    }
+
+    private Supplier<Boolean> buildRunningChecker(String gitHubActionToken, String username, String workflowId) {
+        HttpHeaders headers = new HttpHeaders();
+        headers.add("Authorization", "token " + gitHubActionToken);
+        return () -> {
+            UriComponents uriComponents = UriComponentsBuilder.newInstance().scheme("https").host("api.github.com")
+                .pathSegment("repos")
+                .pathSegment(username)
+                .pathSegment("services")
+                .pathSegment("actions")
+                .pathSegment("workflows")
+                .pathSegment(workflowId)
+                .pathSegment("runs")
+                .queryParam("status", "requested")
+                .queryParam("status", "queued")
+                .queryParam("status", "waiting")
+                .queryParam("status", "in_progress")
+                .build();
+            return ((int)restTemplate.exchange(uriComponents.toString(), HttpMethod.GET, new HttpEntity<>(headers), Map.class).getBody().get("total_count")) > 0;
+        };
     }
 
     private static class BalanceUpdater {
