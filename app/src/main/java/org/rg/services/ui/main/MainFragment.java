@@ -212,6 +212,7 @@ public class MainFragment extends Fragment {
         synchronized(updateButton) {
             if (updateButton.isEnabled()) {
                 updateButton.setEnabled(false);
+                ((ProgressBar)getView().findViewById(R.id.updateReportProgressBar)).setVisibility(View.VISIBLE);
                 try {
                     Supplier<Boolean> alreadyRunningChecker = launchCryptoReportUpdate();
                     ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(1);
@@ -238,6 +239,7 @@ public class MainFragment extends Fragment {
                             Toast.makeText(getActivity(), "Maximum number of attempts reached", Toast.LENGTH_LONG).show();
                         }
                         getActivity().runOnUiThread(() -> {
+                            ((ProgressBar)getView().findViewById(R.id.updateReportProgressBar)).setVisibility(View.INVISIBLE);
                             updateButton.setEnabled(true);
                             scheduler.shutdownNow();
                             Intent browserIntent = new Intent(Intent.ACTION_VIEW, Uri.parse(getResources().getString(R.string.reportUrl)));
