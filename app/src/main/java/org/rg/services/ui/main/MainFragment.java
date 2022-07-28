@@ -39,6 +39,7 @@ import java.util.concurrent.ForkJoinPool;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Supplier;
+import java.util.stream.Collectors;
 
 import org.rg.finance.BinanceWallet;
 import org.rg.finance.CryptoComWallet;
@@ -274,14 +275,18 @@ public class MainFragment extends Fragment {
             .pathSegment("workflows")
             .build();
         response = restTemplate.exchange(uriComponents.toString(), HttpMethod.GET, new HttpEntity<>(headers), Map.class);
-        Map<String, Object> updateCryptoReportViaRestWorkflowInfo = (Map<String, Object>)
-            ((Collection<Map<String, Object>>)response.getBody().get("workflows"))
-            .stream().filter(wFInfo ->
-                ((String)wFInfo.get("path")).endsWith("/[R] update crypto report.yml")
-            ).findFirst().get();
-        String workflowId = String.valueOf((Integer) updateCryptoReportViaRestWorkflowInfo.get("id"));
-        Supplier<Boolean> runningChecker = buildUpdateCryptoReportRunningChecker(gitHubActionToken, username, workflowId);
+        Collection<String> workflowIds = ((Collection<Map<String, Object>>)response.getBody().get("workflows"))
+            .stream().map(workflowInfo ->
+                (Integer)((Map<String, Object>)workflowInfo).get("id")
+            ).map(String::valueOf).collect(Collectors.toList());
+        Supplier<Boolean> runningChecker = buildUpdateCryptoReportRunningChecker(gitHubActionToken, username, workflowIds);
         if (!runningChecker.get()) {
+            String workflowId = ((Collection<Map<String, Object>>)response.getBody().get("workflows"))
+                .stream().filter(wFInfo ->
+                    ((String)wFInfo.get("path")).endsWith("/[R] update crypto report.yml")
+                ).findFirst().map(workflowInfo ->
+                    (Integer)((Map<String, Object>)workflowInfo).get("id")
+                ).map(String::valueOf).orElseGet(() -> null);
             uriComponents = UriComponentsBuilder.newInstance().scheme("https").host("api.github.com")
                     .pathSegment("repos")
                     .pathSegment(username)
@@ -318,24 +323,30 @@ public class MainFragment extends Fragment {
         return runningChecker;
     }
 
-    private Supplier<Boolean> buildUpdateCryptoReportRunningChecker(String gitHubActionToken, String username, String workflowId) {
+    private Supplier<Boolean> buildUpdateCryptoReportRunningChecker(String gitHubActionToken, String username, Collection<String> workflowIds) {
         HttpHeaders headers = new HttpHeaders();
         headers.add("Authorization", "token " + gitHubActionToken);
         return () -> {
-            UriComponents uriComponents = UriComponentsBuilder.newInstance().scheme("https").host("api.github.com")
-                .pathSegment("repos")
-                .pathSegment(username)
-                .pathSegment("services")
-                .pathSegment("actions")
-                .pathSegment("workflows")
-                .pathSegment(workflowId)
-                .pathSegment("runs")
-                .queryParam("status", "requested")
-                .queryParam("status", "queued")
-                .queryParam("status", "waiting")
-                .queryParam("status", "in_progress")
-                .build();
-            return ((int)restTemplate.exchange(uriComponents.toString(), HttpMethod.GET, new HttpEntity<>(headers), Map.class).getBody().get("total_count")) > 0;
+            for (String workflowId : workflowIds) {
+                //Documentation at https://docs.github.com/en/rest/actions/workflow-runs#list-workflow-runs
+                UriComponents uriComponents = UriComponentsBuilder.newInstance().scheme("https").host("api.github.com")
+                    .pathSegment("repos")
+                    .pathSegment(username)
+                    .pathSegment("services")
+                    .pathSegment("actions")
+                    .pathSegment("workflows")
+                    .pathSegment(workflowId)
+                    .pathSegment("runs")
+                    .queryParam("status", "requested")
+                    .queryParam("status", "queued")
+                    .queryParam("status", "in_progress")
+                    .build();
+                Map<String, Object> responseBody = restTemplate.exchange(uriComponents.toString(), HttpMethod.GET, new HttpEntity<>(headers), Map.class).getBody();
+                if (((int)responseBody.get("total_count")) > 0) {
+                    return true;
+                }
+            }
+            return false;
         };
     }
 
