@@ -328,22 +328,23 @@ public class MainFragment extends Fragment {
         headers.add("Authorization", "token " + gitHubActionToken);
         return () -> {
             for (String workflowId : workflowIds) {
-                //Documentation at https://docs.github.com/en/rest/actions/workflow-runs#list-workflow-runs
-                UriComponents uriComponents = UriComponentsBuilder.newInstance().scheme("https").host("api.github.com")
-                    .pathSegment("repos")
-                    .pathSegment(username)
-                    .pathSegment("services")
-                    .pathSegment("actions")
-                    .pathSegment("workflows")
-                    .pathSegment(workflowId)
-                    .pathSegment("runs")
-                    .queryParam("status", "requested")
-                    .queryParam("status", "queued")
-                    .queryParam("status", "in_progress")
-                    .build();
-                Map<String, Object> responseBody = restTemplate.exchange(uriComponents.toString(), HttpMethod.GET, new HttpEntity<>(headers), Map.class).getBody();
-                if (((int)responseBody.get("total_count")) > 0) {
-                    return true;
+                for (String status : new String[]{"requested", "queued", "in_progress"}) {
+                    //Documentation at https://docs.github.com/en/rest/actions/workflow-runs#list-workflow-runs
+                    UriComponents uriComponents = UriComponentsBuilder.newInstance().scheme("https").host("api.github.com")
+                        .pathSegment("repos")
+                        .pathSegment(username)
+                        .pathSegment("services")
+                        .pathSegment("actions")
+                        .pathSegment("workflows")
+                        .pathSegment(workflowId)
+                        .pathSegment("runs")
+                        .queryParam("status", status)
+                        .build();
+                    Map<String, Object> responseBody =
+                        restTemplate.exchange(uriComponents.toString(), HttpMethod.GET, new HttpEntity<>(headers), Map.class).getBody();
+                    if (((int) responseBody.get("total_count")) > 0) {
+                        return true;
+                    }
                 }
             }
             return false;
