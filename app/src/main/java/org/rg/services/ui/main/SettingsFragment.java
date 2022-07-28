@@ -1,24 +1,14 @@
 package org.rg.services.ui.main;
 
-import android.content.Intent;
-import android.net.Uri;
 import android.os.Bundle;
 import android.text.InputType;
-import android.view.View;
-import android.widget.Button;
 import android.widget.EditText;
 
 import androidx.annotation.NonNull;
 import androidx.preference.EditTextPreference;
-import androidx.preference.Preference;
 import androidx.preference.PreferenceFragmentCompat;
 
-import org.rg.services.MainActivity;
 import org.rg.services.R;
-
-import java.util.concurrent.Executors;
-import java.util.concurrent.ScheduledExecutorService;
-import java.util.concurrent.TimeUnit;
 
 public class SettingsFragment extends PreferenceFragmentCompat {
     private static SettingsFragment INSTANCE;

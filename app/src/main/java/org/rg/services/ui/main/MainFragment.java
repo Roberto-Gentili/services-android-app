@@ -65,13 +65,13 @@ import org.springframework.web.util.UriComponentsBuilder;
 public class MainFragment extends Fragment {
     private SharedPreferences appPreferences;
     private static MainFragment INSTANCE;
-    private Collection<Wallet> wallets;
-    private ExecutorService executorService;
-    private RestTemplate restTemplate;
+    private final Collection<Wallet> wallets;
+    private final ExecutorService executorService;
+    private final RestTemplate restTemplate;
     private BalanceUpdater balanceUpdater;
-    private DecimalFormatSymbols decimalFormatSymbols;
+    private final DecimalFormatSymbols decimalFormatSymbols;
     private DecimalFormat numberFormatter;
-    private DateTimeFormatter dateFormatter;
+    private final DateTimeFormatter dateFormatter;
     private Supplier<Double> eurValueSupplier;
 
     private MainFragment() {
@@ -342,7 +342,7 @@ public class MainFragment extends Fragment {
                         .build();
                     Map<String, Object> responseBody =
                         restTemplate.exchange(uriComponents.toString(), HttpMethod.GET, new HttpEntity<>(headers), Map.class).getBody();
-                    if (((int) responseBody.get("total_count")) > 0) {
+                    if (((int)responseBody.get("total_count")) > 0) {
                         return true;
                     }
                 }
@@ -353,7 +353,7 @@ public class MainFragment extends Fragment {
 
     private static class BalanceUpdater {
         private boolean isAlive;
-        private MainFragment fragment;
+        private final MainFragment fragment;
 
         private BalanceUpdater(MainFragment fragment) {
             this.fragment = fragment;

@@ -14,21 +14,21 @@ import org.springframework.web.client.RestTemplate;
 
 public interface Wallet {
 
-	public Collection<String> getAvailableCoins();
+	Collection<String> getAvailableCoins();
 
-	public Collection<String> getOwnedCoins();
+	Collection<String> getOwnedCoins();
 
-	public Double getBalance();
+	Double getBalance();
 
-	public Double getValueForCoin(String coinName);
+	Double getValueForCoin(String coinName);
 
-	public Double getQuantityForCoin(String coinName);
+	Double getQuantityForCoin(String coinName);
 
-	public Double getAmountForCoin(String coinName);
+	Double getAmountForCoin(String coinName);
 
-	public String getCollateralForCoin(String coinName);
+	String getCollateralForCoin(String coinName);
 
-	public static abstract class Abst implements Wallet {
+	abstract class Abst implements Wallet {
 
 	    protected String apiKey;
 	    protected String apiSecret;
