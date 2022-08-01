@@ -1,12 +1,21 @@
 package org.rg.finance;
 
+import org.apache.http.impl.client.HttpClientBuilder;
+import org.springframework.http.client.ClientHttpResponse;
+import org.springframework.http.client.HttpComponentsClientHttpRequestFactory;
+import org.springframework.http.converter.json.MappingJackson2HttpMessageConverter;
+import org.springframework.web.client.DefaultResponseErrorHandler;
+import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.RestTemplate;
 
+import java.io.IOException;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.LinkedHashMap;
 import java.util.Map;
+import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.ForkJoinPool;
@@ -29,7 +38,7 @@ public interface Wallet {
 	String getCollateralForCoin(String coinName);
 
 	abstract class Abst implements Wallet {
-
+		private static RestTemplate sharedRestTemplate;
 	    protected String apiKey;
 	    protected String apiSecret;
 	    protected Map<String, String> coinCollaterals;
@@ -41,12 +50,37 @@ public interface Wallet {
 		}
 
 	    public Abst(RestTemplate restTemplate, ExecutorService executorService, String apiKey, String apiSecret, Map<String, String> coinCollaterals) {
-			super();
 			this.apiKey = apiKey;
 			this.apiSecret = apiSecret;
 			this.coinCollaterals = coinCollaterals;
-			this.restTemplate = restTemplate;
+			this.restTemplate = Optional.ofNullable(restTemplate).orElseGet(Wallet.Abst::getSharedRestTemplate);
 			this.executorService = executorService != null ? executorService : ForkJoinPool.commonPool();
+		}
+
+
+		private static RestTemplate getSharedRestTemplate() {
+			if (sharedRestTemplate == null) {
+				synchronized(Wallet.Abst.class){
+					if (sharedRestTemplate == null) {
+						HttpComponentsClientHttpRequestFactory factory = new HttpComponentsClientHttpRequestFactory(HttpClientBuilder.create().build());
+						RestTemplate restTemplate = new RestTemplate(factory);
+						restTemplate.getMessageConverters().add(new MappingJackson2HttpMessageConverter());
+						restTemplate.setErrorHandler(new DefaultResponseErrorHandler() {
+							@Override
+							public void handleError(ClientHttpResponse httpResponse) throws IOException {
+								try {
+									super.handleError(httpResponse);
+								} catch (HttpClientErrorException exc) {
+									System.err.println("Http response error: " + exc.getStatusCode().value() + " (" + exc.getStatusText() + "). Body: " + exc.getResponseBodyAsString());
+									throw exc;
+								}
+							}
+						});
+						sharedRestTemplate = restTemplate;
+					}
+				}
+			}
+			return sharedRestTemplate;
 		}
 
 	    @Override

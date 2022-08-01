@@ -3,7 +3,9 @@ package org.rg.finance;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.Iterator;
+import java.util.LinkedHashMap;
 import java.util.Map;
+import java.util.Optional;
 import java.util.TreeSet;
 import java.util.concurrent.ExecutorService;
 
@@ -31,7 +33,13 @@ public class BinanceWallet extends Wallet.Abst {
             String apiSecret,
             Map<String, String> coinCollaterals
     ) {
-        super(restTemplate, executorService, apiKey, apiSecret, coinCollaterals);
+        super(restTemplate, executorService, apiKey, apiSecret, Optional.ofNullable(coinCollaterals).orElseGet(()-> {
+            Map<String, String> coinCollateralsTemp = new LinkedHashMap<>();
+            coinCollateralsTemp.put("DEFAULT", "USDT");
+            coinCollateralsTemp.put("LUNC", "BUSD");
+            coinCollateralsTemp.put("BUSD", "USDT");
+            return coinCollateralsTemp;
+        }));
     }
 
     public BinanceWallet(

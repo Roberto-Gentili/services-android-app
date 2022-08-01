@@ -79,12 +79,12 @@ public class MainFragment extends Fragment {
             restTemplate.setErrorHandler(new DefaultResponseErrorHandler() {
                 @Override
                 public void handleError(ClientHttpResponse httpResponse) throws IOException {
-                try {
-                    super.handleError(httpResponse);
-                } catch (HttpClientErrorException exc) {
-                    System.err.println("Http response error: " + exc.getStatusCode().value() + " (" + exc.getStatusText() + "). Body: " + exc.getResponseBodyAsString());
-                    throw exc;
-                }
+                    try {
+                        super.handleError(httpResponse);
+                    } catch (HttpClientErrorException exc) {
+                        System.err.println("Http response error: " + exc.getStatusCode().value() + " (" + exc.getStatusText() + "). Body: " + exc.getResponseBodyAsString());
+                        throw exc;
+                    }
                 }
             });
             int SDK_INT = android.os.Build.VERSION.SDK_INT;
@@ -139,30 +139,22 @@ public class MainFragment extends Fragment {
         String cryptoComApiSecret = appPreferences.getString("cryptoComApiSecret", null);
         wallets.clear();
         if (isStringNotEmpty(cryptoComApiKey) && isStringNotEmpty(cryptoComApiSecret)) {
-            Map<String, String> coinCollaterals = new LinkedHashMap<>();
-            coinCollaterals.put("DEFAULT", "USDT");
-            coinCollaterals.put("LUNC", "USDT");
-            coinCollaterals.put("BUSD", "USDT");
             wallets.add(new CryptoComWallet(
                 restTemplate,
                 executorService,
                 cryptoComApiKey,
                 cryptoComApiSecret,
-                coinCollaterals
+                null
             ));
         }
         eurValueSupplier = null;
         if (isStringNotEmpty(binanceApiKey) && isStringNotEmpty(binanceApiSecret)) {
-            Map<String, String> coinCollaterals = new LinkedHashMap<>();
-            coinCollaterals.put("DEFAULT", "USDT");
-            coinCollaterals.put("LUNC", "BUSD");
-            coinCollaterals.put("BUSD", "USDT");
             Wallet wallet = new BinanceWallet(
                 restTemplate,
                 executorService,
                 binanceApiKey,
                 binanceApiSecret,
-                coinCollaterals
+                null
             );
             wallets.add(wallet);
             eurValueSupplier = () -> wallet.getValueForCoin("EUR");
@@ -178,7 +170,6 @@ public class MainFragment extends Fragment {
     }
 
     public boolean canRun() {
-
         String binanceApiKey = appPreferences.getString("binanceApiKey", null);
         String binanceApiSecret = appPreferences.getString("binanceApiSecret", null);
         String cryptoComApiKey = appPreferences.getString("cryptoComApiKey", null);

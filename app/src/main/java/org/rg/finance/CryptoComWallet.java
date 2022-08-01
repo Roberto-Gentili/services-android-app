@@ -18,8 +18,10 @@ import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
 import java.util.Collection;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.TreeMap;
 import java.util.TreeSet;
 import java.util.concurrent.ExecutorService;
@@ -38,7 +40,13 @@ public class CryptoComWallet extends Wallet.Abst {
 		String apiSecret,
 		Map<String, String> coinCollaterals
 	) {
-		super(restTemplate, executorService, apiKey, apiSecret, coinCollaterals);
+		super(restTemplate, executorService, apiKey, apiSecret, Optional.ofNullable(coinCollaterals).orElseGet(()-> {
+			Map<String, String> coinCollateralsTemp = new LinkedHashMap<>();
+			coinCollateralsTemp.put("DEFAULT", "USDT");
+			coinCollateralsTemp.put("LUNC", "USDT");
+			coinCollateralsTemp.put("BUSD", "USDT");
+			return coinCollateralsTemp;
+		}));
 	}
 
 	public CryptoComWallet(
