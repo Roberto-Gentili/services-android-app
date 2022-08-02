@@ -182,49 +182,51 @@ public class MainFragment extends Fragment {
     }
 
     public void updateReport(Button updateButton) {
-        synchronized(updateButton) {
-            if (updateButton.isEnabled()) {
-                updateButton.setEnabled(false);
-                ((ProgressBar)getView().findViewById(R.id.updateReportProgressBar)).setVisibility(View.VISIBLE);
-                try {
-                    Supplier<Boolean> alreadyRunningChecker = launchCryptoReportUpdate();
-                    ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(1);
-                    scheduler.schedule(() -> {
-                        int remainedAttempts = 12;
-                        while (remainedAttempts >= 0) {
-                            try {
-                                if (alreadyRunningChecker.get()) {
-                                    synchronized (alreadyRunningChecker) {
-                                        try {
-                                            alreadyRunningChecker.wait(5000);
-                                        } catch (InterruptedException exc) {
+        if (updateButton.isEnabled()) {
+            synchronized (updateButton) {
+                if (updateButton.isEnabled()) {
+                    updateButton.setEnabled(false);
+                    ((ProgressBar) getView().findViewById(R.id.updateReportProgressBar)).setVisibility(View.VISIBLE);
+                    try {
+                        Supplier<Boolean> alreadyRunningChecker = launchCryptoReportUpdate();
+                        ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(1);
+                        scheduler.schedule(() -> {
+                            int remainedAttempts = 12;
+                            while (remainedAttempts >= 0) {
+                                try {
+                                    if (alreadyRunningChecker.get()) {
+                                        synchronized (alreadyRunningChecker) {
+                                            try {
+                                                alreadyRunningChecker.wait(5000);
+                                            } catch (InterruptedException exc) {
 
+                                            }
                                         }
+                                    } else {
+                                        break;
                                     }
-                                } else {
-                                    break;
+                                } catch (Throwable exc) {
+                                    remainedAttempts--;
                                 }
-                            } catch (Throwable exc) {
-                                remainedAttempts--;
                             }
-                        }
-                        if (remainedAttempts < 0) {
-                            Toast.makeText(getActivity(), "Maximum number of attempts reached", Toast.LENGTH_LONG).show();
-                        }
+                            if (remainedAttempts < 0) {
+                                Toast.makeText(getActivity(), "Maximum number of attempts reached", Toast.LENGTH_LONG).show();
+                            }
+                            getActivity().runOnUiThread(() -> {
+                                ((ProgressBar) getView().findViewById(R.id.updateReportProgressBar)).setVisibility(View.INVISIBLE);
+                                updateButton.setEnabled(true);
+                                scheduler.shutdownNow();
+                                Intent browserIntent = new Intent(Intent.ACTION_VIEW, Uri.parse(getResources().getString(R.string.reportUrl)));
+                                startActivity(browserIntent);
+                            });
+                        }, 30, TimeUnit.SECONDS);
+                    } catch (Throwable exc) {
+                        Toast.makeText(getActivity(), "Could not update report: " + exc.getMessage(), Toast.LENGTH_LONG).show();
                         getActivity().runOnUiThread(() -> {
-                            ((ProgressBar)getView().findViewById(R.id.updateReportProgressBar)).setVisibility(View.INVISIBLE);
                             updateButton.setEnabled(true);
-                            scheduler.shutdownNow();
-                            Intent browserIntent = new Intent(Intent.ACTION_VIEW, Uri.parse(getResources().getString(R.string.reportUrl)));
-                            startActivity(browserIntent);
                         });
-                    }, 30, TimeUnit.SECONDS);
-                } catch (Throwable exc) {
-                    Toast.makeText(getActivity(), "Could not update report: " + exc.getMessage(), Toast.LENGTH_LONG).show();
-                    getActivity().runOnUiThread(() -> {
-                        updateButton.setEnabled(true);
-                    });
-                    return;
+                        return;
+                    }
                 }
             }
         }
