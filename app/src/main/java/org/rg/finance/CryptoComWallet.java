@@ -1,18 +1,5 @@
 package org.rg.finance;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
-
-import org.rg.util.Hex;
-import org.rg.util.Throwables;
-import org.springframework.http.HttpEntity;
-import org.springframework.http.HttpHeaders;
-import org.springframework.http.HttpMethod;
-import org.springframework.http.ResponseEntity;
-import org.springframework.web.client.HttpClientErrorException;
-import org.springframework.web.client.RestTemplate;
-import org.springframework.web.util.UriComponents;
-import org.springframework.web.util.UriComponentsBuilder;
-
 import java.math.BigDecimal;
 import java.nio.charset.StandardCharsets;
 import java.security.InvalidKeyException;
@@ -29,6 +16,19 @@ import java.util.concurrent.ExecutorService;
 
 import javax.crypto.Mac;
 import javax.crypto.spec.SecretKeySpec;
+
+import org.rg.util.Hex;
+import org.rg.util.Throwables;
+import org.springframework.http.HttpEntity;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpMethod;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.client.HttpClientErrorException;
+import org.springframework.web.client.RestTemplate;
+import org.springframework.web.util.UriComponents;
+import org.springframework.web.util.UriComponentsBuilder;
+
+import com.fasterxml.jackson.annotation.JsonProperty;
 
 
 @SuppressWarnings({ "rawtypes", "unchecked", "unused"})
@@ -52,11 +52,34 @@ public class CryptoComWallet extends Wallet.Abst {
 
 	public CryptoComWallet(
 		RestTemplate restTemplate,
+		ExecutorService executorService,
+		String apiKey,
+		String apiSecret) {
+		this(restTemplate, executorService, apiKey, apiSecret, null);
+	}
+
+	public CryptoComWallet(
+		RestTemplate restTemplate,
 		String apiKey,
 		String apiSecret,
 		Map<String, String> coinCollaterals
 	) {
 		super(restTemplate, apiKey, apiSecret, coinCollaterals);
+	}
+
+    public CryptoComWallet(
+        RestTemplate restTemplate,
+        String apiKey,
+        String apiSecret
+    ) {
+        this(restTemplate, null, apiKey, apiSecret, null);
+    }
+
+	public CryptoComWallet(
+		String apiKey,
+		String apiSecret
+	) {
+		this(null, null, apiKey, apiSecret, null);
 	}
 
 	@Override

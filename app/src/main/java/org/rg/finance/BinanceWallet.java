@@ -41,6 +41,14 @@ public class BinanceWallet extends Wallet.Abst {
         }));
     }
 
+	public BinanceWallet(
+		RestTemplate restTemplate,
+		ExecutorService executorService,
+		String apiKey,
+		String apiSecret) {
+		this(restTemplate, executorService, apiKey, apiSecret, null);
+	}
+
     public BinanceWallet(
         RestTemplate restTemplate,
         String apiKey,
@@ -49,6 +57,21 @@ public class BinanceWallet extends Wallet.Abst {
     ) {
         super(restTemplate, apiKey, apiSecret, coinCollaterals);
     }
+
+    public BinanceWallet(
+        RestTemplate restTemplate,
+        String apiKey,
+        String apiSecret
+    ) {
+        this(restTemplate, null, apiKey, apiSecret, null);
+    }
+
+	public BinanceWallet(
+		String apiKey,
+		String apiSecret
+	) {
+		this(null, null, apiKey, apiSecret, null);
+	}
 
     @Override
     public Collection<String> getAvailableCoins() {

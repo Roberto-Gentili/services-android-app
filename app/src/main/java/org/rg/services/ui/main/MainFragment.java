@@ -129,8 +129,7 @@ public class MainFragment extends Fragment {
                 RestTemplateSupplier.getSharedInstance().get(),
                 executorService,
                 cryptoComApiKey,
-                cryptoComApiSecret,
-                null
+                cryptoComApiSecret
             ));
         }
         eurValueSupplier = null;
@@ -139,8 +138,7 @@ public class MainFragment extends Fragment {
                 RestTemplateSupplier.getSharedInstance().get(),
                 executorService,
                 binanceApiKey,
-                binanceApiSecret,
-                null
+                binanceApiSecret
             );
             wallets.add(wallet);
             eurValueSupplier = () -> wallet.getValueForCoin("EUR");

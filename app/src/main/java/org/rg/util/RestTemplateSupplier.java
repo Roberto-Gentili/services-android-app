@@ -30,7 +30,7 @@ public class RestTemplateSupplier {
         return new RestTemplateSupplier(httpClientBuilderSetter);
     }
 
-    public final static RestTemplateSupplier getSharedInstance(Consumer<HttpClientBuilder> httpClientBuilderSetter) {
+    public final static RestTemplateSupplier setupSharedInstance(Consumer<HttpClientBuilder> httpClientBuilderSetter) {
         if (sharedInstance == null) {
             synchronized (RestTemplateSupplier.class) {
                 if (sharedInstance == null) {
