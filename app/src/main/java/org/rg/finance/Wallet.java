@@ -1,17 +1,5 @@
 package org.rg.finance;
 
-import org.apache.http.impl.client.HttpClientBuilder;
-import org.rg.util.RestTemplateSupplier;
-import org.springframework.http.HttpEntity;
-import org.springframework.http.HttpMethod;
-import org.springframework.http.client.ClientHttpResponse;
-import org.springframework.http.client.HttpComponentsClientHttpRequestFactory;
-import org.springframework.http.converter.json.MappingJackson2HttpMessageConverter;
-import org.springframework.web.client.DefaultResponseErrorHandler;
-import org.springframework.web.client.HttpClientErrorException;
-import org.springframework.web.client.RestTemplate;
-
-import java.io.IOException;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.util.ArrayList;
@@ -22,6 +10,10 @@ import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.ForkJoinPool;
+
+import org.rg.util.RestTemplateSupplier;
+import org.springframework.web.client.HttpClientErrorException;
+import org.springframework.web.client.RestTemplate;
 
 
 public interface Wallet {
@@ -55,7 +47,7 @@ public interface Wallet {
 			this.apiKey = apiKey;
 			this.apiSecret = apiSecret;
 			this.coinCollaterals = coinCollaterals;
-			this.restTemplate = Optional.ofNullable(restTemplate).orElseGet(RestTemplateSupplier::getSharedRestTemplate);
+			this.restTemplate = Optional.ofNullable(restTemplate).orElseGet(RestTemplateSupplier.getSharedInstance()::get);
 			this.executorService = executorService != null ? executorService : ForkJoinPool.commonPool();
 		}
 
@@ -98,7 +90,9 @@ public interface Wallet {
 		public Double getBalance() {
 			Collection<CompletableFuture<Double>> tasks = new ArrayList<>();
 			for (String coinName : getOwnedCoins()) {
-				tasks.add(CompletableFuture.supplyAsync(() -> this.getAmountForCoin(coinName), executorService));
+				tasks.add(CompletableFuture.supplyAsync(() ->
+					this.getAmountForCoin(coinName), executorService)
+				);
 			}
 			return tasks.stream().mapToDouble(CompletableFuture::join).sum();
 	    }

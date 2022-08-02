@@ -126,7 +126,7 @@ public class MainFragment extends Fragment {
         wallets.clear();
         if (isStringNotEmpty(cryptoComApiKey) && isStringNotEmpty(cryptoComApiSecret)) {
             wallets.add(new CryptoComWallet(
-                RestTemplateSupplier.getSharedRestTemplate(),
+                RestTemplateSupplier.getSharedInstance().get(),
                 executorService,
                 cryptoComApiKey,
                 cryptoComApiSecret,
@@ -136,7 +136,7 @@ public class MainFragment extends Fragment {
         eurValueSupplier = null;
         if (isStringNotEmpty(binanceApiKey) && isStringNotEmpty(binanceApiSecret)) {
             Wallet wallet = new BinanceWallet(
-                RestTemplateSupplier.getSharedRestTemplate(),
+                RestTemplateSupplier.getSharedInstance().get(),
                 executorService,
                 binanceApiKey,
                 binanceApiSecret,
@@ -239,7 +239,7 @@ public class MainFragment extends Fragment {
         UriComponents uriComponents = UriComponentsBuilder.newInstance().scheme("https").host("api.github.com")
             .pathSegment("user")
             .build();
-        ResponseEntity<Map> response = RestTemplateSupplier.getSharedRestTemplate().exchange(uriComponents.toString(), HttpMethod.GET, new HttpEntity<>(headers), Map.class);
+        ResponseEntity<Map> response = RestTemplateSupplier.getSharedInstance().get().exchange(uriComponents.toString(), HttpMethod.GET, new HttpEntity<>(headers), Map.class);
         String username = (String)response.getBody().get("login");
         uriComponents = UriComponentsBuilder.newInstance().scheme("https").host("api.github.com")
             .pathSegment("repos")
@@ -248,7 +248,7 @@ public class MainFragment extends Fragment {
             .pathSegment("actions")
             .pathSegment("workflows")
             .build();
-        response = RestTemplateSupplier.getSharedRestTemplate().exchange(uriComponents.toString(), HttpMethod.GET, new HttpEntity<>(headers), Map.class);
+        response = RestTemplateSupplier.getSharedInstance().get().exchange(uriComponents.toString(), HttpMethod.GET, new HttpEntity<>(headers), Map.class);
         Collection<String> workflowIds = ((Collection<Map<String, Object>>)response.getBody().get("workflows"))
             .stream().map(workflowInfo ->
                 (Integer)((Map<String, Object>)workflowInfo).get("id")
@@ -292,7 +292,7 @@ public class MainFragment extends Fragment {
             } catch (Throwable exc) {
                 Throwables.sneakyThrow(exc);
             }
-            RestTemplateSupplier.getSharedRestTemplate().exchange(uriComponents.toString(), HttpMethod.POST, new HttpEntity<Map<String, Object>>(requestBody, headers), Map.class);
+            RestTemplateSupplier.getSharedInstance().get().exchange(uriComponents.toString(), HttpMethod.POST, new HttpEntity<Map<String, Object>>(requestBody, headers), Map.class);
         }
         return runningChecker;
     }
@@ -314,7 +314,7 @@ public class MainFragment extends Fragment {
                         .pathSegment("runs")
                         .queryParam("status", status)
                         .build();
-                    Map<String, Object> responseBody = RestTemplateSupplier.getSharedRestTemplate().exchange(uriComponents.toString(), HttpMethod.GET, new HttpEntity<>(headers), Map.class).getBody();
+                    Map<String, Object> responseBody = RestTemplateSupplier.getSharedInstance().get().exchange(uriComponents.toString(), HttpMethod.GET, new HttpEntity<>(headers), Map.class).getBody();
                     if (((int)responseBody.get("total_count")) > 0) {
                         return true;
                     }
