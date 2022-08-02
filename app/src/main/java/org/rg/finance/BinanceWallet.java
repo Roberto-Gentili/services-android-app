@@ -4,6 +4,7 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Optional;
 import java.util.TreeSet;
@@ -16,7 +17,6 @@ import org.rg.util.Hex;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.RestTemplate;
@@ -110,7 +110,7 @@ public class BinanceWallet extends Wallet.Abst {
     }
 
     @Override
-    public Double getValueForCoin(String coinName) {
+    protected Double getValueForCoin(String coinName, String collateral) {
         Long currentTimeMillis = currentTimeMillis();
         Map<String, String> queryParams = new HashMap<>();
         queryParams.put("timestamp", String.valueOf(currentTimeMillis));
@@ -121,13 +121,18 @@ public class BinanceWallet extends Wallet.Abst {
                 .pathSegment("price")
                 .queryParam(
                         "symbol",
-                        coinName + getCollateralForCoin(coinName)
+                        coinName + collateral
                 ).build();
         HttpHeaders headers = new HttpHeaders();
         headers.add("X-MBX-APIKEY", apiKey);
-        ResponseEntity<Map> response = restTemplate.exchange(uriComponents.toString(), HttpMethod.GET, new HttpEntity<String>(headers), Map.class);
-        Map<String, String> body = response.getBody();
+        Map<String, String> body = restTemplate.exchange(uriComponents.toString(), HttpMethod.GET, new HttpEntity<String>(headers), Map.class).getBody();
         return Double.valueOf(body.get("price"));
+    }
+
+    @Override
+    protected boolean checkExceptionForGetValueForCoin(HttpClientErrorException exception) {
+        String bodyResponseAsString = exception.getResponseBodyAsString();
+        return bodyResponseAsString != null && bodyResponseAsString.toLowerCase().contains("invalid symbol");
     }
 
     @Override
@@ -167,21 +172,6 @@ public class BinanceWallet extends Wallet.Abst {
         }
         return amount;
     }
-
-    @Override
-    public Double getAmountForCoin(String coinName) {
-        try {
-            return getQuantityForCoin(coinName) * getValueForCoin(coinName);
-        } catch (HttpClientErrorException exc) {
-            String responseBodyAsString = exc.getResponseBodyAsString();
-            if (exc.getStatusCode().series() == HttpStatus.Series.CLIENT_ERROR &&
-                responseBodyAsString.toLowerCase().contains("invalid symbol")) {
-                return 0D;
-            }
-            throw exc;
-        }
-    }
-
 
     @Override
     protected Long currentTimeMillis() {

@@ -1,6 +1,9 @@
 package org.rg.finance;
 
 import org.apache.http.impl.client.HttpClientBuilder;
+import org.rg.util.RestTemplateSupplier;
+import org.springframework.http.HttpEntity;
+import org.springframework.http.HttpMethod;
 import org.springframework.http.client.ClientHttpResponse;
 import org.springframework.http.client.HttpComponentsClientHttpRequestFactory;
 import org.springframework.http.converter.json.MappingJackson2HttpMessageConverter;
@@ -13,6 +16,7 @@ import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
@@ -37,7 +41,6 @@ public interface Wallet {
 	String getCollateralForCoin(String coinName);
 
 	abstract class Abst implements Wallet {
-		private static RestTemplate sharedRestTemplate;
 	    protected String apiKey;
 	    protected String apiSecret;
 	    protected Map<String, String> coinCollaterals;
@@ -52,35 +55,39 @@ public interface Wallet {
 			this.apiKey = apiKey;
 			this.apiSecret = apiSecret;
 			this.coinCollaterals = coinCollaterals;
-			this.restTemplate = Optional.ofNullable(restTemplate).orElseGet(Wallet.Abst::getSharedRestTemplate);
+			this.restTemplate = Optional.ofNullable(restTemplate).orElseGet(RestTemplateSupplier::getSharedRestTemplate);
 			this.executorService = executorService != null ? executorService : ForkJoinPool.commonPool();
 		}
 
 
-		private static RestTemplate getSharedRestTemplate() {
-			if (sharedRestTemplate == null) {
-				synchronized(Wallet.Abst.class){
-					if (sharedRestTemplate == null) {
-						HttpComponentsClientHttpRequestFactory factory = new HttpComponentsClientHttpRequestFactory(HttpClientBuilder.create().build());
-						RestTemplate restTemplate = new RestTemplate(factory);
-						restTemplate.getMessageConverters().add(new MappingJackson2HttpMessageConverter());
-						restTemplate.setErrorHandler(new DefaultResponseErrorHandler() {
-							@Override
-							public void handleError(ClientHttpResponse httpResponse) throws IOException {
-								try {
-									super.handleError(httpResponse);
-								} catch (HttpClientErrorException exc) {
-									System.err.println("Http response error: " + exc.getStatusCode().value() + " (" + exc.getStatusText() + "). Body: " + exc.getResponseBodyAsString());
-									throw exc;
-								}
-							}
-						});
-						sharedRestTemplate = restTemplate;
-					}
-				}
+		@Override
+		public Double getValueForCoin(String coinName) {
+			String collateral = getCollateralForCoin(coinName);
+			if (collateral == null) {
+				return 0D;
 			}
-			return sharedRestTemplate;
+			try {
+				return getValueForCoin(coinName, collateral);
+			} catch (HttpClientErrorException exc) {
+				if (checkExceptionForGetValueForCoin(exc)) {
+					System.err.println("No collateral for coin " + coinName + " on " + this);
+					synchronized (coinCollaterals) {
+						Map<String, String> coinCollateralsTemp = new LinkedHashMap<>();
+						Map<String, String> oldCoinCollaterals = coinCollaterals;
+						coinCollateralsTemp.putAll(oldCoinCollaterals);
+						coinCollateralsTemp.put(coinName, null);
+						coinCollaterals = coinCollateralsTemp;
+						oldCoinCollaterals.clear();
+					}
+					return 0D;
+				}
+				throw exc;
+			}
 		}
+
+		protected abstract Double getValueForCoin(String coinName, String collateral);
+
+		protected abstract boolean checkExceptionForGetValueForCoin(HttpClientErrorException exception);
 
 	    @Override
 		public Double getAmountForCoin(String coinName)  {

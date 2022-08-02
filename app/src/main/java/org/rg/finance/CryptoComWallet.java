@@ -8,6 +8,7 @@ import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.util.UriComponents;
 import org.springframework.web.util.UriComponentsBuilder;
@@ -84,7 +85,7 @@ public class CryptoComWallet extends Wallet.Abst {
 	}
 
 	@Override
-	public Double getValueForCoin(String coinName) {
+	protected Double getValueForCoin(String coinName, String collateral) {
         Long currentTimeMillis = currentTimeMillis();
         UriComponents uriComponents = UriComponentsBuilder.newInstance().scheme("https").host("api.crypto.com")
             .pathSegment("v2").pathSegment("public").pathSegment("get-trades").queryParam("instrument_name", "CRO_" + getCollateralForCoin(coinName))
@@ -103,6 +104,11 @@ public class CryptoComWallet extends Wallet.Abst {
         Number value = (Number) ((Collection<Map<Object, Object>>) ((Map<Object, Object>) response.getBody()
                 .get("result")).get("data")).iterator().next().get("p");
         return value.doubleValue();
+	}
+
+	@Override
+	protected boolean checkExceptionForGetValueForCoin(HttpClientErrorException exception) {
+		throw exception;
 	}
 
 	@Override
