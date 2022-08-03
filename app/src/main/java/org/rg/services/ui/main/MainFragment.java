@@ -25,6 +25,7 @@ import org.rg.finance.CryptoComWallet;
 import org.rg.finance.Wallet;
 import org.rg.services.MainActivity;
 import org.rg.services.R;
+import org.rg.util.LoggerChain;
 import org.rg.util.RestTemplateSupplier;
 import org.rg.util.Throwables;
 import org.springframework.http.HttpEntity;
@@ -125,16 +126,20 @@ public class MainFragment extends Fragment {
         String cryptoComApiSecret = appPreferences.getString("cryptoComApiSecret", null);
         wallets.clear();
         if (isStringNotEmpty(cryptoComApiKey) && isStringNotEmpty(cryptoComApiSecret)) {
-            wallets.add(new CryptoComWallet(
+            CryptoComWallet wallet = new CryptoComWallet(
                 RestTemplateSupplier.getSharedInstance().get(),
                 executorService,
                 cryptoComApiKey,
                 cryptoComApiSecret
+            );
+            wallet.setTimeOffset(Long.valueOf(
+                appPreferences.getString("cryptoComTimeOffset", "-1000")
             ));
+            wallets.add(wallet);
         }
         eurValueSupplier = null;
         if (isStringNotEmpty(binanceApiKey) && isStringNotEmpty(binanceApiSecret)) {
-            Wallet wallet = new BinanceWallet(
+            BinanceWallet wallet = new BinanceWallet(
                 RestTemplateSupplier.getSharedInstance().get(),
                 executorService,
                 binanceApiKey,
@@ -210,7 +215,7 @@ public class MainFragment extends Fragment {
                                 }
                             }
                             if (remainedAttempts < 0) {
-                                Toast.makeText(getActivity(), "Maximum number of attempts reached", Toast.LENGTH_LONG).show();
+                                LoggerChain.getInstance().logError("Maximum number of attempts reached");
                             }
                             getActivity().runOnUiThread(() -> {
                                 ((ProgressBar) getView().findViewById(R.id.updateReportProgressBar)).setVisibility(View.INVISIBLE);
@@ -221,7 +226,7 @@ public class MainFragment extends Fragment {
                             });
                         }, 30, TimeUnit.SECONDS);
                     } catch (Throwable exc) {
-                        Toast.makeText(getActivity(), "Could not update report: " + exc.getMessage(), Toast.LENGTH_LONG).show();
+                        LoggerChain.getInstance().logError("Could not update report: " + exc.getMessage());
                         getActivity().runOnUiThread(() -> {
                             updateButton.setEnabled(true);
                         });
@@ -355,7 +360,12 @@ public class MainFragment extends Fragment {
                                     () ->
                                         wallet.getBalance(),
                                     fragment.executorService
-                                )
+                                ).exceptionally(exc -> {
+                                    if (!(exc instanceof HttpClientErrorException)) {
+                                        LoggerChain.getInstance().logError(wallet.getClass().getSimpleName() + " exception occurred: " + exc.getMessage());
+                                    }
+                                    return Throwables.sneakyThrow(exc);
+                                })
                             );
                         }
                         Double eurValue = fragment.eurValueSupplier != null? fragment.eurValueSupplier.get() : null;
@@ -382,7 +392,7 @@ public class MainFragment extends Fragment {
                             }
                         });
                     } catch (Throwable exc) {
-                        Toast.makeText(fragment.getActivity(), "Could not refresh balances: " + exc.getMessage(), Toast.LENGTH_LONG).show();
+
                     }
                     synchronized (this) {
                         try {

@@ -9,6 +9,7 @@ import org.springframework.http.client.HttpComponentsClientHttpRequestFactory;
 import org.springframework.http.converter.json.MappingJackson2HttpMessageConverter;
 import org.springframework.web.client.DefaultResponseErrorHandler;
 import org.springframework.web.client.HttpClientErrorException;
+import org.springframework.web.client.HttpServerErrorException;
 import org.springframework.web.client.RestTemplate;
 
 public class RestTemplateSupplier {
@@ -17,6 +18,7 @@ public class RestTemplateSupplier {
     private Consumer<HttpClientBuilder> httpClientBuilderSetter;
 
     private RestTemplateSupplier(Consumer<HttpClientBuilder> httpClientBuilderSetter) {
+        this();
         this.httpClientBuilderSetter = httpClientBuilderSetter;
     }
 
@@ -71,8 +73,8 @@ public class RestTemplateSupplier {
                         public void handleError(ClientHttpResponse httpResponse) throws IOException {
                             try {
                                 super.handleError(httpResponse);
-                            } catch (HttpClientErrorException exc) {
-                                System.err.println("Http response error: " + exc.getStatusCode().value() + " (" + exc.getStatusText() + "). Body: " + exc.getResponseBodyAsString());
+                            } catch (HttpClientErrorException | HttpServerErrorException exc) {
+                                LoggerChain.getInstance().logError("Http response error: " + exc.getStatusCode().value() + " (" + exc.getStatusText() + "). Body: " + exc.getResponseBodyAsString());
                                 throw exc;
                             }
                         }

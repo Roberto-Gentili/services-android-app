@@ -11,6 +11,7 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.ForkJoinPool;
 
+import org.rg.util.LoggerChain;
 import org.rg.util.RestTemplateSupplier;
 import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.RestTemplate;
@@ -38,6 +39,7 @@ public interface Wallet {
 	    protected Map<String, String> coinCollaterals;
 	    protected RestTemplate restTemplate;
 		protected ExecutorService executorService;
+		protected Long timeOffset;
 
 		public Abst(RestTemplate restTemplate, String apiKey, String apiSecret, Map<String, String> coinCollaterals) {
 			this(restTemplate, null, apiKey, apiSecret, coinCollaterals);
@@ -49,6 +51,7 @@ public interface Wallet {
 			this.coinCollaterals = coinCollaterals;
 			this.restTemplate = Optional.ofNullable(restTemplate).orElseGet(RestTemplateSupplier.getSharedInstance()::get);
 			this.executorService = executorService != null ? executorService : ForkJoinPool.commonPool();
+			this.timeOffset = -1000L;
 		}
 
 
@@ -62,7 +65,7 @@ public interface Wallet {
 				return getValueForCoin(coinName, collateral);
 			} catch (HttpClientErrorException exc) {
 				if (checkExceptionForGetValueForCoin(exc)) {
-					System.err.println("No collateral for coin " + coinName + " on " + this);
+					LoggerChain.getInstance().logError("No collateral for coin " + coinName + " on " + this);
 					synchronized (coinCollaterals) {
 						Map<String, String> coinCollateralsTemp = new LinkedHashMap<>();
 						Map<String, String> oldCoinCollaterals = coinCollaterals;
@@ -117,8 +120,12 @@ public interface Wallet {
 	    }
 
 	    protected Long currentTimeMillis() {
-	        return LocalDateTime.now().atZone(ZoneId.systemDefault()).toInstant().toEpochMilli() - 1000L;
+	        return LocalDateTime.now().atZone(ZoneId.systemDefault()).toInstant().toEpochMilli() + this.timeOffset;
 	    }
+
+		public void setTimeOffset(Long timeOffset) {
+			this.timeOffset = timeOffset;
+		}
 
 	}
 

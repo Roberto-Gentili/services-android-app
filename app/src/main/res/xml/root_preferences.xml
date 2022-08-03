@@ -20,6 +20,10 @@
             app:key="cryptoComApiSecrets"
             app:title="@string/apiSecretsLabelText"
             app:useSimpleSummaryProvider="false" />
+        <EditTextPreference
+            app:key="cryptoComTimeOffset"
+            app:title="@string/timeOffsetLabelText"
+            app:useSimpleSummaryProvider="true" />
     </PreferenceCategory>
 
     <PreferenceCategory app:title="GitHub">
@@ -33,7 +37,7 @@
         <EditTextPreference
             app:key="intervalBetweenRequestGroups"
             app:title="@string/intervalBetweenRequestGroupsTextLabel"
-            app:useSimpleSummaryProvider="false" />
+            app:useSimpleSummaryProvider="true" />
     </PreferenceCategory>
 
 </PreferenceScreen>

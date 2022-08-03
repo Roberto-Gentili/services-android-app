@@ -8,15 +8,22 @@ import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.widget.Toast;
 
 import org.rg.services.ui.main.MainFragment;
 import org.rg.services.ui.main.SettingsFragment;
+import org.rg.util.LoggerChain;
 
 public class MainActivity extends AppCompatActivity {
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        LoggerChain.getInstance().appendExceptionLogger(message -> {
+            runOnUiThread(()-> {
+                Toast.makeText(this, message, Toast.LENGTH_LONG).show();
+            });
+        });
         setContentView(R.layout.activity_main);
         SharedPreferences appPreferences = PreferenceManager.getDefaultSharedPreferences(this);
         if (savedInstanceState == null) {
