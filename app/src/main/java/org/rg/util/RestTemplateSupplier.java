@@ -141,7 +141,7 @@ public class RestTemplateSupplier {
                 "URI: " + request.getURI() +
                 (!request.getHeaders().isEmpty()? " - Headers: " + request.getHeaders().toString() : "") +
                 (body.length > 0? " - body: " + new String(body, StandardCharsets.UTF_8) : "");
-            LoggerChain.getInstance().logDebug(logString);
+            LoggerChain.getInstance().logInfo(logString);
             return execution.execute(request, body);
         }
     }
