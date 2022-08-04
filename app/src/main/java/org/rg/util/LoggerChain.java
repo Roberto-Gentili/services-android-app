@@ -5,8 +5,10 @@ import java.util.function.Consumer;
 public class LoggerChain {
     private static LoggerChain instance;
     private Consumer<String> exceptionLogger;
+    private Consumer<String> debugLogger;
 
     private LoggerChain() {
+        debugLogger = System.out::println;
         exceptionLogger = System.err::println;
     }
 
@@ -33,7 +35,19 @@ public class LoggerChain {
         }
     }
 
+    public void appendDebugLogger(Consumer<String> debugLogger) {
+        if (this.exceptionLogger != null) {
+            this.debugLogger = this.debugLogger.andThen(debugLogger);
+        } else {
+            this.debugLogger = debugLogger;
+        }
+    }
+
     public void logError(String message) {
         exceptionLogger.accept(message);
+    }
+
+    public void logDebug(String message) {
+        debugLogger.accept(message);
     }
 }
