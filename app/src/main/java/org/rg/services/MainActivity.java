@@ -2,9 +2,7 @@ package org.rg.services;
 
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
-import androidx.preference.PreferenceManager;
 
-import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -25,7 +23,6 @@ public class MainActivity extends AppCompatActivity {
             });
         });
         setContentView(R.layout.activity_main);
-        SharedPreferences appPreferences = PreferenceManager.getDefaultSharedPreferences(this);
         if (savedInstanceState == null) {
             goToMainView();
         }
