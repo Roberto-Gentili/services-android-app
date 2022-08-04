@@ -35,8 +35,12 @@ public class LoggerChain {
         }
     }
 
+    public void setDebugLogger(Consumer<String> debugLogger) {
+        this.debugLogger = debugLogger;
+    }
+
     public void appendDebugLogger(Consumer<String> debugLogger) {
-        if (this.exceptionLogger != null) {
+        if (this.debugLogger != null) {
             this.debugLogger = this.debugLogger.andThen(debugLogger);
         } else {
             this.debugLogger = debugLogger;
