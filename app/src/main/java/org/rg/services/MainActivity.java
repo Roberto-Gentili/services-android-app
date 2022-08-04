@@ -11,6 +11,7 @@ import android.widget.Toast;
 import org.rg.services.ui.main.MainFragment;
 import org.rg.services.ui.main.SettingsFragment;
 import org.rg.util.LoggerChain;
+import org.rg.util.RestTemplateSupplier;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -22,6 +23,7 @@ public class MainActivity extends AppCompatActivity {
                 Toast.makeText(this, message, Toast.LENGTH_LONG).show();
             });
         });
+        //RestTemplateSupplier.getSharedInstance().enableRequestLogger();
         setContentView(R.layout.activity_main);
         if (savedInstanceState == null) {
             goToMainView();
