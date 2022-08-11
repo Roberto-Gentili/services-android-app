@@ -1,5 +1,6 @@
 package org.rg.finance;
 
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -41,37 +42,37 @@ public class BinanceWallet extends Wallet.Abst {
         }));
     }
 
-	public BinanceWallet(
-		RestTemplate restTemplate,
-		ExecutorService executorService,
-		String apiKey,
-		String apiSecret) {
-		this(restTemplate, executorService, apiKey, apiSecret, null);
-	}
+    public BinanceWallet(
+            RestTemplate restTemplate,
+            ExecutorService executorService,
+            String apiKey,
+            String apiSecret) {
+        this(restTemplate, executorService, apiKey, apiSecret, null);
+    }
 
     public BinanceWallet(
-        RestTemplate restTemplate,
-        String apiKey,
-        String apiSecret,
-        Map<String, String> coinCollaterals
+            RestTemplate restTemplate,
+            String apiKey,
+            String apiSecret,
+            Map<String, String> coinCollaterals
     ) {
         super(restTemplate, apiKey, apiSecret, coinCollaterals);
     }
 
     public BinanceWallet(
-        RestTemplate restTemplate,
-        String apiKey,
-        String apiSecret
+            RestTemplate restTemplate,
+            String apiKey,
+            String apiSecret
     ) {
         this(restTemplate, null, apiKey, apiSecret, null);
     }
 
-	public BinanceWallet(
-		String apiKey,
-		String apiSecret
-	) {
-		this(null, null, apiKey, apiSecret, null);
-	}
+    public BinanceWallet(
+            String apiKey,
+            String apiSecret
+    ) {
+        this(null, null, apiKey, apiSecret, null);
+    }
 
     @Override
     public Collection<String> getAvailableCoins() {
@@ -229,31 +230,42 @@ public class BinanceWallet extends Wallet.Abst {
     }
 
     private Collection<Map<String, Object>> getStakingPosition(String coinName) {
-        Long currentTimeMillis = currentTimeMillis();
-        Map<String, String> queryParams = new HashMap<>();
-        queryParams = new HashMap<>();
-        queryParams.put("product", "STAKING");
-        if (coinName != null) {
-            queryParams.put("asset", coinName);
+        Collection<Map<String, Object>> responseBodies = new ArrayList<>();
+        Collection<Map<String, Object>> responseBody = null;
+        Long pageIndex = 1L;
+        Long pageSize = 100L;
+        while (responseBody == null || (!responseBody.isEmpty() && responseBody.size() == pageSize)) {
+            Long currentTimeMillis = currentTimeMillis();
+            Map<String, String> queryParams = new HashMap<>();
+            queryParams = new HashMap<>();
+            queryParams.put("product", "STAKING");
+            if (coinName != null) {
+                queryParams.put("asset", coinName);
+            }
+            queryParams.put("current", String.valueOf(pageIndex));
+            queryParams.put("size", String.valueOf(pageSize));
+            queryParams.put("timestamp", String.valueOf(currentTimeMillis));
+            String signature = Signer.accept(joinQueryParameters(queryParams), apiSecret);
+            UriComponentsBuilder uriComponentsBuilder = UriComponentsBuilder.newInstance().scheme("https").host("api.binance.com")
+                    .pathSegment("sapi")
+                    .pathSegment("v1")
+                    .pathSegment("staking")
+                    .pathSegment("position")
+                    .queryParam("product", "STAKING")
+                    .queryParam("current", pageIndex++)
+                    .queryParam("size", pageSize);
+            if (coinName != null) {
+                uriComponentsBuilder = uriComponentsBuilder.queryParam("asset", coinName);
+            }
+            UriComponents uriComponents = uriComponentsBuilder
+                    .queryParam("timestamp", String.valueOf(currentTimeMillis))
+                    .queryParam("signature", signature).build();
+            HttpHeaders headers = new HttpHeaders();
+            headers.add("X-MBX-APIKEY", apiKey);
+            responseBody = restTemplate.exchange(uriComponents.toString(), HttpMethod.GET, new HttpEntity<String>(headers), Collection.class).getBody();
+            responseBodies.addAll(responseBody);
         }
-        queryParams.put("timestamp", String.valueOf(currentTimeMillis));
-        String signature = Signer.accept(joinQueryParameters(queryParams), apiSecret);
-        UriComponentsBuilder uriComponentsBuilder = UriComponentsBuilder.newInstance().scheme("https").host("api.binance.com")
-                .pathSegment("sapi")
-                .pathSegment("v1")
-                .pathSegment("staking")
-                .pathSegment("position")
-                .queryParam("product", "STAKING");
-        if (coinName != null) {
-            uriComponentsBuilder = uriComponentsBuilder.queryParam("asset", coinName);
-        }
-        UriComponents uriComponents = uriComponentsBuilder
-                .queryParam("timestamp", String.valueOf(currentTimeMillis))
-                .queryParam("signature", signature).build();
-        HttpHeaders headers = new HttpHeaders();
-        headers.add("X-MBX-APIKEY", apiKey);
-        return restTemplate.exchange(uriComponents.toString(), HttpMethod.GET, new HttpEntity<String>(headers), Collection.class)
-                .getBody();
+        return responseBodies;
     }
 
     private Collection<Map<String, Object>> getLendingDailyTokenPosition() {
