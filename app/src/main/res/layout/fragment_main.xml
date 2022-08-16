@@ -17,12 +17,22 @@
         android:textColor="#FFFFFF"
         android:textSize="30sp"
         android:visibility="invisible"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="0.063"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintVertical_bias="0.023" />
+        android:layout_marginLeft="15dp"
+        android:layout_marginTop="15dp"/>
+
+    <TextView
+        android:id="@+id/balance"
+        android:layout_width="195dp"
+        android:layout_height="wrap_content"
+        android:textAlignment="viewEnd"
+        android:textColor="#FFFFFF"
+        android:textSize="30sp"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        android:layout_marginRight="15dp"
+        android:layout_marginTop="15dp" />
 
     <TextView
         android:id="@+id/pureBalanceLabel"
@@ -33,42 +43,9 @@
         android:textColor="#FFFFFF"
         android:textSize="30sp"
         android:visibility="invisible"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="0.082"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintVertical_bias="0.081" />
-
-    <TextView
-        android:id="@+id/linkToReport"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="@string/linkToReport"
-        android:textAlignment="viewStart"
-        android:textColor="#FFFFFF"
-        android:textSize="26sp"
-        android:visibility="invisible"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="0.128"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintVertical_bias="0.87" />
-
-    <TextView
-        android:id="@+id/balance"
-        android:layout_width="195dp"
-        android:layout_height="wrap_content"
-        android:textAlignment="viewEnd"
-        android:textColor="#FFFFFF"
-        android:textSize="30sp"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="0.935"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintVertical_bias="0.023" />
+        app:layout_constraintTop_toBottomOf="@id/balanceLabel"
+        android:layout_marginLeft="15dp" />
 
     <TextView
         android:id="@+id/pureBalance"
@@ -77,12 +54,9 @@
         android:textAlignment="viewEnd"
         android:textColor="#FFFFFF"
         android:textSize="30sp"
-        app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="0.925"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintVertical_bias="0.081" />
+        app:layout_constraintTop_toBottomOf="@id/balance"
+        android:layout_marginRight="15dp" />
 
     <TextView
         android:id="@+id/updateTime"
@@ -91,59 +65,14 @@
         android:textAlignment="center"
         android:textColor="#FFFFFF"
         android:textSize="20sp"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="0.189"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintVertical_bias="0.136" />
-
-    <Button
-        android:id="@+id/updateReportButton"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:backgroundTint="#E91E63"
-        android:text="@string/updateReportText"
-        android:visibility="invisible"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="0.074"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintVertical_bias="0.948" />
-
-    <ProgressBar
-        android:id="@+id/progressBar"
-        style="@style/Widget.AppCompat.ProgressBar"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:indeterminateTint="#E91E63"
-        android:visibility="invisible"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="0.498"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintVertical_bias="0.426" />
-
-    <ProgressBar
-        android:id="@+id/updateReportProgressBar"
-        style="@style/Widget.AppCompat.ProgressBar"
-        android:layout_width="30dp"
-        android:layout_height="30dp"
-        android:indeterminateTint="#E91E63"
-        android:visibility="invisible"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="0.461"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintVertical_bias="0.938" />
+        app:layout_constraintTop_toBottomOf="@id/pureBalanceLabel"
+        android:layout_marginLeft="15dp" />
 
     <ScrollView
         android:id="@+id/mainScrollView"
         android:layout_width="fill_parent"
-        android:layout_height="465dp"
+        android:layout_height="390dp"
         android:layout_marginTop="20dp"
         android:orientation="vertical"
         android:visibility="invisible"
@@ -172,6 +101,43 @@
     </ScrollView>
 
     <TextView
+        android:id="@+id/linkToReport"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="@string/linkToReport"
+        android:textAlignment="viewStart"
+        android:textColor="#FFFFFF"
+        android:textSize="26sp"
+        android:visibility="invisible"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/mainScrollView"
+        android:layout_marginTop="15dp"
+        android:layout_marginLeft="15dp" />
+
+    <Button
+        android:id="@+id/updateReportButton"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:backgroundTint="#E91E63"
+        android:text="@string/updateReportText"
+        android:visibility="invisible"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/linkToReport"
+        android:layout_marginLeft="15dp"/>
+
+    <ProgressBar
+        android:id="@+id/updateReportProgressBar"
+        style="@style/Widget.AppCompat.ProgressBar"
+        android:layout_width="30dp"
+        android:layout_height="30dp"
+        android:indeterminateTint="#E91E63"
+        android:visibility="invisible"
+        android:layout_marginTop="8dp"
+        android:layout_marginLeft="4dp"
+        app:layout_constraintStart_toEndOf="@id/updateReportButton"
+        app:layout_constraintTop_toBottomOf="@id/linkToReport"/>
+
+    <TextView
         android:id="@+id/loadingDataAdvisor"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
@@ -186,5 +152,16 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
         app:layout_constraintVertical_bias="0.358" />
+
+    <ProgressBar
+        android:id="@+id/progressBar"
+        style="@style/Widget.AppCompat.ProgressBar"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:indeterminateTint="#E91E63"
+        android:visibility="invisible"
+        app:layout_constraintEnd_toEndOf="@id/loadingDataAdvisor"
+        app:layout_constraintStart_toStartOf="@id/loadingDataAdvisor"
+        app:layout_constraintTop_toBottomOf="@id/loadingDataAdvisor"/>
 
 </androidx.constraintlayout.widget.ConstraintLayout>
