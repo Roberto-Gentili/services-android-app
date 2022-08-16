@@ -71,6 +71,25 @@
 
     <ScrollView
         android:id="@+id/mainScrollView"
+        android:layout_width="wrap_content"
+        android:layout_height="380dp"
+        android:layout_marginTop="20dp"
+        android:visibility="invisible"
+        android:scrollbars="none"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/updateTime">
+        <TableLayout
+            android:id="@+id/mainHorizontalScrollViewLayoutTable"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:layout_centerHorizontal="true" />
+
+    </ScrollView>
+
+   <!--
+    <ScrollView
+        android:id="@+id/mainScrollView"
         android:layout_width="fill_parent"
         android:layout_height="380dp"
         android:layout_marginTop="20dp"
@@ -99,7 +118,7 @@
             </RelativeLayout>
         </HorizontalScrollView>
     </ScrollView>
-
+    -->
     <TextView
         android:id="@+id/linkToReport"
         android:layout_width="wrap_content"
