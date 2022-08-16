@@ -13,7 +13,6 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
-import android.widget.LinearLayout;
 import android.widget.ProgressBar;
 import android.widget.ScrollView;
 import android.widget.TableLayout;
@@ -53,7 +52,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.TreeSet;
 import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ForkJoinPool;
@@ -493,8 +491,8 @@ public class MainFragment extends Fragment {
                     coinsTable.addView(header);
                 }
                 TextView textView = new TextView(fragment.getActivity());
-                textView.setText("   " + text + "   ");
-                textView.setTextSize(16F);
+                textView.setText("  " + text + "  ");
+                textView.setTextSize(19F);
                 float siz = textView.getTextSize();
                 textView.setTextColor(Color.YELLOW);
                 textView.setTypeface(null, Typeface.BOLD);
@@ -541,6 +539,7 @@ public class MainFragment extends Fragment {
                     coinNameTextView.setText(coinName);
                     coinNameTextView.setTextColor(Color.WHITE);
                     coinNameTextView.setGravity(Gravity.LEFT);
+                    coinNameTextView.setTypeface(null, Typeface.BOLD);
                     row.addView(coinNameTextView);
                     coinsTable.addView(row);
                 }

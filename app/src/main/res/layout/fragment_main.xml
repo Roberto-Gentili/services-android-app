@@ -20,7 +20,7 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
         android:layout_marginLeft="15dp"
-        android:layout_marginTop="15dp"/>
+        android:layout_marginTop="30dp"/>
 
     <TextView
         android:id="@+id/balance"
@@ -32,7 +32,7 @@
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintTop_toTopOf="parent"
         android:layout_marginRight="15dp"
-        android:layout_marginTop="15dp" />
+        android:layout_marginTop="30dp" />
 
     <TextView
         android:id="@+id/pureBalanceLabel"
@@ -72,7 +72,7 @@
     <ScrollView
         android:id="@+id/mainScrollView"
         android:layout_width="fill_parent"
-        android:layout_height="390dp"
+        android:layout_height="380dp"
         android:layout_marginTop="20dp"
         android:orientation="vertical"
         android:visibility="invisible"
