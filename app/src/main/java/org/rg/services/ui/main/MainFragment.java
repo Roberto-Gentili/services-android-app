@@ -2,15 +2,22 @@ package org.rg.services.ui.main;
 
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.graphics.Color;
+import android.graphics.Typeface;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.StrictMode;
 import android.text.method.LinkMovementMethod;
+import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
+import android.widget.LinearLayout;
 import android.widget.ProgressBar;
+import android.widget.ScrollView;
+import android.widget.TableLayout;
+import android.widget.TableRow;
 import android.widget.TextView;
 
 import androidx.annotation.NonNull;
@@ -42,13 +49,17 @@ import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
+import java.util.TreeSet;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ForkJoinPool;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
@@ -61,8 +72,10 @@ public class MainFragment extends Fragment {
     private BalanceUpdater balanceUpdater;
     private final DecimalFormatSymbols decimalFormatSymbols;
     private DecimalFormat numberFormatter;
+    private DecimalFormat numberFormatterWithFourDecimals;
     private final DateTimeFormatter dateFormatter;
     private Supplier<Double> eurValueSupplier;
+    private CoinViewManager coinViewManager;
 
     private MainFragment() {
         try {
@@ -110,6 +123,7 @@ public class MainFragment extends Fragment {
         ((TextView)getView().findViewById(R.id.updateTime)).setVisibility(View.INVISIBLE);
         ((TextView)getView().findViewById(R.id.linkToReport)).setVisibility(View.INVISIBLE);
         ((Button)getView().findViewById(R.id.updateReportButton)).setVisibility(View.INVISIBLE);
+        ((ScrollView)getView().findViewById(R.id.mainScrollView)).setVisibility(View.INVISIBLE);
         ((TextView)getView().findViewById(R.id.loadingDataAdvisor)).setVisibility(View.VISIBLE);
         ((ProgressBar)getView().findViewById(R.id.progressBar)).setVisibility(View.VISIBLE);
         String binanceApiKey = appPreferences.getString("binanceApiKey", null);
@@ -140,14 +154,14 @@ public class MainFragment extends Fragment {
             wallets.add(wallet);
             eurValueSupplier = () -> wallet.getValueForCoin("EUR");
         }
-        numberFormatter = eurValueSupplier != null?
-            new DecimalFormat("#,##0.00 €", decimalFormatSymbols):
-            new DecimalFormat("#,##0.00 $", decimalFormatSymbols);
+        numberFormatter = new DecimalFormat("#,##0.00", decimalFormatSymbols);
+        numberFormatterWithFourDecimals = new DecimalFormat("#,##0.0000", decimalFormatSymbols);
         if (!wallets.isEmpty()) {
             startBalanceUpdating();
         } else {
             ((MainActivity)getActivity()).goToSettingsView();
         }
+        coinViewManager = new CoinViewManager(this);
     }
 
     public boolean canRun() {
@@ -321,91 +335,6 @@ public class MainFragment extends Fragment {
         };
     }
 
-    private static class BalanceUpdater {
-        private boolean isAlive;
-        private final MainFragment fragment;
-
-        private BalanceUpdater(MainFragment fragment) {
-            this.fragment = fragment;
-        }
-
-        private void activate() {
-            System.out.println("Wallet updater " + this + " activated");
-            isAlive = true;
-            TextView balanceLabel = (TextView) fragment.getView().findViewById(R.id.balanceLabel);
-            TextView pureBalanceLabel = (TextView) fragment.getView().findViewById(R.id.pureBalanceLabel);
-            TextView balance = (TextView) fragment.getView().findViewById(R.id.balance);
-            TextView pureBalance = (TextView) fragment.getView().findViewById(R.id.pureBalance);
-            TextView updateTime = (TextView) fragment.getView().findViewById(R.id.updateTime);
-            TextView linkToReport = (TextView) fragment.getView().findViewById(R.id.linkToReport);
-            TextView loadingDataAdvisor = (TextView) fragment.getView().findViewById(R.id.loadingDataAdvisor);
-            Button updateReportButton = (Button)fragment.getView().findViewById(R.id.updateReportButton);
-            ProgressBar progressBar = (ProgressBar)fragment.getView().findViewById(R.id.progressBar);
-            CompletableFuture.runAsync(() -> {
-                System.out.println("Wallet updater " + this + " starting");
-                while (isAlive) {
-                    try {
-                        Collection<CompletableFuture<Double>> tasks = new ArrayList<>();
-                        for (Wallet wallet : fragment.wallets) {
-                            tasks.add(
-                                CompletableFuture.supplyAsync(
-                                    () ->
-                                        wallet.getBalance(),
-                                    fragment.executorService
-                                ).exceptionally(exc -> {
-                                    if (!(exc instanceof HttpClientErrorException)) {
-                                        LoggerChain.getInstance().logError(wallet.getClass().getSimpleName() + " exception occurred: " + exc.getMessage());
-                                    }
-                                    return Throwables.sneakyThrow(exc);
-                                })
-                            );
-                        }
-                        Double eurValue = fragment.eurValueSupplier != null? fragment.eurValueSupplier.get() : null;
-                        Double summedCoinAmountInUSDT = tasks.stream().mapToDouble(CompletableFuture::join).sum();
-                        Double amount = eurValue != null? summedCoinAmountInUSDT/eurValue : summedCoinAmountInUSDT;
-                        Double pureAmount = ((((((summedCoinAmountInUSDT*99.6D)/100D) - 1)*99.9D)/100D)-eurValue)/eurValue;
-                        tasks.stream().mapToDouble(CompletableFuture::join).sum();
-                        LocalDateTime now = LocalDateTime.now(ZoneId.of("Europe/Rome"));
-                        this.fragment.getActivity().runOnUiThread(()-> {
-                            balance.setText(fragment.numberFormatter.format(amount));
-                            pureBalance.setText(fragment.numberFormatter.format(pureAmount));
-                            updateTime.setText("Last update: " + now.format(fragment.dateFormatter));
-                            loadingDataAdvisor.setVisibility(View.INVISIBLE);
-                            progressBar.setVisibility(View.INVISIBLE);
-                            balanceLabel.setVisibility(View.VISIBLE);
-                            balance.setVisibility(View.VISIBLE);
-                            pureBalanceLabel.setVisibility(View.VISIBLE);
-                            pureBalance.setVisibility(View.VISIBLE);
-                            updateTime.setVisibility(View.VISIBLE);
-                            linkToReport.setMovementMethod(LinkMovementMethod.getInstance());
-                            if (fragment.isStringNotEmpty(fragment.appPreferences.getString("gitHubAuthorizationToken", null))) {
-                                linkToReport.setVisibility(View.VISIBLE);
-                                updateReportButton.setVisibility(View.VISIBLE);
-                            }
-                        });
-                    } catch (Throwable exc) {
-
-                    }
-                    synchronized (this) {
-                        try {
-                            this.wait(Long.valueOf(
-                                this.fragment.appPreferences.getString("intervalBetweenRequestGroups", "0")
-                            ));
-                        } catch (InterruptedException exc) {
-                            exc.printStackTrace();
-                        }
-                    }
-                }
-                System.out.println("Wallet updater " + this + " stopped");
-            });
-        }
-
-        private void stop(){
-            System.out.println("Wallet updater " + this + " stop requested");
-            isAlive = false;
-        }
-    }
-
     @Override
     public void onResume() {
         startBalanceUpdating();
@@ -434,6 +363,268 @@ public class MainFragment extends Fragment {
                 this.balanceUpdater = null;
                 balanceUpdater.stop();
             }
+        }
+    }
+
+    private static class BalanceUpdater {
+        private boolean isAlive;
+        private final MainFragment fragment;
+
+        private BalanceUpdater(MainFragment fragment) {
+            this.fragment = fragment;
+        }
+
+        private void activate() {
+            System.out.println("Wallet updater " + this + " activated");
+            isAlive = true;
+            TextView balanceLabel = (TextView) fragment.getView().findViewById(R.id.balanceLabel);
+            TextView pureBalanceLabel = (TextView) fragment.getView().findViewById(R.id.pureBalanceLabel);
+            TextView balance = (TextView) fragment.getView().findViewById(R.id.balance);
+            TextView pureBalance = (TextView) fragment.getView().findViewById(R.id.pureBalance);
+            TextView updateTime = (TextView) fragment.getView().findViewById(R.id.updateTime);
+            TextView linkToReport = (TextView) fragment.getView().findViewById(R.id.linkToReport);
+            TextView loadingDataAdvisor = (TextView) fragment.getView().findViewById(R.id.loadingDataAdvisor);
+            Button updateReportButton = (Button) fragment.getView().findViewById(R.id.updateReportButton);
+            ProgressBar progressBar = (ProgressBar) fragment.getView().findViewById(R.id.progressBar);
+            ScrollView coinsView = ((ScrollView) fragment.getView().findViewById(R.id.mainScrollView));
+            CompletableFuture.runAsync(() -> {
+                System.out.println("Wallet updater " + this + " starting");
+                while (isAlive) {
+                    try {
+                        fragment.coinViewManager.refresh();
+                        Double eurValue = fragment.coinViewManager.getEuroValue();
+                        Double summedCoinAmountInUSDT = fragment.coinViewManager.getAmountInDollar();
+                        Double amount = eurValue != null ? summedCoinAmountInUSDT / eurValue : summedCoinAmountInUSDT;
+                        Double pureAmount = ((((((summedCoinAmountInUSDT * 99.6D) / 100D) - 1D) * 99.9D) / 100D) - (eurValue != null ? eurValue : 1D)) / (eurValue != null ? eurValue : 1D);
+                        this.fragment.getActivity().runOnUiThread(() -> {
+                            balance.setText(fragment.numberFormatter.format(amount) + (eurValue != null? " €" : " $"));
+                            pureBalance.setText(fragment.numberFormatter.format(pureAmount) + (eurValue != null? " €" : " $"));
+                            updateTime.setText("Last update: " + fragment.coinViewManager.getUpdateTime().format(fragment.dateFormatter));
+                            loadingDataAdvisor.setVisibility(View.INVISIBLE);
+                            progressBar.setVisibility(View.INVISIBLE);
+                            balanceLabel.setVisibility(View.VISIBLE);
+                            balance.setVisibility(View.VISIBLE);
+                            pureBalanceLabel.setVisibility(View.VISIBLE);
+                            pureBalance.setVisibility(View.VISIBLE);
+                            updateTime.setVisibility(View.VISIBLE);
+                            linkToReport.setMovementMethod(LinkMovementMethod.getInstance());
+                            if (fragment.isStringNotEmpty(fragment.appPreferences.getString("gitHubAuthorizationToken", null))) {
+                                linkToReport.setVisibility(View.VISIBLE);
+                                updateReportButton.setVisibility(View.VISIBLE);
+                            }
+                            coinsView.setVisibility(View.VISIBLE);
+                        });
+                    } catch (Throwable exc) {
+
+                    }
+                    synchronized (this) {
+                        try {
+                            this.wait(Long.valueOf(
+                                    this.fragment.appPreferences.getString("intervalBetweenRequestGroups", "0")
+                            ));
+                        } catch (InterruptedException exc) {
+                            exc.printStackTrace();
+                        }
+                    }
+                }
+                System.out.println("Wallet updater " + this + " stopped");
+            });
+        }
+
+        private void stop() {
+            System.out.println("Wallet updater " + this + " stop requested");
+            isAlive = false;
+        }
+    }
+
+    private static class CoinViewManager {
+        private final MainFragment fragment;
+        private List<String> headerLabels;
+        private AtomicReference<Double> eurValueWrapper;
+        private Double amount;
+        private LocalDateTime updateTime;
+
+        private CoinViewManager(MainFragment fragment) {
+            this.fragment = fragment;
+            eurValueWrapper = new AtomicReference<Double>();
+            Collection<String> ownedCoins = new TreeSet<>();
+            Collection<CompletableFuture<Collection<String>>> tasks = new ArrayList<>();
+            for (Wallet wallet : fragment.wallets) {
+                tasks.add(
+                    CompletableFuture.supplyAsync(
+                            () -> {
+                                return wallet.getOwnedCoins();
+                            },
+                            fragment.executorService
+                    ).exceptionally(exc -> {
+                        if (!(exc instanceof HttpClientErrorException)) {
+                            LoggerChain.getInstance().logError(wallet.getClass().getSimpleName() + " exception occurred: " + exc.getMessage());
+                        }
+                        return Throwables.sneakyThrow(exc);
+                    })
+                );
+            }
+            tasks.stream().map(CompletableFuture::join).forEach(ownedCoins::addAll);
+            for (String coinName : ownedCoins) {
+                setQuantityForCoin(coinName, 0D);
+            }
+        }
+
+        private synchronized void buildHeader() {
+            TableLayout coinsTable = (TableLayout) fragment.getActivity().findViewById(R.id.mainHorizontalScrollViewLayoutTable);
+            if (coinsTable.getChildAt(0) != null) {
+                return;
+            }
+            addHeaderColumn("Coin");
+            addHeaderColumn("Quant.");
+            addHeaderColumn("U.P. in $");
+            addHeaderColumn("Am. in $");
+            if (fragment.eurValueSupplier != null) {
+                addHeaderColumn("Am. in €");
+            }
+        }
+
+        private void addHeaderColumn(String text) {
+            fragment.getActivity().runOnUiThread(() -> {
+                TableLayout coinsTable = (TableLayout) fragment.getActivity().findViewById(R.id.mainHorizontalScrollViewLayoutTable);
+                TableRow header = (TableRow) coinsTable.getChildAt(0);
+                if (header == null) {
+                    header = new TableRow(fragment.getActivity());
+                    coinsTable.addView(header);
+                }
+                TextView textView = new TextView(fragment.getActivity());
+                textView.setText("   " + text + "   ");
+                textView.setTextSize(16F);
+                float siz = textView.getTextSize();
+                textView.setTextColor(Color.YELLOW);
+                textView.setTypeface(null, Typeface.BOLD);
+                header.addView(textView);
+            });
+        }
+
+        private void setQuantityForCoin(String coinName, Double value) {
+            setValueForCoin(coinName, value, 1, fragment.numberFormatter);
+        }
+
+        private void setUnitPriceForCoinInDollar(String coinName, Double value) {
+            setValueForCoin(coinName, value, 2, fragment.numberFormatterWithFourDecimals);
+        }
+
+        private void setAmountForCoinInDollar(String coinName, Double value) {
+            setValueForCoin(coinName, value, 3, fragment.numberFormatter);
+        }
+
+        private void setAmountForCoinInEuro(String coinName, Double value) {
+            setValueForCoin(coinName, value, 4, fragment.numberFormatter);
+        }
+
+        private void setValueForCoin(String coinName, Double value, int columnIndex, DecimalFormat numberFormatter) {
+            fragment.getActivity().runOnUiThread(() -> {
+                TableLayout coinsTable = (TableLayout) fragment.getActivity().findViewById(R.id.mainHorizontalScrollViewLayoutTable);
+                int childCount = coinsTable.getChildCount();
+                TableRow row = null;
+                if (childCount > 0) {
+                    for (int i = 0; i < childCount; i++) {
+                        TableRow tempRow = (TableRow) coinsTable.getChildAt(i);
+                        TextView coinNameTextView = (TextView) tempRow.getChildAt(0);
+                        if (coinNameTextView.getText().equals(coinName)) {
+                            row = tempRow;
+                            break;
+                        }
+                    }
+                } else {
+                    buildHeader();
+                }
+                if (row == null) {
+                    row = new TableRow(fragment.getActivity());
+                    TextView coinNameTextView = new TextView(fragment.getActivity());
+                    coinNameTextView.setText(coinName);
+                    coinNameTextView.setTextColor(Color.WHITE);
+                    coinNameTextView.setGravity(Gravity.LEFT);
+                    row.addView(coinNameTextView);
+                    coinsTable.addView(row);
+                }
+                TextView valueTextView = (TextView) row.getChildAt(columnIndex);
+                if (valueTextView == null) {
+                    for (int i = 1; i <= columnIndex; i++) {
+                        valueTextView = new TextView(fragment.getActivity());
+                        valueTextView.setGravity(Gravity.RIGHT);
+                        valueTextView.setTextColor(Color.WHITE);
+                        row.addView(valueTextView);
+                    }
+                    valueTextView = (TextView) row.getChildAt(columnIndex);
+                }
+                valueTextView.setText(numberFormatter.format(value));
+            });
+        }
+
+        public void refresh () {
+            updateTime = LocalDateTime.now(ZoneId.of("Europe/Rome"));
+            if (fragment.eurValueSupplier != null) {
+                eurValueWrapper.set(null);
+            }
+            Collection<CompletableFuture<Double>> tasks = new ArrayList<>();
+            for (Wallet wallet : fragment.wallets) {
+                tasks.add(
+                    CompletableFuture.supplyAsync(
+                        () -> {
+                            Collection<CompletableFuture<Double>> innerTasks = new ArrayList<>();
+                            for (String coinName : wallet.getOwnedCoins()) {
+                                innerTasks.add(CompletableFuture.supplyAsync(() -> {
+                                        Double quantity = wallet.getQuantityForCoin(coinName);
+                                        Double unitPriceInDollar = wallet.getValueForCoin(coinName);
+                                        setQuantityForCoin(coinName, quantity);
+                                        setUnitPriceForCoinInDollar(coinName, unitPriceInDollar);
+                                        setAmountForCoinInDollar(coinName, quantity * unitPriceInDollar);
+                                        if (fragment.eurValueSupplier != null) {
+                                            if (eurValueWrapper.get() == null) {
+                                                synchronized (fragment.eurValueSupplier) {
+                                                    if (eurValueWrapper.get() == null) {
+                                                        eurValueWrapper.set(fragment.eurValueSupplier.get());
+                                                    }
+                                                }
+                                            }
+                                            Double eurValue = eurValueWrapper.get();
+
+                                            setAmountForCoinInEuro(coinName, (quantity * unitPriceInDollar) / eurValue);
+                                        }
+                                        return unitPriceInDollar * quantity;
+                                    },
+                                    fragment.executorService)
+                                );
+                            }
+                            return innerTasks.stream().mapToDouble(CompletableFuture::join).sum();
+                        },
+                        fragment.executorService
+                    ).exceptionally(exc -> {
+                        if (!(exc instanceof HttpClientErrorException)) {
+                            LoggerChain.getInstance().logError(wallet.getClass().getSimpleName() + " exception occurred: " + exc.getMessage());
+                        }
+                        return Throwables.sneakyThrow(exc);
+                    })
+                );
+            }
+            amount = tasks.stream().mapToDouble(CompletableFuture::join).sum();
+        }
+
+        public Double getAmountInDollar() {
+            return amount;
+        }
+
+        public Double getAmountInEuro() {
+            Double eurValue = eurValueWrapper.get();
+            if (eurValue != null) {
+                return amount / eurValue;
+            }
+            return null;
+        }
+
+        public LocalDateTime getUpdateTime() {
+            return updateTime;
+        }
+
+        public Double getEuroValue() {
+            return eurValueWrapper.get();
         }
     }
 }

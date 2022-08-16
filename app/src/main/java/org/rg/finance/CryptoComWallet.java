@@ -111,7 +111,7 @@ public class CryptoComWallet extends Wallet.Abst {
 	protected Double getValueForCoin(String coinName, String collateral) {
         Long currentTimeMillis = currentTimeMillis();
         UriComponents uriComponents = UriComponentsBuilder.newInstance().scheme("https").host("api.crypto.com")
-            .pathSegment("v2").pathSegment("public").pathSegment("get-trades").queryParam("instrument_name", "CRO_" + getCollateralForCoin(coinName))
+            .pathSegment("v2").pathSegment("public").pathSegment("get-trades").queryParam("instrument_name", coinName + "_" + getCollateralForCoin(coinName))
             .build();
         Map<String, Object> params = new HashMap<>();
         params.put("currency", coinName);
