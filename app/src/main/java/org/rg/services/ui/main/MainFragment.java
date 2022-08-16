@@ -21,6 +21,7 @@ import android.widget.TextView;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.core.content.res.ResourcesCompat;
 import androidx.fragment.app.Fragment;
 import androidx.preference.PreferenceManager;
 
@@ -437,7 +438,6 @@ public class MainFragment extends Fragment {
 
     private static class CoinViewManager {
         private final MainFragment fragment;
-        private List<String> headerLabels;
         private AtomicReference<Double> eurValueWrapper;
         private Double amount;
         private LocalDateTime updateTime;
@@ -494,7 +494,7 @@ public class MainFragment extends Fragment {
                 textView.setText("  " + text + "  ");
                 textView.setTextSize(19F);
                 float siz = textView.getTextSize();
-                textView.setTextColor(Color.YELLOW);
+                textView.setTextColor(ResourcesCompat.getColor(fragment.getResources(), R.color.yellow, null));
                 textView.setTypeface(null, Typeface.BOLD);
                 header.addView(textView);
             });
