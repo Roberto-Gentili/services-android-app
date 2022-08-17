@@ -14,6 +14,8 @@
     <string name="pureBalanceText">Pure balance:</string>
     <string name="reportUrl">&reportUrl;</string>
     <string name="settingsLabelText">Settings</string>
+    <string name="coinsToBeAlwaysDisplayedLabelText">Always show these coins</string>
+    <string name="showNaNAmountsLabelText">Show NaN amounts</string>
     <string name="timeOffsetLabelText">Time offset (in milliseconds)</string>
     <string name="updateReportText">Update report</string>
 

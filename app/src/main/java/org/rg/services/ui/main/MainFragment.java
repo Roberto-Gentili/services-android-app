@@ -47,12 +47,18 @@ import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
+import java.util.HashMap;
 import java.util.LinkedHashMap;
-import java.util.List;
+import java.util.LinkedHashSet;
 import java.util.Map;
+import java.util.Objects;
+import java.util.TreeMap;
 import java.util.TreeSet;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ForkJoinPool;
@@ -390,31 +396,34 @@ public class MainFragment extends Fragment {
                 System.out.println("Wallet updater " + this + " starting");
                 while (isAlive) {
                     try {
-                        fragment.coinViewManager.refresh();
-                        Double eurValue = fragment.coinViewManager.getEuroValue();
-                        Double summedCoinAmountInUSDT = fragment.coinViewManager.getAmountInDollar();
-                        Double amount = eurValue != null ? summedCoinAmountInUSDT / eurValue : summedCoinAmountInUSDT;
-                        Double pureAmount = ((((((summedCoinAmountInUSDT * 99.6D) / 100D) - 1D) * 99.9D) / 100D) - (eurValue != null ? eurValue : 1D)) / (eurValue != null ? eurValue : 1D);
-                        this.fragment.getActivity().runOnUiThread(() -> {
-                            balance.setText(fragment.numberFormatter.format(amount) + (eurValue != null? " €" : " $"));
-                            pureBalance.setText(fragment.numberFormatter.format(pureAmount) + (eurValue != null? " €" : " $"));
-                            updateTime.setText("Last update: " + fragment.coinViewManager.getUpdateTime().format(fragment.dateFormatter));
-                            loadingDataAdvisor.setVisibility(View.INVISIBLE);
-                            progressBar.setVisibility(View.INVISIBLE);
-                            balanceLabel.setVisibility(View.VISIBLE);
-                            balance.setVisibility(View.VISIBLE);
-                            pureBalanceLabel.setVisibility(View.VISIBLE);
-                            pureBalance.setVisibility(View.VISIBLE);
-                            updateTime.setVisibility(View.VISIBLE);
-                            linkToReport.setMovementMethod(LinkMovementMethod.getInstance());
-                            if (fragment.isStringNotEmpty(fragment.appPreferences.getString("gitHubAuthorizationToken", null))) {
-                                linkToReport.setVisibility(View.VISIBLE);
-                                updateReportButton.setVisibility(View.VISIBLE);
-                            }
-                            coinsView.setVisibility(View.VISIBLE);
-                        });
+                        CoinViewManager coinViewManager = fragment.coinViewManager;
+                        if (coinViewManager != null) {
+                            coinViewManager.refresh();
+                            Double eurValue = coinViewManager.getEuroValue();
+                            Double summedCoinAmountInUSDT = coinViewManager.getAmountInDollar();
+                            Double amount = eurValue != null ? summedCoinAmountInUSDT / eurValue : summedCoinAmountInUSDT;
+                            Double pureAmount = ((((((summedCoinAmountInUSDT * 99.6D) / 100D) - 1D) * 99.9D) / 100D) - (eurValue != null ? eurValue : 1D)) / (eurValue != null ? eurValue : 1D);
+                            this.fragment.getActivity().runOnUiThread(() -> {
+                                balance.setText(fragment.numberFormatter.format(amount) + (eurValue != null ? " €" : " $"));
+                                pureBalance.setText(fragment.numberFormatter.format(pureAmount) + (eurValue != null ? " €" : " $"));
+                                updateTime.setText("Last update: " + coinViewManager.getUpdateTime().format(fragment.dateFormatter));
+                                loadingDataAdvisor.setVisibility(View.INVISIBLE);
+                                progressBar.setVisibility(View.INVISIBLE);
+                                balanceLabel.setVisibility(View.VISIBLE);
+                                balance.setVisibility(View.VISIBLE);
+                                pureBalanceLabel.setVisibility(View.VISIBLE);
+                                pureBalance.setVisibility(View.VISIBLE);
+                                updateTime.setVisibility(View.VISIBLE);
+                                linkToReport.setMovementMethod(LinkMovementMethod.getInstance());
+                                if (fragment.isStringNotEmpty(fragment.appPreferences.getString("gitHubAuthorizationToken", null))) {
+                                    linkToReport.setVisibility(View.VISIBLE);
+                                    updateReportButton.setVisibility(View.VISIBLE);
+                                }
+                                coinsView.setVisibility(View.VISIBLE);
+                            });
+                        }
                     } catch (Throwable exc) {
-
+                        exc.printStackTrace();
                     }
                     synchronized (this) {
                         try {
@@ -438,34 +447,13 @@ public class MainFragment extends Fragment {
 
     private static class CoinViewManager {
         private final MainFragment fragment;
-        private AtomicReference<Double> eurValueWrapper;
-        private Double amount;
-        private LocalDateTime updateTime;
+        private Map<String, Object> currentValues;
+        private Map<String, Collection<Map<String, Double>>> currentCoinValues;
 
         private CoinViewManager(MainFragment fragment) {
             this.fragment = fragment;
-            eurValueWrapper = new AtomicReference<Double>();
-            Collection<String> ownedCoins = new TreeSet<>();
-            Collection<CompletableFuture<Collection<String>>> tasks = new ArrayList<>();
-            for (Wallet wallet : fragment.wallets) {
-                tasks.add(
-                    CompletableFuture.supplyAsync(
-                            () -> {
-                                return wallet.getOwnedCoins();
-                            },
-                            fragment.executorService
-                    ).exceptionally(exc -> {
-                        if (!(exc instanceof HttpClientErrorException)) {
-                            LoggerChain.getInstance().logError(wallet.getClass().getSimpleName() + " exception occurred: " + exc.getMessage());
-                        }
-                        return Throwables.sneakyThrow(exc);
-                    })
-                );
-            }
-            tasks.stream().map(CompletableFuture::join).forEach(ownedCoins::addAll);
-            for (String coinName : ownedCoins) {
-                setQuantityForCoin(coinName, 0D);
-            }
+            this.currentValues = new HashMap<>();
+            this.currentCoinValues = new TreeMap<>();
         }
 
         private synchronized void buildHeader() {
@@ -476,9 +464,10 @@ public class MainFragment extends Fragment {
             addHeaderColumn("Coin");
             addHeaderColumn("Quant.");
             addHeaderColumn("U.P. in $");
-            addHeaderColumn("Am. in $");
             if (fragment.eurValueSupplier != null) {
                 addHeaderColumn("Am. in €");
+            } else {
+                addHeaderColumn("Am. in $");
             }
         }
 
@@ -491,7 +480,7 @@ public class MainFragment extends Fragment {
                     coinsTable.addView(header);
                 }
                 TextView textView = new TextView(fragment.getActivity());
-                textView.setText("  " + text + "  ");
+                textView.setText("    " + text + "    ");
                 textView.setTextSize(19F);
                 float siz = textView.getTextSize();
                 textView.setTextColor(ResourcesCompat.getColor(fragment.getResources(), R.color.yellow, null));
@@ -501,36 +490,23 @@ public class MainFragment extends Fragment {
         }
 
         private void setQuantityForCoin(String coinName, Double value) {
-            setValueForCoin(coinName, value, 1, fragment.numberFormatter);
+            setValueForCoin(coinName, value, 1, fragment.numberFormatterWithFourDecimals);
         }
 
         private void setUnitPriceForCoinInDollar(String coinName, Double value) {
             setValueForCoin(coinName, value, 2, fragment.numberFormatterWithFourDecimals);
         }
 
-        private void setAmountForCoinInDollar(String coinName, Double value) {
+        private void setAmountForCoin(String coinName, Double value) {
             setValueForCoin(coinName, value, 3, fragment.numberFormatter);
-        }
-
-        private void setAmountForCoinInEuro(String coinName, Double value) {
-            setValueForCoin(coinName, value, 4, fragment.numberFormatter);
         }
 
         private void setValueForCoin(String coinName, Double value, int columnIndex, DecimalFormat numberFormatter) {
             fragment.getActivity().runOnUiThread(() -> {
                 TableLayout coinsTable = (TableLayout) fragment.getActivity().findViewById(R.id.mainHorizontalScrollViewLayoutTable);
                 int childCount = coinsTable.getChildCount();
-                TableRow row = null;
-                if (childCount > 0) {
-                    for (int i = 0; i < childCount; i++) {
-                        TableRow tempRow = (TableRow) coinsTable.getChildAt(i);
-                        TextView coinNameTextView = (TextView) tempRow.getChildAt(0);
-                        if (coinNameTextView.getText().equals(coinName)) {
-                            row = tempRow;
-                            break;
-                        }
-                    }
-                } else {
+                TableRow row = getCoinRow(coinName);
+                if (row == null) {
                     buildHeader();
                 }
                 if (row == null) {
@@ -557,42 +533,68 @@ public class MainFragment extends Fragment {
             });
         }
 
-        public void refresh () {
-            updateTime = LocalDateTime.now(ZoneId.of("Europe/Rome"));
-            if (fragment.eurValueSupplier != null) {
-                eurValueWrapper.set(null);
+        private TableRow getCoinRow(String coinName) {
+            TableLayout coinsTable = (TableLayout) fragment.getActivity().findViewById(R.id.mainHorizontalScrollViewLayoutTable);
+            int childCount = coinsTable.getChildCount();
+            if (childCount > 0) {
+                for (int i = 0; i < childCount; i++) {
+                    TableRow coinRow = (TableRow) coinsTable.getChildAt(i);
+                    TextView coinNameTextView = (TextView) coinRow.getChildAt(0);
+                    if (coinNameTextView.getText().equals(coinName)) {
+                        return coinRow;
+                    }
+                }
             }
-            Collection<CompletableFuture<Double>> tasks = new ArrayList<>();
+            return null;
+        }
+
+        private TableRow removeCoinRow(String coinName) {
+            TableLayout coinsTable = (TableLayout) fragment.getActivity().findViewById(R.id.mainHorizontalScrollViewLayoutTable);
+            TableRow coinRow = getCoinRow(coinName);
+            if (coinRow != null) {
+                coinsTable.removeView(coinRow);
+            }
+            return null;
+        }
+
+        public synchronized void refresh () {
+            currentValues.clear();
+            currentCoinValues.values().clear();
+            Collection<String> coinsToBeAlwaysDisplayed = Arrays.asList(fragment.appPreferences.getString("coinsToBeAlwaysDisplayed", "BTC, ETH").toUpperCase().replace(" ", "").split(","));
+            Collection<String> detectedCoins = ConcurrentHashMap.newKeySet();
+            currentValues.put("updateTime", LocalDateTime.now(ZoneId.of("Europe/Rome")));
+            Collection<CompletableFuture<Void>> tasks = new ArrayList<>();
             for (Wallet wallet : fragment.wallets) {
                 tasks.add(
-                    CompletableFuture.supplyAsync(
+                    CompletableFuture.runAsync(
                         () -> {
-                            Collection<CompletableFuture<Double>> innerTasks = new ArrayList<>();
-                            for (String coinName : wallet.getOwnedCoins()) {
-                                innerTasks.add(CompletableFuture.supplyAsync(() -> {
-                                        Double quantity = wallet.getQuantityForCoin(coinName);
-                                        Double unitPriceInDollar = wallet.getValueForCoin(coinName);
-                                        setQuantityForCoin(coinName, quantity);
-                                        setUnitPriceForCoinInDollar(coinName, unitPriceInDollar);
-                                        setAmountForCoinInDollar(coinName, quantity * unitPriceInDollar);
-                                        if (fragment.eurValueSupplier != null) {
-                                            if (eurValueWrapper.get() == null) {
-                                                synchronized (fragment.eurValueSupplier) {
-                                                    if (eurValueWrapper.get() == null) {
-                                                        eurValueWrapper.set(fragment.eurValueSupplier.get());
-                                                    }
-                                                }
+                            Collection<CompletableFuture<Void>> innerTasks = new ArrayList<>();
+                            Collection<String> coinsToBeScanned = wallet.getOwnedCoins();
+                            coinsToBeScanned.addAll(coinsToBeAlwaysDisplayed);
+                            for (String coinName : coinsToBeScanned) {
+                                detectedCoins.add(coinName);
+                                innerTasks.add(CompletableFuture.runAsync(() -> {
+                                        try {
+                                            Double unitPriceInDollar = wallet.getValueForCoin(coinName);
+                                            Double quantity = wallet.getQuantityForCoin(coinName);
+                                            Collection<Map<String, Double>> allCoinValues = null;
+                                            synchronized (currentCoinValues) {
+                                                allCoinValues = currentCoinValues.computeIfAbsent(coinName, key -> new ArrayList<>());
                                             }
-                                            Double eurValue = eurValueWrapper.get();
-
-                                            setAmountForCoinInEuro(coinName, (quantity * unitPriceInDollar) / eurValue);
+                                            Map<String, Double> coinValues = new HashMap<>();
+                                            coinValues.put("unitPrice", unitPriceInDollar);
+                                            coinValues.put("quantity", quantity);
+                                            synchronized (allCoinValues) {
+                                                allCoinValues.add(coinValues);
+                                            }
+                                        } catch (Throwable exc) {
+                                            exc.printStackTrace();
                                         }
-                                        return unitPriceInDollar * quantity;
                                     },
                                     fragment.executorService)
                                 );
                             }
-                            return innerTasks.stream().mapToDouble(CompletableFuture::join).sum();
+                            innerTasks.stream().forEach(CompletableFuture::join);
                         },
                         fragment.executorService
                     ).exceptionally(exc -> {
@@ -603,27 +605,66 @@ public class MainFragment extends Fragment {
                     })
                 );
             }
-            amount = tasks.stream().mapToDouble(CompletableFuture::join).sum();
+            Double euroValue = null;
+            if (fragment.eurValueSupplier != null) {
+                currentValues.put("euroValue", euroValue = fragment.eurValueSupplier.get());
+            }
+            tasks.stream().forEach(task->
+                task.join()
+            );
+            Double amount = 0D;
+            Integer option = 3;
+            if (option == 3) {
+                for (Map.Entry<String, Collection<Map<String, Double>>> allCoinValues : currentCoinValues.entrySet()) {
+                    Double coinQuantity = 0D;
+                    Double coinAmount = 0D;
+                    Double coinValue = 0D;
+                    Double unitPrice = 0D;
+                    for (Map<String, Double> coinValues : allCoinValues.getValue()) {
+                        Double coinQuantityForCoinInWallet = coinValues.get("quantity");
+                        Double unitPriceForCoinInWallet = coinValues.get("unitPrice");
+                        unitPrice += unitPriceForCoinInWallet;
+                        coinQuantity += coinQuantityForCoinInWallet;
+                        coinAmount += coinQuantityForCoinInWallet * unitPriceForCoinInWallet;
+                    }
+                    if (coinAmount != 0 && coinQuantity != 0) {
+                        unitPrice = coinAmount / coinQuantity;
+                    } else if (unitPrice == 0) {
+                        coinAmount = unitPrice = Double.NaN;
+                    } else {
+                        unitPrice /= allCoinValues.getValue().stream().filter(map -> map.get("unitPrice") > 0D).collect(Collectors.toList()).size();
+                    }
+                    if (!coinAmount.isNaN() || fragment.appPreferences.getBoolean("showNaNAmounts", true)) {
+                        setQuantityForCoin(allCoinValues.getKey(), coinQuantity);
+                        setAmountForCoin(allCoinValues.getKey(), coinAmount);
+                        amount += (!coinAmount.isNaN() ? coinAmount : 0D);
+                        setUnitPriceForCoinInDollar(allCoinValues.getKey(), unitPrice);
+                    } else if (coinAmount.isNaN()) {
+                        removeCoinRow(allCoinValues.getKey());
+                    }
+                }
+            }
+            currentValues.put("amount", amount);
         }
 
         public Double getAmountInDollar() {
-            return amount;
+            return (Double)currentValues.get("amount");
         }
 
         public Double getAmountInEuro() {
-            Double eurValue = eurValueWrapper.get();
-            if (eurValue != null) {
-                return amount / eurValue;
+            Double euroValue = getEuroValue();
+            if (euroValue != null) {
+                return getAmountInDollar() / euroValue;
             }
             return null;
         }
 
         public LocalDateTime getUpdateTime() {
-            return updateTime;
+            return (LocalDateTime)currentValues.get("updateTime");
         }
 
         public Double getEuroValue() {
-            return eurValueWrapper.get();
+            return (Double)currentValues.get("euroValue");
         }
     }
 }
