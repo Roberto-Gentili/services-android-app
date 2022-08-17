@@ -9,6 +9,7 @@ import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.NoSuchElementException;
 import java.util.Optional;
 import java.util.TreeMap;
 import java.util.TreeSet;
@@ -124,14 +125,14 @@ public class CryptoComWallet extends Wallet.Abst {
         ResponseEntity<Map> response = restTemplate.exchange(
                 uriComponents.toString(), HttpMethod.GET,
                 new HttpEntity<ApiRequest>(apiRequestJson, new HttpHeaders()), Map.class);
-        Number value = (Number) ((Collection<Map<Object, Object>>) ((Map<Object, Object>) response.getBody()
-                .get("result")).get("data")).iterator().next().get("p");
-        return value.doubleValue();
+		Number value = (Number) ((Collection<Map<Object, Object>>) ((Map<Object, Object>) response.getBody()
+				.get("result")).get("data")).iterator().next().get("p");
+		return value.doubleValue();
 	}
 
 	@Override
-	protected boolean checkExceptionForGetValueForCoin(HttpClientErrorException exception) {
-		throw exception;
+	protected boolean checkExceptionForGetValueForCoin(Throwable exception) {
+		return exception instanceof NoSuchElementException;
 	}
 
 	@Override

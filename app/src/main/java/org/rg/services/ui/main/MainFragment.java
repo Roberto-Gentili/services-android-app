@@ -621,14 +621,14 @@ public class MainFragment extends Fragment {
                         coinQuantity += coinQuantityForCoinInWallet;
                         coinAmount += coinQuantityForCoinInWallet * unitPriceForCoinInWallet;
                     }
-                    if (coinAmount != 0 && coinQuantity != 0) {
+                    if (coinAmount != 0D && coinQuantity != 0D) {
                         unitPrice = coinAmount / coinQuantity;
-                    } else if (unitPrice == 0) {
+                    } else if (unitPrice == 0D) {
                         coinAmount = unitPrice = Double.NaN;
                     } else {
                         unitPrice /= allCoinValues.getValue().stream().filter(map -> map.get("unitPrice") > 0D).count();
                     }
-                    if (!coinAmount.isNaN() || fragment.appPreferences.getBoolean("showNaNAmounts", true)) {
+                    if (!coinAmount.isNaN() || (fragment.appPreferences.getBoolean("showNaNAmounts", true) && coinQuantity != 0D)) {
                         setQuantityForCoin(allCoinValues.getKey(), coinQuantity);
                         setAmountForCoin(allCoinValues.getKey(), coinAmount);
                         amount += (!coinAmount.isNaN() ? coinAmount : 0D);

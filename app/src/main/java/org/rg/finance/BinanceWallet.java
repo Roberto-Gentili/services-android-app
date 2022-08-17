@@ -153,8 +153,12 @@ public class BinanceWallet extends Wallet.Abst {
     }
 
     @Override
-    protected boolean checkExceptionForGetValueForCoin(HttpClientErrorException exception) {
-        String bodyResponseAsString = exception.getResponseBodyAsString();
+    protected boolean checkExceptionForGetValueForCoin(Throwable exception) {
+        if (!(exception instanceof HttpClientErrorException)) {
+            return false;
+        }
+        HttpClientErrorException castedException = (HttpClientErrorException)exception;
+        String bodyResponseAsString = castedException.getResponseBodyAsString();
         return bodyResponseAsString != null && bodyResponseAsString.toLowerCase().contains("invalid symbol");
     }
 
@@ -162,13 +166,10 @@ public class BinanceWallet extends Wallet.Abst {
     public Double getQuantityForCoin(String coinName) {
         Collection<Map<String, Object>> balances = (Collection<Map<String, Object>>)getAccount().get("balances");
         Iterator<Map<String, Object>> iterator = balances.iterator();
-        Double amount = null;
+        Double amount = 0D;
         while (iterator.hasNext()) {
             Map<String, Object> asset = iterator.next();
             if (coinName.equals(asset.get("asset"))) {
-                if (amount == null) {
-                    amount = 0D;
-                }
                 amount += Double.valueOf((String) asset.get("free"));
                 amount += Double.valueOf((String) asset.get("locked"));
             }
@@ -177,9 +178,6 @@ public class BinanceWallet extends Wallet.Abst {
         while (iterator.hasNext()) {
             Map<String, Object> asset = iterator.next();
             if (coinName.equals(asset.get("asset"))) {
-                if (amount == null) {
-                    amount = 0D;
-                }
                 amount += Double.valueOf((String) asset.get("amount"));
             }
         }
@@ -187,9 +185,6 @@ public class BinanceWallet extends Wallet.Abst {
         while (iterator.hasNext()) {
             Map<String, Object> asset = iterator.next();
             if (coinName.equals(asset.get("asset"))) {
-                if (amount == null) {
-                    amount = 0D;
-                }
                 amount += Double.valueOf((String) asset.get("totalAmount"));
             }
         }

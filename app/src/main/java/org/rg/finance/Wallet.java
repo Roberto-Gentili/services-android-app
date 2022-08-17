@@ -1,5 +1,9 @@
 package org.rg.finance;
 
+import org.rg.util.LoggerChain;
+import org.rg.util.RestTemplateSupplier;
+import org.springframework.web.client.RestTemplate;
+
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.util.ArrayList;
@@ -10,11 +14,6 @@ import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.ForkJoinPool;
-
-import org.rg.util.LoggerChain;
-import org.rg.util.RestTemplateSupplier;
-import org.springframework.web.client.HttpClientErrorException;
-import org.springframework.web.client.RestTemplate;
 
 
 public interface Wallet {
@@ -59,11 +58,11 @@ public interface Wallet {
 		public Double getValueForCoin(String coinName) {
 			String collateral = getCollateralForCoin(coinName);
 			if (collateral == null) {
-				return 0D;
+				return Double.NaN;
 			}
 			try {
 				return getValueForCoin(coinName, collateral);
-			} catch (HttpClientErrorException exc) {
+			} catch (Throwable exc) {
 				if (checkExceptionForGetValueForCoin(exc)) {
 					LoggerChain.getInstance().logError("No collateral for coin " + coinName + " on " + this);
 					synchronized (coinCollaterals) {
@@ -74,7 +73,7 @@ public interface Wallet {
 						coinCollaterals = coinCollateralsTemp;
 						oldCoinCollaterals.clear();
 					}
-					return 0D;
+					return Double.NaN;
 				}
 				throw exc;
 			}
@@ -82,7 +81,7 @@ public interface Wallet {
 
 		protected abstract Double getValueForCoin(String coinName, String collateral);
 
-		protected abstract boolean checkExceptionForGetValueForCoin(HttpClientErrorException exception);
+		protected abstract boolean checkExceptionForGetValueForCoin(Throwable exception);
 
 	    @Override
 		public Double getAmountForCoin(String coinName)  {
