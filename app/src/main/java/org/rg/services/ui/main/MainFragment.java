@@ -580,21 +580,17 @@ public class MainFragment extends Fragment {
                             for (String coinName : coinsToBeScanned) {
                                 detectedCoins.add(coinName);
                                 innerTasks.add(CompletableFuture.runAsync(() -> {
-                                        try {
-                                            Double unitPriceInDollar = wallet.getValueForCoin(coinName);
-                                            Double quantity = wallet.getQuantityForCoin(coinName);
-                                            Collection<Map<String, Double>> allCoinValues = null;
-                                            synchronized (currentCoinValues) {
-                                                allCoinValues = currentCoinValues.computeIfAbsent(coinName, key -> new ArrayList<>());
-                                            }
-                                            Map<String, Double> coinValues = new HashMap<>();
-                                            coinValues.put("unitPrice", unitPriceInDollar);
-                                            coinValues.put("quantity", quantity);
-                                            synchronized (allCoinValues) {
-                                                allCoinValues.add(coinValues);
-                                            }
-                                        } catch (Throwable exc) {
-                                            exc.printStackTrace();
+                                        Double unitPriceInDollar = wallet.getValueForCoin(coinName);
+                                        Double quantity = wallet.getQuantityForCoin(coinName);
+                                        Collection<Map<String, Double>> allCoinValues = null;
+                                        synchronized (currentCoinValues) {
+                                            allCoinValues = currentCoinValues.computeIfAbsent(coinName, key -> new ArrayList<>());
+                                        }
+                                        Map<String, Double> coinValues = new HashMap<>();
+                                        coinValues.put("unitPrice", unitPriceInDollar);
+                                        coinValues.put("quantity", quantity);
+                                        synchronized (allCoinValues) {
+                                            allCoinValues.add(coinValues);
                                         }
                                     },
                                     fragment.executorService)
