@@ -51,20 +51,15 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
-import java.util.LinkedHashSet;
 import java.util.Map;
-import java.util.Objects;
 import java.util.TreeMap;
-import java.util.TreeSet;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ForkJoinPool;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
-import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
@@ -97,7 +92,7 @@ public class MainFragment extends Fragment {
             decimalFormatSymbols = new DecimalFormatSymbols();
             decimalFormatSymbols.setGroupingSeparator('.');
             decimalFormatSymbols.setDecimalSeparator(',');
-            dateFormatter = DateTimeFormatter.ofPattern("HH:mm:ss - dd/MM/YYYY");
+            dateFormatter = DateTimeFormatter.ofPattern("HH:mm:ss - dd/MM/yyyy");
         } catch (Throwable exc) {
             exc.printStackTrace();
             throw exc;
@@ -482,7 +477,6 @@ public class MainFragment extends Fragment {
                 TextView textView = new TextView(fragment.getActivity());
                 textView.setText("    " + text + "    ");
                 textView.setTextSize(19F);
-                float siz = textView.getTextSize();
                 textView.setTextColor(ResourcesCompat.getColor(fragment.getResources(), R.color.yellow, null));
                 textView.setTypeface(null, Typeface.BOLD);
                 header.addView(textView);
