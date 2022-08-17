@@ -626,7 +626,7 @@ public class MainFragment extends Fragment {
                     } else if (unitPrice == 0) {
                         coinAmount = unitPrice = Double.NaN;
                     } else {
-                        unitPrice /= allCoinValues.getValue().stream().filter(map -> map.get("unitPrice") > 0D).collect(Collectors.toList()).size();
+                        unitPrice /= allCoinValues.getValue().stream().filter(map -> map.get("unitPrice") > 0D).count();
                     }
                     if (!coinAmount.isNaN() || fragment.appPreferences.getBoolean("showNaNAmounts", true)) {
                         setQuantityForCoin(allCoinValues.getKey(), coinQuantity);
