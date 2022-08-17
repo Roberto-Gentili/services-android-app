@@ -611,9 +611,7 @@ public class MainFragment extends Fragment {
             if (fragment.eurValueSupplier != null) {
                 currentValues.put("euroValue", euroValue = fragment.eurValueSupplier.get());
             }
-            tasks.stream().forEach(task->
-                task.join()
-            );
+            tasks.stream().forEach(CompletableFuture::join);
             Double amount = 0D;
             Integer unitPriceRetrievingMode = Integer.valueOf(fragment.appPreferences.getString("unitPriceRetrievingMode", "3"));
             if (unitPriceRetrievingMode == 1 || unitPriceRetrievingMode == 2) {
