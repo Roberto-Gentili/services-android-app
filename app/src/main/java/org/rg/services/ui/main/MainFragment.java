@@ -41,6 +41,7 @@ import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.util.UriComponents;
 import org.springframework.web.util.UriComponentsBuilder;
 
+import java.nio.CharBuffer;
 import java.text.DecimalFormat;
 import java.text.DecimalFormatSymbols;
 import java.time.LocalDateTime;
@@ -457,17 +458,21 @@ public class MainFragment extends Fragment {
             if (coinsTable.getChildAt(0) != null) {
                 return;
             }
-            addHeaderColumn("Coin");
-            addHeaderColumn("Quant.");
-            addHeaderColumn("U.P. in $");
+            addHeaderColumn("Coin", 1);
+            addHeaderColumn("U.P. in $", 3);
+            addHeaderColumn("Quant.", 4);
             if (fragment.eurValueSupplier != null) {
-                addHeaderColumn("Am. in €");
+                addHeaderColumn("Am. in €", 2);
             } else {
-                addHeaderColumn("Am. in $");
+                addHeaderColumn("Am. in $", 2);
             }
         }
 
         private void addHeaderColumn(String text) {
+            addHeaderColumn(text, 0);
+        }
+
+        private void addHeaderColumn(String text, int emptySpaceCharCount) {
             fragment.getActivity().runOnUiThread(() -> {
                 TableLayout coinsTable = (TableLayout) fragment.getActivity().findViewById(R.id.mainHorizontalScrollViewLayoutTable);
                 TableRow header = (TableRow) coinsTable.getChildAt(0);
@@ -476,19 +481,23 @@ public class MainFragment extends Fragment {
                     coinsTable.addView(header);
                 }
                 TextView textView = new TextView(fragment.getActivity());
-                textView.setText("    " + text + "    ");
-                textView.setTextSize(19F);
+                textView.setText(
+                    CharBuffer.allocate(emptySpaceCharCount).toString().replace( '\0', ' ' ) +
+                    text +
+                    CharBuffer.allocate( emptySpaceCharCount ).toString().replace( '\0', ' ' )
+                );
+                textView.setTextSize(23F);
                 textView.setTextColor(ResourcesCompat.getColor(fragment.getResources(), R.color.yellow, null));
                 textView.setTypeface(null, Typeface.BOLD);
                 header.addView(textView);
             });
         }
 
-        private void setQuantityForCoin(String coinName, Double value) {
+        private void setUnitPriceForCoinInDollar(String coinName, Double value) {
             setValueForCoin(coinName, value, 1, fragment.numberFormatterWithFourDecimals);
         }
 
-        private void setUnitPriceForCoinInDollar(String coinName, Double value) {
+        private void setQuantityForCoin(String coinName, Double value) {
             setValueForCoin(coinName, value, 2, fragment.numberFormatterWithFourDecimals);
         }
 
@@ -508,6 +517,7 @@ public class MainFragment extends Fragment {
                     row = new TableRow(fragment.getActivity());
                     TextView coinNameTextView = new TextView(fragment.getActivity());
                     coinNameTextView.setText(coinName);
+                    coinNameTextView.setTextSize(18F);
                     coinNameTextView.setTextColor(Color.WHITE);
                     coinNameTextView.setGravity(Gravity.LEFT);
                     coinNameTextView.setTypeface(null, Typeface.BOLD);
@@ -518,6 +528,7 @@ public class MainFragment extends Fragment {
                 if (valueTextView == null) {
                     for (int i = 1; i <= columnIndex; i++) {
                         valueTextView = new TextView(fragment.getActivity());
+                        valueTextView.setTextSize(16F);
                         valueTextView.setGravity(Gravity.RIGHT);
                         valueTextView.setTextColor(Color.WHITE);
                         row.addView(valueTextView);
