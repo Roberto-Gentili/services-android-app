@@ -566,7 +566,7 @@ public class MainFragment extends Fragment {
         public synchronized void refresh () {
             currentValues.clear();
             currentCoinValues.values().clear();
-            Collection<String> coinsToBeAlwaysDisplayed = Arrays.asList(fragment.appPreferences.getString("coinsToBeAlwaysDisplayed", "BTC, ETH").toUpperCase().replace(" ", "").split(","));
+            Collection<String> coinsToBeAlwaysDisplayed = Arrays.asList(fragment.appPreferences.getString("coinsToBeAlwaysDisplayed", "BTC, ETH").replace(" ", "").split(","));
             Collection<String> detectedCoins = ConcurrentHashMap.newKeySet();
             currentValues.put("updateTime", LocalDateTime.now(ZoneId.of("Europe/Rome")));
             Collection<CompletableFuture<Void>> tasks = new ArrayList<>();
@@ -631,11 +631,10 @@ public class MainFragment extends Fragment {
                     for (Map<String, Double> coinValues : allCoinValues.getValue()) {
                         Double coinQuantityForCoinInWallet = coinValues.get("quantity");
                         Double unitPriceForCoinInWallet = coinValues.get("unitPrice");
-                        if (unitPrice == null || unitPriceTester.test(unitPriceForCoinInWallet, unitPrice)) {
+                        if (unitPrice == null || unitPrice.isNaN() || unitPriceTester.test(unitPriceForCoinInWallet, unitPrice)) {
                             unitPrice = unitPriceForCoinInWallet;
                         }
-                        unitPrice = unitPriceForCoinInWallet > unitPrice ? unitPriceForCoinInWallet : unitPrice;
-                        coinQuantity += coinQuantityForCoinInWallet;
+                        coinQuantity = sum(coinQuantity, coinQuantityForCoinInWallet);
                     }
                     coinAmount += coinQuantity * unitPrice;
                     if (coinAmount != 0D && coinQuantity != 0D) {
@@ -660,9 +659,9 @@ public class MainFragment extends Fragment {
                     for (Map<String, Double> coinValues : allCoinValues.getValue()) {
                         Double coinQuantityForCoinInWallet = coinValues.get("quantity");
                         Double unitPriceForCoinInWallet = coinValues.get("unitPrice");
-                        unitPrice += unitPriceForCoinInWallet;
-                        coinQuantity += coinQuantityForCoinInWallet;
-                        coinAmount += coinQuantityForCoinInWallet * unitPriceForCoinInWallet;
+                        unitPrice = sum(unitPrice, unitPriceForCoinInWallet);
+                        coinQuantity = sum(coinQuantity, coinQuantityForCoinInWallet);
+                        coinAmount = sum(coinAmount, coinQuantityForCoinInWallet * unitPriceForCoinInWallet);
                     }
                     if (coinAmount != 0D && coinQuantity != 0D) {
                         unitPrice = coinAmount / coinQuantity;
@@ -682,6 +681,14 @@ public class MainFragment extends Fragment {
                 }
             }
             currentValues.put("amount", amount);
+        }
+
+        private Double sum(Double a, Double b) {
+            return a.isNaN()?
+                b :
+                b.isNaN()?
+                    a :
+                    a + b;
         }
 
         public Double getAmountInDollar() {

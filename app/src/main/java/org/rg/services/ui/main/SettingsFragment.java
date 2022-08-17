@@ -33,6 +33,7 @@ public class SettingsFragment extends PreferenceFragmentCompat {
         setPreferenceType("cryptoComApiSecret", InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_VARIATION_PASSWORD);
         setPreferenceType("cryptoComTimeOffset", InputType.TYPE_CLASS_NUMBER | InputType.TYPE_NUMBER_FLAG_SIGNED);
         setPreferenceType("gitHubAuthorizationToken", InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_VARIATION_PASSWORD);
+        setPreferenceType("coinsToBeAlwaysDisplayed", InputType.TYPE_TEXT_FLAG_CAP_CHARACTERS);
         setPreferenceType("intervalBetweenRequestGroups", InputType.TYPE_CLASS_NUMBER);
     }
 

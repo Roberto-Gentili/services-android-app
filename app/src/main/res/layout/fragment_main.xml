@@ -88,38 +88,6 @@
 
     </ScrollView>
 
-   <!--
-    <ScrollView
-        android:id="@+id/mainScrollView"
-        android:layout_width="fill_parent"
-        android:layout_height="380dp"
-        android:layout_marginTop="20dp"
-        android:orientation="vertical"
-        android:visibility="invisible"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/updateTime">
-
-        <HorizontalScrollView
-            android:id="@+id/mainHorizontalScrollView"
-            android:layout_width="fill_parent"
-            android:layout_height="wrap_content">
-
-            <RelativeLayout
-                android:id="@+id/mainHorizontalScrollViewLayout"
-                android:layout_width="fill_parent"
-                android:layout_height="fill_parent"
-                android:layout_gravity="center"
-                android:orientation="vertical">
-
-                <TableLayout
-                    android:id="@+id/mainHorizontalScrollViewLayoutTable"
-                    android:layout_width="match_parent"
-                    android:layout_height="match_parent"
-                    android:layout_centerHorizontal="true" />
-            </RelativeLayout>
-        </HorizontalScrollView>
-    </ScrollView>
-    -->
     <TextView
         android:id="@+id/linkToReport"
         android:layout_width="wrap_content"
