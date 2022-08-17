@@ -608,11 +608,36 @@ public class MainFragment extends Fragment {
             );
             Double amount = 0D;
             Integer option = 3;
-            if (option == 3) {
+            if (option == 1) {
                 for (Map.Entry<String, Collection<Map<String, Double>>> allCoinValues : currentCoinValues.entrySet()) {
                     Double coinQuantity = 0D;
                     Double coinAmount = 0D;
-                    Double coinValue = 0D;
+                    Double unitPrice = 0D;
+                    for (Map<String, Double> coinValues : allCoinValues.getValue()) {
+                        Double coinQuantityForCoinInWallet = coinValues.get("quantity");
+                        Double unitPriceForCoinInWallet = coinValues.get("unitPrice");
+                        unitPrice = unitPriceForCoinInWallet > unitPrice ? unitPriceForCoinInWallet : unitPrice;
+                        coinQuantity += coinQuantityForCoinInWallet;
+                    }
+                    coinAmount += coinQuantity * unitPrice;
+                    if (coinAmount != 0D && coinQuantity != 0D) {
+                        unitPrice = coinAmount / coinQuantity;
+                    } else if (unitPrice == 0D) {
+                        coinAmount = unitPrice = Double.NaN;
+                    }
+                    if (!coinAmount.isNaN() || (fragment.appPreferences.getBoolean("showNaNAmounts", true) && coinQuantity != 0D)) {
+                        setQuantityForCoin(allCoinValues.getKey(), coinQuantity);
+                        setAmountForCoin(allCoinValues.getKey(), coinAmount);
+                        amount += (!coinAmount.isNaN() ? coinAmount : 0D);
+                        setUnitPriceForCoinInDollar(allCoinValues.getKey(), unitPrice);
+                    } else if (coinAmount.isNaN()) {
+                        removeCoinRow(allCoinValues.getKey());
+                    }
+                }
+            } else if (option == 3) {
+                for (Map.Entry<String, Collection<Map<String, Double>>> allCoinValues : currentCoinValues.entrySet()) {
+                    Double coinQuantity = 0D;
+                    Double coinAmount = 0D;
                     Double unitPrice = 0D;
                     for (Map<String, Double> coinValues : allCoinValues.getValue()) {
                         Double coinQuantityForCoinInWallet = coinValues.get("quantity");

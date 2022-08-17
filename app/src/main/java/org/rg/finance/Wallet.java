@@ -1,8 +1,5 @@
-package org.rg.finance;
 
-import org.rg.util.LoggerChain;
-import org.rg.util.RestTemplateSupplier;
-import org.springframework.web.client.RestTemplate;
+package org.rg.finance;
 
 import java.time.LocalDateTime;
 import java.time.ZoneId;
@@ -14,6 +11,10 @@ import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.ForkJoinPool;
+
+import org.rg.util.LoggerChain;
+import org.rg.util.RestTemplateSupplier;
+import org.springframework.web.client.RestTemplate;
 
 
 public interface Wallet {

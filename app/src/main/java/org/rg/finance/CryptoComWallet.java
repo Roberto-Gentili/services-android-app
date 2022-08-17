@@ -24,7 +24,6 @@ import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.util.UriComponents;
 import org.springframework.web.util.UriComponentsBuilder;
@@ -45,7 +44,7 @@ public class CryptoComWallet extends Wallet.Abst {
 		super(restTemplate, executorService, apiKey, apiSecret, Optional.ofNullable(coinCollaterals).orElseGet(()-> {
 			Map<String, String> coinCollateralsTemp = new LinkedHashMap<>();
 			coinCollateralsTemp.put("DEFAULT", "USDT");
-			coinCollateralsTemp.put("LUNC", "USDT");
+			coinCollateralsTemp.put("LUNC", "USDC");
 			coinCollateralsTemp.put("BUSD", "USDT");
 			return coinCollateralsTemp;
 		}));
@@ -132,7 +131,7 @@ public class CryptoComWallet extends Wallet.Abst {
 
 	@Override
 	protected boolean checkExceptionForGetValueForCoin(Throwable exception) {
-		return exception instanceof NoSuchElementException;
+		return exception instanceof NoSuchElementException || exception instanceof ClassCastException ;
 	}
 
 	@Override
