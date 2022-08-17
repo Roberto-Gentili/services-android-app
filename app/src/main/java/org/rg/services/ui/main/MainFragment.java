@@ -60,6 +60,7 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.ForkJoinPool;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
+import java.util.function.BiPredicate;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
@@ -607,15 +608,21 @@ public class MainFragment extends Fragment {
                 task.join()
             );
             Double amount = 0D;
-            Integer option = 3;
-            if (option == 1) {
+            Integer unitPriceRetrievingMode = Integer.valueOf(fragment.appPreferences.getString("unitPriceRetrievingMode", "3"));
+            if (unitPriceRetrievingMode == 1 || unitPriceRetrievingMode == 2) {
+                BiPredicate<Double, Double> unitPriceTester = unitPriceRetrievingMode == 1 ?
+                    (valueOne, valueTwo) -> valueTwo == null || valueTwo > valueOne :
+                    (valueOne, valueTwo) -> valueTwo == null || valueOne > valueTwo;
                 for (Map.Entry<String, Collection<Map<String, Double>>> allCoinValues : currentCoinValues.entrySet()) {
                     Double coinQuantity = 0D;
                     Double coinAmount = 0D;
-                    Double unitPrice = 0D;
+                    Double unitPrice = null;
                     for (Map<String, Double> coinValues : allCoinValues.getValue()) {
                         Double coinQuantityForCoinInWallet = coinValues.get("quantity");
                         Double unitPriceForCoinInWallet = coinValues.get("unitPrice");
+                        if (unitPriceTester.test(unitPriceForCoinInWallet, unitPrice)) {
+                            unitPrice = unitPriceForCoinInWallet;
+                        }
                         unitPrice = unitPriceForCoinInWallet > unitPrice ? unitPriceForCoinInWallet : unitPrice;
                         coinQuantity += coinQuantityForCoinInWallet;
                     }
@@ -634,7 +641,7 @@ public class MainFragment extends Fragment {
                         removeCoinRow(allCoinValues.getKey());
                     }
                 }
-            } else if (option == 3) {
+            } else if (unitPriceRetrievingMode == 3) {
                 for (Map.Entry<String, Collection<Map<String, Double>>> allCoinValues : currentCoinValues.entrySet()) {
                     Double coinQuantity = 0D;
                     Double coinAmount = 0D;

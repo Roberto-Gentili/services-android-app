@@ -39,6 +39,14 @@
             app:title="@string/showNaNAmountsLabelText"
             app:defaultValue="true" />
 
+        <ListPreference
+            app:key="unitPriceRetrievingMode"
+            app:title="Unit price retrieving mode"
+            app:defaultValue="3"
+            app:entries="@array/unitPriceRetrievingModeLabels"
+            app:entryValues="@array/unitPriceRetrievingModeIds"
+            app:useSimpleSummaryProvider="true" />
+
         <EditTextPreference
             app:key="coinsToBeAlwaysDisplayed"
             app:title="@string/coinsToBeAlwaysDisplayedLabelText"
