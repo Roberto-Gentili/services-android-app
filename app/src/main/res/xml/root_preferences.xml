@@ -34,11 +34,6 @@
     </PreferenceCategory>
 
     <PreferenceCategory app:title="General settings">
-        <EditTextPreference
-            app:key="intervalBetweenRequestGroups"
-            app:title="@string/intervalBetweenRequestGroupsTextLabel"
-            app:useSimpleSummaryProvider="true" />
-
         <CheckBoxPreference
             app:key="showNaNAmounts"
             app:title="@string/showNaNAmountsLabelText"
@@ -49,6 +44,11 @@
             app:title="@string/coinsToBeAlwaysDisplayedLabelText"
             app:useSimpleSummaryProvider="true"
             app:defaultValue="BTC, ETH"/>
+
+        <EditTextPreference
+            app:key="intervalBetweenRequestGroups"
+            app:title="@string/intervalBetweenRequestGroupsTextLabel"
+            app:useSimpleSummaryProvider="true" />
 
     </PreferenceCategory>
 
