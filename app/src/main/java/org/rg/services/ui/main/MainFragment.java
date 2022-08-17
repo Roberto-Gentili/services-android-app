@@ -611,8 +611,8 @@ public class MainFragment extends Fragment {
             Integer unitPriceRetrievingMode = Integer.valueOf(fragment.appPreferences.getString("unitPriceRetrievingMode", "3"));
             if (unitPriceRetrievingMode == 1 || unitPriceRetrievingMode == 2) {
                 BiPredicate<Double, Double> unitPriceTester = unitPriceRetrievingMode == 1 ?
-                    (valueOne, valueTwo) -> valueTwo == null || valueTwo > valueOne :
-                    (valueOne, valueTwo) -> valueTwo == null || valueOne > valueTwo;
+                    (valueOne, valueTwo) -> valueOne < valueTwo :
+                    (valueOne, valueTwo) -> valueOne > valueTwo;
                 for (Map.Entry<String, Collection<Map<String, Double>>> allCoinValues : currentCoinValues.entrySet()) {
                     Double coinQuantity = 0D;
                     Double coinAmount = 0D;
@@ -620,7 +620,7 @@ public class MainFragment extends Fragment {
                     for (Map<String, Double> coinValues : allCoinValues.getValue()) {
                         Double coinQuantityForCoinInWallet = coinValues.get("quantity");
                         Double unitPriceForCoinInWallet = coinValues.get("unitPrice");
-                        if (unitPriceTester.test(unitPriceForCoinInWallet, unitPrice)) {
+                        if (unitPrice == null || unitPriceTester.test(unitPriceForCoinInWallet, unitPrice)) {
                             unitPrice = unitPriceForCoinInWallet;
                         }
                         unitPrice = unitPriceForCoinInWallet > unitPrice ? unitPriceForCoinInWallet : unitPrice;
