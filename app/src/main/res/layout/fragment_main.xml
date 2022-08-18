@@ -71,7 +71,7 @@
         android:layout_marginLeft="15dp" />
 
     <ScrollView
-        android:id="@+id/mainScrollView"
+        android:id="@+id/coinsView"
         android:layout_width="wrap_content"
         android:layout_height="380dp"
         android:layout_marginTop="20dp"
@@ -81,7 +81,7 @@
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/updateTime">
         <TableLayout
-            android:id="@+id/mainHorizontalScrollViewLayoutTable"
+            android:id="@+id/coinsTableView"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
             android:layout_centerHorizontal="true" />
@@ -98,7 +98,7 @@
         android:textSize="26sp"
         android:visibility="invisible"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/mainScrollView"
+        app:layout_constraintTop_toBottomOf="@id/coinsView"
         android:layout_marginTop="15dp"
         android:layout_marginLeft="15dp" />
 

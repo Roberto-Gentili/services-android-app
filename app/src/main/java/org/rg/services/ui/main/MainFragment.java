@@ -125,7 +125,7 @@ public class MainFragment extends Fragment {
         ((TextView)getView().findViewById(R.id.updateTime)).setVisibility(View.INVISIBLE);
         ((TextView)getView().findViewById(R.id.linkToReport)).setVisibility(View.INVISIBLE);
         ((Button)getView().findViewById(R.id.updateReportButton)).setVisibility(View.INVISIBLE);
-        ((ScrollView)getView().findViewById(R.id.mainScrollView)).setVisibility(View.INVISIBLE);
+        ((ScrollView)getView().findViewById(R.id.coinsView)).setVisibility(View.INVISIBLE);
         ((TextView)getView().findViewById(R.id.loadingDataAdvisor)).setVisibility(View.VISIBLE);
         ((ProgressBar)getView().findViewById(R.id.progressBar)).setVisibility(View.VISIBLE);
         String binanceApiKey = appPreferences.getString("binanceApiKey", null);
@@ -388,7 +388,7 @@ public class MainFragment extends Fragment {
             TextView loadingDataAdvisor = (TextView) fragment.getView().findViewById(R.id.loadingDataAdvisor);
             Button updateReportButton = (Button) fragment.getView().findViewById(R.id.updateReportButton);
             ProgressBar progressBar = (ProgressBar) fragment.getView().findViewById(R.id.progressBar);
-            ScrollView coinsView = ((ScrollView) fragment.getView().findViewById(R.id.mainScrollView));
+            ScrollView coinsView = ((ScrollView) fragment.getView().findViewById(R.id.coinsView));
             CompletableFuture.runAsync(() -> {
                 System.out.println("Wallet updater " + this + " starting");
                 while (isAlive) {
@@ -454,7 +454,7 @@ public class MainFragment extends Fragment {
         }
 
         private synchronized void buildHeader() {
-            TableLayout coinsTable = (TableLayout) fragment.getActivity().findViewById(R.id.mainHorizontalScrollViewLayoutTable);
+            TableLayout coinsTable = (TableLayout) fragment.getActivity().findViewById(R.id.coinsTableView);
             if (coinsTable.getChildAt(0) != null) {
                 return;
             }
@@ -474,7 +474,7 @@ public class MainFragment extends Fragment {
 
         private void addHeaderColumn(String text, int emptySpaceCharCount) {
             fragment.getActivity().runOnUiThread(() -> {
-                TableLayout coinsTable = (TableLayout) fragment.getActivity().findViewById(R.id.mainHorizontalScrollViewLayoutTable);
+                TableLayout coinsTable = (TableLayout) fragment.getActivity().findViewById(R.id.coinsTableView);
                 TableRow header = (TableRow) coinsTable.getChildAt(0);
                 if (header == null) {
                     header = new TableRow(fragment.getActivity());
@@ -507,7 +507,7 @@ public class MainFragment extends Fragment {
 
         private void setValueForCoin(String coinName, Double value, int columnIndex, DecimalFormat numberFormatter) {
             fragment.getActivity().runOnUiThread(() -> {
-                TableLayout coinsTable = (TableLayout) fragment.getActivity().findViewById(R.id.mainHorizontalScrollViewLayoutTable);
+                TableLayout coinsTable = (TableLayout) fragment.getActivity().findViewById(R.id.coinsTableView);
                 int childCount = coinsTable.getChildCount();
                 TableRow row = getCoinRow(coinName);
                 if (row == null) {
@@ -540,7 +540,7 @@ public class MainFragment extends Fragment {
         }
 
         private TableRow getCoinRow(String coinName) {
-            TableLayout coinsTable = (TableLayout) fragment.getActivity().findViewById(R.id.mainHorizontalScrollViewLayoutTable);
+            TableLayout coinsTable = (TableLayout) fragment.getActivity().findViewById(R.id.coinsTableView);
             int childCount = coinsTable.getChildCount();
             if (childCount > 0) {
                 for (int i = 0; i < childCount; i++) {
@@ -555,7 +555,7 @@ public class MainFragment extends Fragment {
         }
 
         private TableRow removeCoinRow(String coinName) {
-            TableLayout coinsTable = (TableLayout) fragment.getActivity().findViewById(R.id.mainHorizontalScrollViewLayoutTable);
+            TableLayout coinsTable = (TableLayout) fragment.getActivity().findViewById(R.id.coinsTableView);
             TableRow coinRow = getCoinRow(coinName);
             if (coinRow != null) {
                 coinsTable.removeView(coinRow);
