@@ -44,6 +44,7 @@ import org.springframework.web.util.UriComponentsBuilder;
 import java.nio.CharBuffer;
 import java.text.DecimalFormat;
 import java.text.DecimalFormatSymbols;
+import java.text.ParseException;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
@@ -74,6 +75,7 @@ public class MainFragment extends Fragment {
     private BalanceUpdater balanceUpdater;
     private final DecimalFormatSymbols decimalFormatSymbols;
     private DecimalFormat numberFormatter;
+    private DecimalFormat numberFormatterWithCurrency;
     private DecimalFormat numberFormatterWithFourDecimals;
     private final DateTimeFormatter dateFormatter;
     private Supplier<Double> eurValueSupplier;
@@ -122,6 +124,8 @@ public class MainFragment extends Fragment {
         ((TextView)getView().findViewById(R.id.pureBalanceLabel)).setVisibility(View.INVISIBLE);
         ((TextView)getView().findViewById(R.id.balance)).setVisibility(View.INVISIBLE);
         ((TextView)getView().findViewById(R.id.pureBalance)).setVisibility(View.INVISIBLE);
+        ((TextView)getView().findViewById(R.id.balanceCurrency)).setVisibility(View.INVISIBLE);
+        ((TextView)getView().findViewById(R.id.pureBalanceCurrency)).setVisibility(View.INVISIBLE);
         ((TextView)getView().findViewById(R.id.updateTime)).setVisibility(View.INVISIBLE);
         ((TextView)getView().findViewById(R.id.linkToReport)).setVisibility(View.INVISIBLE);
         ((Button)getView().findViewById(R.id.updateReportButton)).setVisibility(View.INVISIBLE);
@@ -156,6 +160,13 @@ public class MainFragment extends Fragment {
             wallets.add(wallet);
             eurValueSupplier = () -> wallet.getValueForCoin("EUR");
         }
+        if (isCurrencyInEuro()) {
+            ((TextView)getView().findViewById(R.id.balanceCurrency)).setText("€");
+            ((TextView)getView().findViewById(R.id.pureBalanceCurrency)).setText("€");
+        } else {
+            ((TextView)getView().findViewById(R.id.balanceCurrency)).setText("$");
+            ((TextView)getView().findViewById(R.id.pureBalanceCurrency)).setText("$");
+        }
         numberFormatter = new DecimalFormat("#,##0.00", decimalFormatSymbols);
         numberFormatterWithFourDecimals = new DecimalFormat("#,##0.0000", decimalFormatSymbols);
         if (!wallets.isEmpty()) {
@@ -164,6 +175,10 @@ public class MainFragment extends Fragment {
             ((MainActivity)getActivity()).goToSettingsView();
         }
         coinViewManager = new CoinViewManager(this);
+    }
+
+    private boolean isCurrencyInEuro() {
+        return eurValueSupplier != null;
     }
 
     public boolean canRun() {
@@ -368,6 +383,36 @@ public class MainFragment extends Fragment {
         }
     }
 
+    private void setHighlightedValue(TextView textView, DecimalFormat numberFormatter, Double newValue) {
+        String previousValueAsString = String.valueOf(textView.getText());
+        String currentValueAsString = numberFormatter.format(newValue);
+        if (!previousValueAsString.isEmpty() && !previousValueAsString.equals(currentValueAsString)) {
+            try {
+                if (numberFormatter.parse(currentValueAsString).doubleValue() > numberFormatter.parse(previousValueAsString).doubleValue()) {
+                    textView.setTextColor(Color.GREEN);
+                } else {
+                    textView.setTextColor(Color.RED);
+                }
+            } catch (ParseException e) {
+            }
+            textView.setText(currentValueAsString);
+            CompletableFuture.runAsync(() -> {
+                getActivity().runOnUiThread(() -> {
+                    synchronized (textView) {
+                        try {
+                            textView.wait(150);
+                        } catch (InterruptedException e) {
+
+                        }
+                    }
+                    textView.setTextColor(Color.WHITE);
+                });
+            });
+        } else {
+            textView.setText(currentValueAsString);
+        }
+    }
+
     private static class BalanceUpdater {
         private boolean isAlive;
         private final MainFragment fragment;
@@ -383,6 +428,8 @@ public class MainFragment extends Fragment {
             TextView pureBalanceLabel = (TextView) fragment.getView().findViewById(R.id.pureBalanceLabel);
             TextView balance = (TextView) fragment.getView().findViewById(R.id.balance);
             TextView pureBalance = (TextView) fragment.getView().findViewById(R.id.pureBalance);
+            TextView balanceCurrency = (TextView) fragment.getView().findViewById(R.id.balanceCurrency);
+            TextView pureBalanceCurrency = (TextView) fragment.getView().findViewById(R.id.pureBalanceCurrency);
             TextView updateTime = (TextView) fragment.getView().findViewById(R.id.updateTime);
             TextView linkToReport = (TextView) fragment.getView().findViewById(R.id.linkToReport);
             TextView loadingDataAdvisor = (TextView) fragment.getView().findViewById(R.id.loadingDataAdvisor);
@@ -396,19 +443,21 @@ public class MainFragment extends Fragment {
                         CoinViewManager coinViewManager = fragment.coinViewManager;
                         if (coinViewManager != null) {
                             coinViewManager.refresh();
-                            Double eurValue = coinViewManager.getEuroValue();
+                            Double eurValue = fragment.isCurrencyInEuro() ? coinViewManager.getEuroValue() : null;
                             Double summedCoinAmountInUSDT = coinViewManager.getAmountInDollar();
-                            Double amount = eurValue != null ? summedCoinAmountInUSDT / eurValue : summedCoinAmountInUSDT;
+                            Double amount = fragment.isCurrencyInEuro() ? summedCoinAmountInUSDT / eurValue : summedCoinAmountInUSDT;
                             Double pureAmount = ((((((summedCoinAmountInUSDT * 99.6D) / 100D) - 1D) * 99.9D) / 100D) - (eurValue != null ? eurValue : 1D)) / (eurValue != null ? eurValue : 1D);
                             this.fragment.getActivity().runOnUiThread(() -> {
-                                balance.setText(fragment.numberFormatter.format(amount) + (eurValue != null ? " €" : " $"));
-                                pureBalance.setText(fragment.numberFormatter.format(pureAmount) + (eurValue != null ? " €" : " $"));
+                                fragment.setHighlightedValue(balance, fragment.numberFormatter, amount);
+                                fragment.setHighlightedValue(pureBalance, fragment.numberFormatter, pureAmount);
                                 updateTime.setText("Last update: " + coinViewManager.getUpdateTime().format(fragment.dateFormatter));
                                 loadingDataAdvisor.setVisibility(View.INVISIBLE);
                                 progressBar.setVisibility(View.INVISIBLE);
                                 balanceLabel.setVisibility(View.VISIBLE);
+                                balanceCurrency.setVisibility(View.VISIBLE);
                                 balance.setVisibility(View.VISIBLE);
                                 pureBalanceLabel.setVisibility(View.VISIBLE);
+                                pureBalanceCurrency.setVisibility(View.VISIBLE);
                                 pureBalance.setVisibility(View.VISIBLE);
                                 updateTime.setVisibility(View.VISIBLE);
                                 linkToReport.setMovementMethod(LinkMovementMethod.getInstance());
@@ -461,7 +510,7 @@ public class MainFragment extends Fragment {
             addHeaderColumn("Coin", 1);
             addHeaderColumn("U.P. in $", 3);
             addHeaderColumn("Quant.", 4);
-            if (fragment.eurValueSupplier != null) {
+            if (fragment.isCurrencyInEuro()) {
                 addHeaderColumn("Am. in €", 2);
             } else {
                 addHeaderColumn("Am. in $", 2);
@@ -535,7 +584,7 @@ public class MainFragment extends Fragment {
                     }
                     valueTextView = (TextView) row.getChildAt(columnIndex);
                 }
-                valueTextView.setText(numberFormatter.format(value));
+                fragment.setHighlightedValue(valueTextView, numberFormatter, value);
             });
         }
 
@@ -608,7 +657,7 @@ public class MainFragment extends Fragment {
                 );
             }
             Double euroValue = null;
-            if (fragment.eurValueSupplier != null) {
+            if (fragment.isCurrencyInEuro()) {
                 currentValues.put("euroValue", euroValue = fragment.eurValueSupplier.get());
             }
             tasks.stream().forEach(CompletableFuture::join);

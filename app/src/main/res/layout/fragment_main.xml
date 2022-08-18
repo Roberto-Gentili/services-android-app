@@ -24,10 +24,22 @@
 
     <TextView
         android:id="@+id/balance"
-        android:layout_width="195dp"
+        android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:textAlignment="viewEnd"
         android:textColor="#FFFFFF"
+        android:textSize="30sp"
+        app:layout_constraintEnd_toStartOf="@+id/balanceCurrency"
+        app:layout_constraintTop_toTopOf="parent"
+        android:layout_marginTop="30dp"
+        android:layout_marginRight="5dp" />
+
+    <TextView
+        android:id="@+id/balanceCurrency"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:textAlignment="viewEnd"
+        android:textColor="@color/yellow"
         android:textSize="30sp"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintTop_toTopOf="parent"
@@ -49,13 +61,24 @@
 
     <TextView
         android:id="@+id/pureBalance"
-        android:layout_width="195dp"
+        android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:textAlignment="viewEnd"
         android:textColor="#FFFFFF"
         android:textSize="30sp"
-        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintEnd_toStartOf="@+id/balanceCurrency"
         app:layout_constraintTop_toBottomOf="@id/balance"
+        android:layout_marginRight="5dp" />
+
+    <TextView
+        android:id="@+id/pureBalanceCurrency"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:textAlignment="viewEnd"
+        android:textColor="@color/yellow"
+        android:textSize="30sp"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/balanceCurrency"
         android:layout_marginRight="15dp" />
 
     <TextView
