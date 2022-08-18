@@ -37,7 +37,6 @@ import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.util.UriComponents;
 import org.springframework.web.util.UriComponentsBuilder;
 
@@ -54,6 +53,7 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.Map;
+import java.util.Objects;
 import java.util.TreeMap;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
@@ -75,7 +75,6 @@ public class MainFragment extends Fragment {
     private BalanceUpdater balanceUpdater;
     private final DecimalFormatSymbols decimalFormatSymbols;
     private DecimalFormat numberFormatter;
-    private DecimalFormat numberFormatterWithCurrency;
     private DecimalFormat numberFormatterWithFourDecimals;
     private final DateTimeFormatter dateFormatter;
     private Supplier<Double> eurValueSupplier;
@@ -400,7 +399,7 @@ public class MainFragment extends Fragment {
                 getActivity().runOnUiThread(() -> {
                     synchronized (textView) {
                         try {
-                            textView.wait(150);
+                            textView.wait(250);
                         } catch (InterruptedException e) {
 
                         }
@@ -450,7 +449,7 @@ public class MainFragment extends Fragment {
                             this.fragment.getActivity().runOnUiThread(() -> {
                                 fragment.setHighlightedValue(balance, fragment.numberFormatter, amount);
                                 fragment.setHighlightedValue(pureBalance, fragment.numberFormatter, pureAmount);
-                                updateTime.setText("Last update: " + coinViewManager.getUpdateTime().format(fragment.dateFormatter));
+                                updateTime.setText("Last update: " + coinViewManager.getFormattedUpdateTime());
                                 loadingDataAdvisor.setVisibility(View.INVISIBLE);
                                 progressBar.setVisibility(View.INVISIBLE);
                                 balanceLabel.setVisibility(View.VISIBLE);
@@ -613,15 +612,13 @@ public class MainFragment extends Fragment {
         }
 
         public synchronized void refresh () {
-            currentValues.clear();
             currentCoinValues.values().clear();
             Collection<String> coinsToBeAlwaysDisplayed = Arrays.asList(fragment.appPreferences.getString("coinsToBeAlwaysDisplayed", "BTC, ETH").replace(" ", "").split(","));
             Collection<String> detectedCoins = ConcurrentHashMap.newKeySet();
-            currentValues.put("updateTime", LocalDateTime.now(ZoneId.of("Europe/Rome")));
-            Collection<CompletableFuture<Void>> tasks = new ArrayList<>();
+            Collection<CompletableFuture<String>> tasks = new ArrayList<>();
             for (Wallet wallet : fragment.wallets) {
                 tasks.add(
-                    CompletableFuture.runAsync(
+                    CompletableFuture.supplyAsync(
                         () -> {
                             Collection<CompletableFuture<Void>> innerTasks = new ArrayList<>();
                             Collection<String> coinsToBeScanned = wallet.getOwnedCoins();
@@ -646,20 +643,32 @@ public class MainFragment extends Fragment {
                                 );
                             }
                             innerTasks.stream().forEach(CompletableFuture::join);
+                            return (String)null;
                         },
                         fragment.executorService
                     ).exceptionally(exc -> {
-                        if (!(exc instanceof HttpClientErrorException)) {
-                            LoggerChain.getInstance().logError(wallet.getClass().getSimpleName() + " exception occurred: " + exc.getMessage());
-                        }
-                        return Throwables.sneakyThrow(exc);
+                        String exceptionMessage = wallet.getClass().getSimpleName() + " exception occurred: " + exc.getMessage();
+                        LoggerChain.getInstance().logError(exceptionMessage);
+                        return exceptionMessage;
                     })
                 );
             }
             Double euroValue = null;
             if (fragment.isCurrencyInEuro()) {
-                currentValues.put("euroValue", euroValue = fragment.eurValueSupplier.get());
+                try {
+                    euroValue = fragment.eurValueSupplier.get();
+                } catch (Throwable exc) {
+                    LoggerChain.getInstance().logError("Unable to retrieve euro value: " + exc.getMessage());
+                    setToNaNValuesIfNulls();
+                    return;
+                }
             }
+            if (tasks.stream().map(CompletableFuture::join).filter(Objects::nonNull).count() > 0) {
+                setToNaNValuesIfNulls();
+                return;
+            }
+            setEuroValue(euroValue);
+            setUpdateTime(LocalDateTime.now(ZoneId.systemDefault()));
             tasks.stream().forEach(CompletableFuture::join);
             Double amount = 0D;
             Integer unitPriceRetrievingMode = Integer.valueOf(fragment.appPreferences.getString("unitPriceRetrievingMode", "3"));
@@ -723,7 +732,16 @@ public class MainFragment extends Fragment {
                     }
                 }
             }
-            currentValues.put("amount", amount);
+            setAmount(amount);
+        }
+
+        private void setToNaNValuesIfNulls() {
+            if (getAmountInDollar() == null) {
+                setAmount(Double.NaN);
+            }
+            if (getEuroValue() == null) {
+                setEuroValue(Double.NaN);
+            }
         }
 
         private Double sum(Double a, Double b) {
@@ -752,6 +770,27 @@ public class MainFragment extends Fragment {
 
         public Double getEuroValue() {
             return (Double)currentValues.get("euroValue");
+        }
+
+        private void setUpdateTime(LocalDateTime value) {
+            currentValues.put("updateTime", value);
+        }
+
+        private void setEuroValue(Double value) {
+            currentValues.put("euroValue", value);
+        }
+
+        private void setAmount(Double value) {
+            currentValues.put("amount", value);
+        }
+
+        public String getFormattedUpdateTime() {
+            LocalDateTime time = getUpdateTime();
+            if (time != null) {
+                return fragment.dateFormatter.format(time);
+            } else {
+                return "NaN";
+            }
         }
     }
 }
