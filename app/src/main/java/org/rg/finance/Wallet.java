@@ -62,7 +62,9 @@ public interface Wallet {
 				return Double.NaN;
 			}
 			try {
-				return getValueForCoin(coinName, collateral);
+				return coinName.equals(collateral) ?
+					1D :
+					getValueForCoin(coinName, collateral);
 			} catch (Throwable exc) {
 				if (checkExceptionForGetValueForCoin(exc)) {
 					LoggerChain.getInstance().logError("No collateral for coin " + coinName + " on " + this);
