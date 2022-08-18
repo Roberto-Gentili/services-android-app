@@ -56,7 +56,6 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.TreeMap;
 import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ForkJoinPool;
@@ -614,7 +613,6 @@ public class MainFragment extends Fragment {
         public synchronized void refresh () {
             currentCoinValues.values().clear();
             Collection<String> coinsToBeAlwaysDisplayed = Arrays.asList(fragment.appPreferences.getString("coinsToBeAlwaysDisplayed", "BTC, ETH").replace(" ", "").split(","));
-            Collection<String> detectedCoins = ConcurrentHashMap.newKeySet();
             Collection<CompletableFuture<String>> tasks = new ArrayList<>();
             for (Wallet wallet : fragment.wallets) {
                 tasks.add(
@@ -624,7 +622,6 @@ public class MainFragment extends Fragment {
                             Collection<String> coinsToBeScanned = wallet.getOwnedCoins();
                             coinsToBeScanned.addAll(coinsToBeAlwaysDisplayed);
                             for (String coinName : coinsToBeScanned) {
-                                detectedCoins.add(coinName);
                                 innerTasks.add(CompletableFuture.runAsync(() -> {
                                         Double unitPriceInDollar = wallet.getValueForCoin(coinName);
                                         Double quantity = wallet.getQuantityForCoin(coinName);
