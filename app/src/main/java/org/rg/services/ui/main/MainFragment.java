@@ -52,6 +52,7 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Objects;
 import java.util.TreeMap;
@@ -612,7 +613,7 @@ public class MainFragment extends Fragment {
 
         public synchronized void refresh () {
             currentCoinValues.values().clear();
-            Collection<String> coinsToBeAlwaysDisplayed = Arrays.asList(fragment.appPreferences.getString("coinsToBeAlwaysDisplayed", "BTC, ETH").replace(" ", "").split(","));
+            Collection<String> coinsToBeAlwaysDisplayed = Arrays.asList(fragment.appPreferences.getString("coinsToBeAlwaysDisplayed", "BTC, ETH").toUpperCase().replace(" ", "").split(","));
             Collection<CompletableFuture<String>> tasks = new ArrayList<>();
             for (Wallet wallet : fragment.wallets) {
                 tasks.add(
