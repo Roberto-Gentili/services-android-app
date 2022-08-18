@@ -178,7 +178,7 @@ public class MainFragment extends Fragment {
     }
 
     private boolean isCurrencyInEuro() {
-        return eurValueSupplier != null;
+        return eurValueSupplier != null && !appPreferences.getBoolean("useAlwaysTheDollarCurrencyForBalances", false);
     }
 
     public boolean canRun() {
@@ -551,7 +551,7 @@ public class MainFragment extends Fragment {
         }
 
         private void setAmountForCoin(String coinName, Double value) {
-            setValueForCoin(coinName, value, 3, fragment.numberFormatter);
+            setValueForCoin(coinName, fragment.isCurrencyInEuro()? value / getEuroValue() : value, 3, fragment.numberFormatter);
         }
 
         private void setValueForCoin(String coinName, Double value, int columnIndex, DecimalFormat numberFormatter) {

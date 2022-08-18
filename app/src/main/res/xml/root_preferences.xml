@@ -35,6 +35,11 @@
 
     <PreferenceCategory app:title="General settings">
         <CheckBoxPreference
+            app:key="useAlwaysTheDollarCurrencyForBalances"
+            app:title="@string/useAlwaysTheDollarCurrencyForBalancesLabelText"
+            app:defaultValue="false" />
+
+        <CheckBoxPreference
             app:key="showNaNAmounts"
             app:title="@string/showNaNAmountsLabelText"
             app:defaultValue="true" />

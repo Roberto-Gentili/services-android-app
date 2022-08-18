@@ -18,5 +18,6 @@
     <string name="showNaNAmountsLabelText">Show NaN amounts</string>
     <string name="timeOffsetLabelText">Time offset (in milliseconds)</string>
     <string name="updateReportText">Update report</string>
+    <string name="useAlwaysTheDollarCurrencyForBalancesLabelText">Use always the Dollar currency for balances</string>
 
 </resources>
