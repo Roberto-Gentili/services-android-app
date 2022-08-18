@@ -86,7 +86,7 @@
     <ScrollView
         android:id="@+id/coinsView"
         android:layout_width="wrap_content"
-        android:layout_height="405dp"
+        android:layout_height="400dp"
         android:layout_marginTop="20dp"
         android:visibility="invisible"
         android:scrollbars="none"
