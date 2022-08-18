@@ -397,13 +397,17 @@ public class MainFragment extends Fragment {
                 CompletableFuture.runAsync(() -> {
                     getActivity().runOnUiThread(() -> {
                         synchronized (textView) {
+                            try {
+                                textView.wait(250);
+                            } catch (InterruptedException e) {
+
+                            }
                             textView.setTextColor(Color.WHITE);
                         }
                     });
                 });
             } else {
                 textView.setText(currentValueAsString);
-                textView.setTextColor(Color.WHITE);
             }
         }
     }
