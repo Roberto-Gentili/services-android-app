@@ -45,14 +45,11 @@ import java.text.DecimalFormat;
 import java.text.DecimalFormatSymbols;
 import java.text.ParseException;
 import java.time.LocalDateTime;
-import java.time.ZoneId;
-import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
-import java.util.Locale;
 import java.util.Map;
 import java.util.Objects;
 import java.util.TreeMap;
@@ -611,19 +608,22 @@ public class MainFragment extends Fragment {
                                         Collection<String> coinsToBeScanned = wallet.getOwnedCoins();
                                         coinsToBeScanned.addAll(coinsToBeAlwaysDisplayed);
                                         for (String coinName : coinsToBeScanned) {
-                                            innerTasks.add(CompletableFuture.runAsync(() -> {
-                                                                Double unitPriceInDollar = wallet.getValueForCoin(coinName);
-                                                                Double quantity = wallet.getQuantityForCoin(coinName);
-                                                                Map<Wallet, Map<String, Double>> allCoinValues = null;
-                                                                synchronized (currentCoinValues) {
-                                                                    allCoinValues = currentCoinValues.computeIfAbsent(coinName, key -> new ConcurrentHashMap<>());
-                                                                }
-                                                                Map<String, Double> coinValues = new HashMap<>();
-                                                                coinValues.put("unitPrice", unitPriceInDollar);
-                                                                coinValues.put("quantity", quantity);
-                                                                allCoinValues.put(wallet, coinValues);
-                                                            },
-                                                            fragment.executorService)
+                                            innerTasks.add(
+                                                CompletableFuture.runAsync(
+                                                    () -> {
+                                                        Double unitPriceInDollar = wallet.getValueForCoin(coinName);
+                                                        Double quantity = wallet.getQuantityForCoin(coinName);
+                                                        Map<Wallet, Map<String, Double>> allCoinValues = null;
+                                                        synchronized (currentCoinValues) {
+                                                            allCoinValues = currentCoinValues.computeIfAbsent(coinName, key -> new ConcurrentHashMap<>());
+                                                        }
+                                                        Map<String, Double> coinValues = new HashMap<>();
+                                                        coinValues.put("unitPrice", unitPriceInDollar);
+                                                        coinValues.put("quantity", quantity);
+                                                        allCoinValues.put(wallet, coinValues);
+                                                    },
+                                                    fragment.executorService
+                                                )
                                             );
                                         }
                                         innerTasks.stream().forEach(CompletableFuture::join);
