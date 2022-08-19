@@ -30,6 +30,7 @@ import org.rg.finance.CryptoComWallet;
 import org.rg.finance.Wallet;
 import org.rg.services.MainActivity;
 import org.rg.services.R;
+import org.rg.util.AsyncLooper;
 import org.rg.util.LoggerChain;
 import org.rg.util.RestTemplateSupplier;
 import org.rg.util.Throwables;
@@ -55,6 +56,7 @@ import java.util.Objects;
 import java.util.TreeMap;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ForkJoinPool;
@@ -114,7 +116,7 @@ public class MainFragment extends Fragment {
     }
 
     private synchronized void init() {
-        stopBalanceUpdating();
+        stop();
         ((TextView)getView().findViewById(R.id.balanceLabel)).setVisibility(View.INVISIBLE);
         ((TextView)getView().findViewById(R.id.pureBalanceLabel)).setVisibility(View.INVISIBLE);
         ((TextView)getView().findViewById(R.id.balance)).setVisibility(View.INVISIBLE);
@@ -164,11 +166,10 @@ public class MainFragment extends Fragment {
         numberFormatter = new DecimalFormat("#,##0.00", decimalFormatSymbols);
         numberFormatterWithFourDecimals = new DecimalFormat("#,##0.0000", decimalFormatSymbols);
         if (!wallets.isEmpty()) {
-            startBalanceUpdating();
+            activate();
         } else {
             ((MainActivity)getActivity()).goToSettingsView();
         }
-        coinViewManager = new CoinViewManager(this);
     }
 
     private boolean isCurrencyInEuro() {
@@ -234,7 +235,7 @@ public class MainFragment extends Fragment {
                             if (remainedAttempts < 0) {
                                 LoggerChain.getInstance().logError("Maximum number of attempts reached");
                             }
-                            getActivity().runOnUiThread(() -> {
+                            runOnUIThread(() -> {
                                 ((ProgressBar) getView().findViewById(R.id.updateReportProgressBar)).setVisibility(View.INVISIBLE);
                                 updateButton.setEnabled(true);
                                 scheduler.shutdownNow();
@@ -244,7 +245,7 @@ public class MainFragment extends Fragment {
                         }, 30, TimeUnit.SECONDS);
                     } catch (Throwable exc) {
                         LoggerChain.getInstance().logError("Could not update report: " + exc.getMessage());
-                        getActivity().runOnUiThread(() -> {
+                        runOnUIThread(() -> {
                             updateButton.setEnabled(true);
                         });
                         return;
@@ -348,31 +349,40 @@ public class MainFragment extends Fragment {
 
     @Override
     public void onResume() {
-        startBalanceUpdating();
+        activate();
         super.onResume();
     }
 
     @Override
     public void onPause() {
-        stopBalanceUpdating();
+        stop();
         super.onPause();
     }
 
-    private void startBalanceUpdating() {
+    private void activate() {
         synchronized(this) {
             if (this.balanceUpdater == null) {
                 balanceUpdater = new BalanceUpdater(this);
                 balanceUpdater.activate();
             }
+            if (this.coinViewManager == null) {
+                coinViewManager = new CoinViewManager(this);
+                coinViewManager.activate();
+            }
         }
     }
 
-    private void stopBalanceUpdating() {
+    private void stop() {
         synchronized(this) {
             BalanceUpdater balanceUpdater = this.balanceUpdater;
             if (balanceUpdater != null) {
                 this.balanceUpdater = null;
                 balanceUpdater.stop();
+            }
+            CoinViewManager coinViewManager = this.coinViewManager;
+            if (coinViewManager != null) {
+                this.coinViewManager = null;
+                coinViewManager.stop();
             }
         }
     }
@@ -398,17 +408,29 @@ public class MainFragment extends Fragment {
         }
     }
 
+    private void runOnUIThread(Runnable action) {
+        getActivity().runOnUiThread(() -> {
+          try {
+              action.run();
+          } catch (Throwable exc) {
+              LoggerChain.getInstance().logError(exc.getMessage());
+          }
+        });
+    }
+
     private static class BalanceUpdater {
-        private boolean isAlive;
         private final MainFragment fragment;
+        private AsyncLooper updateTask;
 
         private BalanceUpdater(MainFragment fragment) {
             this.fragment = fragment;
         }
 
-        private void activate() {
+        private synchronized void activate() {
+            if (updateTask != null) {
+                return;
+            }
             System.out.println("Wallet updater " + this + " activated");
-            isAlive = true;
             TextView balanceLabel = (TextView) fragment.getView().findViewById(R.id.balanceLabel);
             TextView pureBalanceLabel = (TextView) fragment.getView().findViewById(R.id.pureBalanceLabel);
             TextView balance = (TextView) fragment.getView().findViewById(R.id.balance);
@@ -420,18 +442,16 @@ public class MainFragment extends Fragment {
             Button updateReportButton = (Button) fragment.getView().findViewById(R.id.updateReportButton);
             ProgressBar progressBar = (ProgressBar) fragment.getView().findViewById(R.id.progressBar);
             ScrollView coinsView = ((ScrollView) fragment.getView().findViewById(R.id.coinsView));
-            CompletableFuture.runAsync(() -> {
-                System.out.println("Wallet updater " + this + " starting");
-                while (isAlive) {
-                    try {
-                        CoinViewManager coinViewManager = fragment.coinViewManager;
-                        if (coinViewManager != null) {
-                            coinViewManager.refresh();
+            updateTask = new AsyncLooper(() -> {
+                try {
+                    CoinViewManager coinViewManager = fragment.coinViewManager;
+                    if (coinViewManager != null) {
+                        if (coinViewManager.refresh()) {
                             Double eurValue = fragment.isCurrencyInEuro() ? coinViewManager.getEuroValue() : null;
                             Double summedCoinAmountInUSDT = coinViewManager.getAmountInDollar();
                             Double amount = fragment.isCurrencyInEuro() ? summedCoinAmountInUSDT / eurValue : summedCoinAmountInUSDT;
                             Double pureAmount = ((((((summedCoinAmountInUSDT * 99.6D) / 100D) - 1D) * 99.9D) / 100D) - (eurValue != null ? eurValue : 1D)) / (eurValue != null ? eurValue : 1D);
-                            this.fragment.getActivity().runOnUiThread(() -> {
+                            this.fragment.runOnUIThread(() -> {
                                 fragment.setHighlightedValue(balance, fragment.numberFormatter, amount);
                                 fragment.setHighlightedValue(pureBalance, fragment.numberFormatter, pureAmount);
                                 loadingDataAdvisor.setVisibility(View.INVISIBLE);
@@ -450,26 +470,31 @@ public class MainFragment extends Fragment {
                                 coinsView.setVisibility(View.VISIBLE);
                             });
                         }
-                    } catch (Throwable exc) {
+                    }
+                } catch (Throwable exc) {
+                    exc.printStackTrace();
+                }
+                synchronized (this) {
+                    try {
+                        this.wait(750);
+                    } catch (InterruptedException exc) {
                         exc.printStackTrace();
                     }
-                    synchronized (this) {
-                        try {
-                            this.wait(Long.valueOf(
-                                    this.fragment.appPreferences.getString("intervalBetweenRequestGroups", "0")
-                            ));
-                        } catch (InterruptedException exc) {
-                            exc.printStackTrace();
-                        }
-                    }
                 }
-                System.out.println("Wallet updater " + this + " stopped");
-            });
+            }).activate();
         }
 
         private void stop() {
-            System.out.println("Wallet updater " + this + " stop requested");
-            isAlive = false;
+            AsyncLooper updateTask = null;
+            synchronized (this) {
+                updateTask = this.updateTask;
+                if (updateTask == null) {
+                    return;
+                }
+                System.out.println("Wallet updater " + this + " stop requested");
+                this.updateTask = null;
+            }
+            updateTask.kill();
         }
     }
 
@@ -478,12 +503,14 @@ public class MainFragment extends Fragment {
         private Map<String, Object> currentValues;
         private Map<String, Map<Wallet, Map<String, Double>>> currentCoinValues;
         private Collection<CompletableFuture<String>> retrievingCoinValueTasks;
+        private Collection<String> coinsToBeAlwaysDisplayed;
+        private AsyncLooper retrievingCoinValuesTask;
 
         private CoinViewManager(MainFragment fragment) {
             this.fragment = fragment;
             this.currentValues = new ConcurrentHashMap<>();
             this.currentCoinValues = new TreeMap<>();
-            this.retrievingCoinValueTasks = new ArrayList<>();
+            this.coinsToBeAlwaysDisplayed = Arrays.asList(fragment.appPreferences.getString("coinsToBeAlwaysDisplayed", "BTC, ETH").toUpperCase().replace(" ", "").split(","));
         }
 
         private synchronized void buildHeader() {
@@ -506,7 +533,7 @@ public class MainFragment extends Fragment {
         }
 
         private void addHeaderColumn(String text, int emptySpaceCharCount) {
-            fragment.getActivity().runOnUiThread(() -> {
+            fragment.runOnUIThread(() -> {
                 TableLayout coinsTable = (TableLayout) fragment.getActivity().findViewById(R.id.coinsTableView);
                 TableRow header = (TableRow) coinsTable.getChildAt(0);
                 if (header == null) {
@@ -539,7 +566,7 @@ public class MainFragment extends Fragment {
         }
 
         private void setValueForCoin(String coinName, Double value, int columnIndex, DecimalFormat numberFormatter) {
-            fragment.getActivity().runOnUiThread(() -> {
+            fragment.runOnUIThread(() -> {
                 TableLayout coinsTable = (TableLayout) fragment.getActivity().findViewById(R.id.coinsTableView);
                 int childCount = coinsTable.getChildCount();
                 TableRow row = getCoinRow(coinName);
@@ -596,40 +623,62 @@ public class MainFragment extends Fragment {
             return null;
         }
 
-        public synchronized void refresh () {
-            Collection<String> coinsToBeAlwaysDisplayed = Arrays.asList(fragment.appPreferences.getString("coinsToBeAlwaysDisplayed", "BTC, ETH").toUpperCase().replace(" ", "").split(","));
-            if (retrievingCoinValueTasks.stream().filter(CompletableFuture::isDone).count() == retrievingCoinValueTasks.size()) {
-                retrievingCoinValueTasks.clear();
+        public synchronized void activate() {
+            if (retrievingCoinValuesTask == null) {
+                System.out.println("Coin view manager " + this + " activated");
+                retrievingCoinValuesTask = retrieveCoinValues();
+            }
+        }
+
+
+        private void stop() {
+            AsyncLooper retrievingCoinValuesTask = this.retrievingCoinValuesTask;
+            synchronized (this) {
+                if (retrievingCoinValuesTask == null) {
+                    return;
+                }
+                this.retrievingCoinValuesTask = null;
+            }
+            retrievingCoinValuesTask.kill();
+        }
+
+        private AsyncLooper retrieveCoinValues() {
+            return new AsyncLooper(() -> {
+                Collection<CompletableFuture<String>> retrievingCoinValueTasks = new CopyOnWriteArrayList<>();
                 for (Wallet wallet : fragment.wallets) {
                     retrievingCoinValueTasks.add(
                             CompletableFuture.supplyAsync(
-                                    () -> {
-                                        Collection<CompletableFuture<Void>> innerTasks = new ArrayList<>();
-                                        Collection<String> coinsToBeScanned = wallet.getOwnedCoins();
-                                        coinsToBeScanned.addAll(coinsToBeAlwaysDisplayed);
-                                        for (String coinName : coinsToBeScanned) {
-                                            innerTasks.add(
+                                () -> {
+                                    Collection<CompletableFuture<Void>> innerTasks = new ArrayList<>();
+                                    Collection<String> coinsToBeScanned = wallet.getOwnedCoins();
+                                    coinsToBeScanned.addAll(coinsToBeAlwaysDisplayed);
+                                    for (String coinName : coinsToBeScanned) {
+                                        innerTasks.add(
                                                 CompletableFuture.runAsync(
-                                                    () -> {
-                                                        Double unitPriceInDollar = wallet.getValueForCoin(coinName);
-                                                        Double quantity = wallet.getQuantityForCoin(coinName);
-                                                        Map<Wallet, Map<String, Double>> allCoinValues = null;
-                                                        synchronized (currentCoinValues) {
-                                                            allCoinValues = currentCoinValues.computeIfAbsent(coinName, key -> new ConcurrentHashMap<>());
-                                                        }
-                                                        Map<String, Double> coinValues = new HashMap<>();
-                                                        coinValues.put("unitPrice", unitPriceInDollar);
-                                                        coinValues.put("quantity", quantity);
-                                                        allCoinValues.put(wallet, coinValues);
-                                                    },
-                                                    fragment.executorService
+                                                        () -> {
+                                                            Double unitPriceInDollar = wallet.getValueForCoin(coinName);
+                                                            Double quantity = wallet.getQuantityForCoin(coinName);
+                                                            Map<Wallet, Map<String, Double>> allCoinValues = null;
+                                                            if (currentCoinValues instanceof ConcurrentHashMap) {
+                                                                allCoinValues = currentCoinValues.computeIfAbsent(coinName, key -> new ConcurrentHashMap<>());
+                                                            } else {
+                                                                synchronized (currentCoinValues) {
+                                                                    allCoinValues = currentCoinValues.computeIfAbsent(coinName, key -> new ConcurrentHashMap<>());
+                                                                }
+                                                            }
+                                                            Map<String, Double> coinValues = new HashMap<>();
+                                                            coinValues.put("unitPrice", unitPriceInDollar);
+                                                            coinValues.put("quantity", quantity);
+                                                            allCoinValues.put(wallet, coinValues);
+                                                        },
+                                                        fragment.executorService
                                                 )
-                                            );
-                                        }
-                                        innerTasks.stream().forEach(CompletableFuture::join);
-                                        return (String)null;
-                                    },
-                                    fragment.executorService
+                                        );
+                                    }
+                                    innerTasks.stream().forEach(CompletableFuture::join);
+                                    return (String) null;
+                                },
+                                fragment.executorService
                             ).exceptionally(exc -> {
                                 String exceptionMessage = wallet.getClass().getSimpleName() + " exception occurred: " + exc.getMessage();
                                 LoggerChain.getInstance().logError(exceptionMessage);
@@ -637,27 +686,45 @@ public class MainFragment extends Fragment {
                             })
                     );
                 }
-            }
-            Double euroValue = null;
-            if (fragment.isCurrencyInEuro()) {
-                try {
-                    euroValue = fragment.eurValueSupplier.get();
-                } catch (Throwable exc) {
-                    LoggerChain.getInstance().logError("Unable to retrieve euro value: " + exc.getMessage());
-                    euroValue = getEuroValue();
-                    if (euroValue == null) {
-                        setToNaNValuesIfNulls();
-                        return;
+                if (fragment.isCurrencyInEuro()) {
+                    retrievingCoinValueTasks.add(
+                            CompletableFuture.supplyAsync(
+                                    () -> {
+                                        setEuroValue(fragment.eurValueSupplier.get());
+                                        return (String)null;
+                                    }
+                            ).exceptionally(exc -> {
+                                return "Unable to retrieve euro value: " + exc.getMessage();
+                            })
+                    );
+                }
+                this.retrievingCoinValueTasks = retrievingCoinValueTasks;
+                retrievingCoinValueTasks.stream().forEach(CompletableFuture::join);
+                Long intervalBetweenRequestGroups = Long.valueOf(
+                        this.fragment.appPreferences.getString("intervalBetweenRequestGroups", "0")
+                );
+                if (intervalBetweenRequestGroups > 0) {
+                    synchronized (retrievingCoinValueTasks) {
+                        try {
+                            retrievingCoinValueTasks.wait(intervalBetweenRequestGroups);
+                        } catch (InterruptedException exc) {
+                            LoggerChain.getInstance().logError(exc.getMessage());
+                        }
                     }
                 }
+            }).activate();
+        }
+
+        public boolean refresh () {
+            if (retrievingCoinValueTasks == null) {
+                return false;
             }
             if (currentCoinValues instanceof TreeMap) {
                 if (retrievingCoinValueTasks.stream().map(CompletableFuture::join).filter(Objects::nonNull).count() > 0) {
                     setToNaNValuesIfNulls();
-                    return;
+                    return false;
                 }
             }
-            setEuroValue(euroValue);
             Double amount = 0D;
             Integer unitPriceRetrievingMode = Integer.valueOf(fragment.appPreferences.getString("unitPriceRetrievingMode", "3"));
             if (unitPriceRetrievingMode == 1 || unitPriceRetrievingMode == 2) {
@@ -721,7 +788,10 @@ public class MainFragment extends Fragment {
                 }
             }
             setAmount(amount);
-            currentCoinValues = new ConcurrentHashMap<>(currentCoinValues);
+            if (currentCoinValues instanceof TreeMap) {
+                currentCoinValues = new ConcurrentHashMap<>(currentCoinValues);
+            }
+            return true;
         }
 
         private void setToNaNValuesIfNulls() {
@@ -769,4 +839,5 @@ public class MainFragment extends Fragment {
             currentValues.put("amount", value);
         }
     }
+
 }
