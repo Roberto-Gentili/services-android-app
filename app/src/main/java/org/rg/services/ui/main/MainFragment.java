@@ -63,6 +63,7 @@ import java.util.concurrent.ForkJoinPool;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 import java.util.function.BiPredicate;
+import java.util.function.Function;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
@@ -713,52 +714,39 @@ public class MainFragment extends Fragment {
                     return false;
                 }
             }
-            Double amount = 0D;
+
             Integer unitPriceRetrievingMode = Integer.valueOf(fragment.appPreferences.getString("unitPriceRetrievingMode", "3"));
+            Supplier<Double> euroValueSupplier = null;
+            Function<Map.Entry<String, Map<Wallet, Map<String, Double>>>, Map<String, Double>> valuesRetriever = null;
             if (unitPriceRetrievingMode == 1 || unitPriceRetrievingMode == 2) {
                 BiPredicate<Double, Double> unitPriceTester = unitPriceRetrievingMode == 1 ?
                     (valueOne, valueTwo) -> valueOne < valueTwo :
                     (valueOne, valueTwo) -> valueOne > valueTwo;
-                if (fragment.isCurrencyInEuro() && currentCoinValues.get("EUR") != null) {
-                    setEuroValue(retrieveValuesWithMinMaxUnitPrice(currentCoinValues.get("EUR").values(), unitPriceTester).get("unitPrice"));
-                } else if (!fragment.isCurrencyInEuro()) {
-                    setEuroValue(null);
-                }
-                for (Map.Entry<String, Map<Wallet, Map<String, Double>>> allCoinValues : currentCoinValues.entrySet()) {
-                    Map<String, Double> values = retrieveValuesWithMinMaxUnitPrice(allCoinValues.getValue().values(), unitPriceTester);
-                    Double coinQuantity = values.get("coinQuantity");
-                    Double coinAmount = values.get("coinAmount");
-                    Double unitPrice = values.get("unitPrice");
-                    if ((!coinAmount.isNaN() && (coinAmount > 0 || coinsToBeAlwaysDisplayed.contains(allCoinValues.getKey()))) ||
-                        (fragment.appPreferences.getBoolean("showNaNAmounts", true) && coinQuantity != 0D)) {
-                        setQuantityForCoin(allCoinValues.getKey(), coinQuantity);
-                        setAmountForCoin(allCoinValues.getKey(), coinAmount);
-                        amount += (!coinAmount.isNaN() ? coinAmount : 0D);
-                        setUnitPriceForCoinInDollar(allCoinValues.getKey(), unitPrice);
-                    } else if (coinAmount.isNaN()) {
-                        removeCoinRow(allCoinValues.getKey());
-                    }
-                }
+                euroValueSupplier = () -> retrieveValuesWithMinMaxUnitPrice(currentCoinValues.get("EUR").values(), unitPriceTester).get("unitPrice");
+                valuesRetriever = allCoinValues -> retrieveValuesWithMinMaxUnitPrice(allCoinValues.getValue().values(), unitPriceTester);
             } else if (unitPriceRetrievingMode == 3) {
-                if (fragment.isCurrencyInEuro() && currentCoinValues.get("EUR") != null) {
-                    setEuroValue(retrieveValuesWithAvgUnitPrice(currentCoinValues.get("EUR").values()).get("unitPrice"));
-                } else if (!fragment.isCurrencyInEuro()) {
-                    setEuroValue(null);
-                }
-                for (Map.Entry<String, Map<Wallet, Map<String, Double>>> allCoinValues : currentCoinValues.entrySet()) {
-                    Map<String, Double> values = retrieveValuesWithAvgUnitPrice(allCoinValues.getValue().values());
-                    Double coinQuantity = values.get("coinQuantity");
-                    Double coinAmount = values.get("coinAmount");
-                    Double unitPrice = values.get("unitPrice");
-                    if ((!coinAmount.isNaN() && (coinAmount > 0 || coinsToBeAlwaysDisplayed.contains(allCoinValues.getKey()))) ||
-                        (fragment.appPreferences.getBoolean("showNaNAmounts", true) && coinQuantity != 0D)) {
-                        setQuantityForCoin(allCoinValues.getKey(), coinQuantity);
-                        setAmountForCoin(allCoinValues.getKey(), coinAmount);
-                        amount += (!coinAmount.isNaN() ? coinAmount : 0D);
-                        setUnitPriceForCoinInDollar(allCoinValues.getKey(), unitPrice);
-                    } else if (coinAmount.isNaN()) {
-                        removeCoinRow(allCoinValues.getKey());
-                    }
+                euroValueSupplier = () -> retrieveValuesWithAvgUnitPrice(currentCoinValues.get("EUR").values()).get("unitPrice");
+                valuesRetriever = allCoinValues -> retrieveValuesWithAvgUnitPrice(allCoinValues.getValue().values());
+            }
+            if (fragment.isCurrencyInEuro() && currentCoinValues.get("EUR") != null) {
+                setEuroValue(euroValueSupplier.get());
+            } else if (!fragment.isCurrencyInEuro()) {
+                setEuroValue(null);
+            }
+            Double amount = 0D;
+            for (Map.Entry<String, Map<Wallet, Map<String, Double>>> allCoinValues : currentCoinValues.entrySet()) {
+                Map<String, Double> values = valuesRetriever.apply(allCoinValues);
+                Double coinQuantity = values.get("coinQuantity");
+                Double coinAmount = values.get("coinAmount");
+                Double unitPrice = values.get("unitPrice");
+                if ((!coinAmount.isNaN() && (coinAmount > 0 || coinsToBeAlwaysDisplayed.contains(allCoinValues.getKey()))) ||
+                    (fragment.appPreferences.getBoolean("showNaNAmounts", true) && coinQuantity != 0D)) {
+                    setQuantityForCoin(allCoinValues.getKey(), coinQuantity);
+                    setAmountForCoin(allCoinValues.getKey(), coinAmount);
+                    amount += (!coinAmount.isNaN() ? coinAmount : 0D);
+                    setUnitPriceForCoinInDollar(allCoinValues.getKey(), unitPrice);
+                } else if (coinAmount.isNaN()) {
+                    removeCoinRow(allCoinValues.getKey());
                 }
             }
             setAmount(amount);
