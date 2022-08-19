@@ -76,7 +76,6 @@ public class MainFragment extends Fragment {
     private final DecimalFormatSymbols decimalFormatSymbols;
     private DecimalFormat numberFormatter;
     private DecimalFormat numberFormatterWithFourDecimals;
-    private Supplier<Double> eurValueSupplier;
     private CoinViewManager coinViewManager;
 
     private MainFragment() {
@@ -145,7 +144,6 @@ public class MainFragment extends Fragment {
             ));
             wallets.add(wallet);
         }
-        eurValueSupplier = null;
         if (isStringNotEmpty(binanceApiKey) && isStringNotEmpty(binanceApiSecret)) {
             BinanceWallet wallet = new BinanceWallet(
                 RestTemplateSupplier.getSharedInstance().get(),
@@ -154,7 +152,6 @@ public class MainFragment extends Fragment {
                 binanceApiSecret
             );
             wallets.add(wallet);
-            eurValueSupplier = () -> wallet.getValueForCoin("EUR");
         }
         if (isCurrencyInEuro()) {
             ((TextView)getView().findViewById(R.id.balanceCurrency)).setText("€");
@@ -173,7 +170,7 @@ public class MainFragment extends Fragment {
     }
 
     private boolean isCurrencyInEuro() {
-        return eurValueSupplier != null && !appPreferences.getBoolean("useAlwaysTheDollarCurrencyForBalances", false);
+        return !appPreferences.getBoolean("useAlwaysTheDollarCurrencyForBalances", false);
     }
 
     public boolean canRun() {
@@ -647,61 +644,52 @@ public class MainFragment extends Fragment {
                 Collection<CompletableFuture<String>> retrievingCoinValueTasks = new CopyOnWriteArrayList<>();
                 for (Wallet wallet : fragment.wallets) {
                     retrievingCoinValueTasks.add(
-                            CompletableFuture.supplyAsync(
-                                () -> {
-                                    Collection<CompletableFuture<Void>> innerTasks = new ArrayList<>();
-                                    Collection<String> coinsToBeScanned = wallet.getOwnedCoins();
-                                    coinsToBeScanned.addAll(coinsToBeAlwaysDisplayed);
-                                    for (String coinName : coinsToBeScanned) {
-                                        innerTasks.add(
-                                                CompletableFuture.runAsync(
-                                                        () -> {
-                                                            Double unitPriceInDollar = wallet.getValueForCoin(coinName);
-                                                            Double quantity = wallet.getQuantityForCoin(coinName);
-                                                            Map<Wallet, Map<String, Double>> allCoinValues = null;
-                                                            if (currentCoinValues instanceof ConcurrentHashMap) {
-                                                                allCoinValues = currentCoinValues.computeIfAbsent(coinName, key -> new ConcurrentHashMap<>());
-                                                            } else {
-                                                                synchronized (currentCoinValues) {
-                                                                    allCoinValues = currentCoinValues.computeIfAbsent(coinName, key -> new ConcurrentHashMap<>());
-                                                                }
-                                                            }
-                                                            Map<String, Double> coinValues = new HashMap<>();
-                                                            coinValues.put("unitPrice", unitPriceInDollar);
-                                                            coinValues.put("quantity", quantity);
-                                                            allCoinValues.put(wallet, coinValues);
-                                                        },
-                                                        fragment.executorService
-                                                )
-                                        );
-                                    }
-                                    innerTasks.stream().forEach(CompletableFuture::join);
-                                    return (String) null;
-                                },
-                                fragment.executorService
-                            ).exceptionally(exc -> {
-                                String exceptionMessage = wallet.getClass().getSimpleName() + " exception occurred: " + exc.getMessage();
-                                LoggerChain.getInstance().logError(exceptionMessage);
-                                return exceptionMessage;
-                            })
-                    );
-                }
-                if (fragment.isCurrencyInEuro()) {
-                    retrievingCoinValueTasks.add(
-                            CompletableFuture.supplyAsync(
-                                    () -> {
-                                        setEuroValue(fragment.eurValueSupplier.get());
-                                        return (String)null;
-                                    }
-                            ).exceptionally(exc -> {
-                                return "Unable to retrieve euro value: " + exc.getMessage();
-                            })
+                        CompletableFuture.supplyAsync(
+                            () -> {
+                                Collection<CompletableFuture<Void>> innerTasks = new ArrayList<>();
+                                Collection<String> coinsToBeScanned = wallet.getOwnedCoins();
+                                coinsToBeScanned.addAll(coinsToBeAlwaysDisplayed);
+                                if (fragment.isCurrencyInEuro()) {
+                                    coinsToBeScanned.add("EUR");
+                                }
+                                for (String coinName : coinsToBeScanned) {
+                                    innerTasks.add(
+                                        CompletableFuture.runAsync(
+                                            () -> {
+                                                Double unitPriceInDollar = wallet.getValueForCoin(coinName);
+                                                Double quantity = wallet.getQuantityForCoin(coinName);
+                                                Map<Wallet, Map<String, Double>> allCoinValues = null;
+                                                if (currentCoinValues instanceof ConcurrentHashMap) {
+                                                    allCoinValues = currentCoinValues.computeIfAbsent(coinName, key -> new ConcurrentHashMap<>());
+                                                } else {
+                                                    synchronized (currentCoinValues) {
+                                                        allCoinValues = currentCoinValues.computeIfAbsent(coinName, key -> new ConcurrentHashMap<>());
+                                                    }
+                                                }
+                                                Map<String, Double> coinValues = new HashMap<>();
+                                                coinValues.put("unitPrice", unitPriceInDollar);
+                                                coinValues.put("quantity", quantity);
+                                                allCoinValues.put(wallet, coinValues);
+                                            },
+                                            fragment.executorService
+                                        )
+                                    );
+                                }
+                                innerTasks.stream().forEach(CompletableFuture::join);
+                                return (String) null;
+                            },
+                            fragment.executorService
+                        ).exceptionally(exc -> {
+                            String exceptionMessage = wallet.getClass().getSimpleName() + " exception occurred: " + exc.getMessage();
+                            LoggerChain.getInstance().logError(exceptionMessage);
+                            return exceptionMessage;
+                        })
                     );
                 }
                 this.retrievingCoinValueTasks = retrievingCoinValueTasks;
                 retrievingCoinValueTasks.stream().forEach(CompletableFuture::join);
                 Long intervalBetweenRequestGroups = Long.valueOf(
-                        this.fragment.appPreferences.getString("intervalBetweenRequestGroups", "0")
+                    this.fragment.appPreferences.getString("intervalBetweenRequestGroups", "0")
                 );
                 if (intervalBetweenRequestGroups > 0) {
                     synchronized (retrievingCoinValueTasks) {
@@ -731,25 +719,18 @@ public class MainFragment extends Fragment {
                 BiPredicate<Double, Double> unitPriceTester = unitPriceRetrievingMode == 1 ?
                     (valueOne, valueTwo) -> valueOne < valueTwo :
                     (valueOne, valueTwo) -> valueOne > valueTwo;
+                if (fragment.isCurrencyInEuro() && currentCoinValues.get("EUR") != null) {
+                    setEuroValue(retrieveValuesWithMinMaxUnitPrice(currentCoinValues.get("EUR").values(), unitPriceTester).get("unitPrice"));
+                } else if (!fragment.isCurrencyInEuro()) {
+                    setEuroValue(null);
+                }
                 for (Map.Entry<String, Map<Wallet, Map<String, Double>>> allCoinValues : currentCoinValues.entrySet()) {
-                    Double coinQuantity = 0D;
-                    Double coinAmount = 0D;
-                    Double unitPrice = null;
-                    for (Map<String, Double> coinValues : allCoinValues.getValue().values()) {
-                        Double coinQuantityForCoinInWallet = coinValues.get("quantity");
-                        Double unitPriceForCoinInWallet = coinValues.get("unitPrice");
-                        if (unitPrice == null || unitPrice.isNaN() || unitPriceTester.test(unitPriceForCoinInWallet, unitPrice)) {
-                            unitPrice = unitPriceForCoinInWallet;
-                        }
-                        coinQuantity = sum(coinQuantity, coinQuantityForCoinInWallet);
-                    }
-                    coinAmount += coinQuantity * unitPrice;
-                    if (coinAmount != 0D && coinQuantity != 0D) {
-                        unitPrice = coinAmount / coinQuantity;
-                    } else if (unitPrice == 0D) {
-                        coinAmount = unitPrice = Double.NaN;
-                    }
-                    if (!coinAmount.isNaN() || (fragment.appPreferences.getBoolean("showNaNAmounts", true) && coinQuantity != 0D)) {
+                    Map<String, Double> values = retrieveValuesWithMinMaxUnitPrice(allCoinValues.getValue().values(), unitPriceTester);
+                    Double coinQuantity = values.get("coinQuantity");
+                    Double coinAmount = values.get("coinAmount");
+                    Double unitPrice = values.get("unitPrice");
+                    if ((!coinAmount.isNaN() && (coinAmount > 0 || coinsToBeAlwaysDisplayed.contains(allCoinValues.getKey()))) ||
+                        (fragment.appPreferences.getBoolean("showNaNAmounts", true) && coinQuantity != 0D)) {
                         setQuantityForCoin(allCoinValues.getKey(), coinQuantity);
                         setAmountForCoin(allCoinValues.getKey(), coinAmount);
                         amount += (!coinAmount.isNaN() ? coinAmount : 0D);
@@ -759,25 +740,18 @@ public class MainFragment extends Fragment {
                     }
                 }
             } else if (unitPriceRetrievingMode == 3) {
+                if (fragment.isCurrencyInEuro() && currentCoinValues.get("EUR") != null) {
+                    setEuroValue(retrieveValuesWithAvgUnitPrice(currentCoinValues.get("EUR").values()).get("unitPrice"));
+                } else if (!fragment.isCurrencyInEuro()) {
+                    setEuroValue(null);
+                }
                 for (Map.Entry<String, Map<Wallet, Map<String, Double>>> allCoinValues : currentCoinValues.entrySet()) {
-                    Double coinQuantity = 0D;
-                    Double coinAmount = 0D;
-                    Double unitPrice = 0D;
-                    for (Map<String, Double> coinValues : allCoinValues.getValue().values()) {
-                        Double coinQuantityForCoinInWallet = coinValues.get("quantity");
-                        Double unitPriceForCoinInWallet = coinValues.get("unitPrice");
-                        unitPrice = sum(unitPrice, unitPriceForCoinInWallet);
-                        coinQuantity = sum(coinQuantity, coinQuantityForCoinInWallet);
-                        coinAmount = sum(coinAmount, coinQuantityForCoinInWallet * unitPriceForCoinInWallet);
-                    }
-                    if (coinAmount != 0D && coinQuantity != 0D) {
-                        unitPrice = coinAmount / coinQuantity;
-                    } else if (unitPrice == 0D) {
-                        coinAmount = unitPrice = Double.NaN;
-                    } else {
-                        unitPrice /= allCoinValues.getValue().values().stream().filter(map -> map.get("unitPrice") > 0D).count();
-                    }
-                    if (!coinAmount.isNaN() || (fragment.appPreferences.getBoolean("showNaNAmounts", true) && coinQuantity != 0D)) {
+                    Map<String, Double> values = retrieveValuesWithAvgUnitPrice(allCoinValues.getValue().values());
+                    Double coinQuantity = values.get("coinQuantity");
+                    Double coinAmount = values.get("coinAmount");
+                    Double unitPrice = values.get("unitPrice");
+                    if ((!coinAmount.isNaN() && (coinAmount > 0 || coinsToBeAlwaysDisplayed.contains(allCoinValues.getKey()))) ||
+                        (fragment.appPreferences.getBoolean("showNaNAmounts", true) && coinQuantity != 0D)) {
                         setQuantityForCoin(allCoinValues.getKey(), coinQuantity);
                         setAmountForCoin(allCoinValues.getKey(), coinAmount);
                         amount += (!coinAmount.isNaN() ? coinAmount : 0D);
@@ -792,6 +766,56 @@ public class MainFragment extends Fragment {
                 currentCoinValues = new ConcurrentHashMap<>(currentCoinValues);
             }
             return true;
+        }
+
+        private Map<String, Double> retrieveValuesWithMinMaxUnitPrice(Collection<Map<String, Double>> allCoinValues, BiPredicate<Double, Double> unitPriceTester) {
+            Double coinQuantity = 0D;
+            Double coinAmount = 0D;
+            Double unitPrice = null;
+            for (Map<String, Double> coinValues : allCoinValues) {
+                Double coinQuantityForCoinInWallet = coinValues.get("quantity");
+                Double unitPriceForCoinInWallet = coinValues.get("unitPrice");
+                if (unitPrice == null || unitPrice.isNaN() || unitPriceTester.test(unitPriceForCoinInWallet, unitPrice)) {
+                    unitPrice = unitPriceForCoinInWallet;
+                }
+                coinQuantity = sum(coinQuantity, coinQuantityForCoinInWallet);
+            }
+            coinAmount += coinQuantity * unitPrice;
+            if (coinAmount != 0D && coinQuantity != 0D) {
+                unitPrice = coinAmount / coinQuantity;
+            } else if (unitPrice == 0D) {
+                coinAmount = unitPrice = Double.NaN;
+            }
+            Map<String, Double> values = new HashMap<>();
+            values.put("coinQuantity", coinQuantity);
+            values.put("coinAmount", coinAmount);
+            values.put("unitPrice", unitPrice);
+            return values;
+        }
+
+        private Map<String, Double> retrieveValuesWithAvgUnitPrice(Collection<Map<String, Double>> allCoinValues) {
+            Double coinQuantity = 0D;
+            Double coinAmount = 0D;
+            Double unitPrice = 0D;
+            for (Map<String, Double> coinValues : allCoinValues) {
+                Double coinQuantityForCoinInWallet = coinValues.get("quantity");
+                Double unitPriceForCoinInWallet = coinValues.get("unitPrice");
+                unitPrice = sum(unitPrice, unitPriceForCoinInWallet);
+                coinQuantity = sum(coinQuantity, coinQuantityForCoinInWallet);
+                coinAmount = sum(coinAmount, coinQuantityForCoinInWallet * unitPriceForCoinInWallet);
+            }
+            if (coinAmount != 0D && coinQuantity != 0D) {
+                unitPrice = coinAmount / coinQuantity;
+            } else if (unitPrice == 0D) {
+                coinAmount = unitPrice = Double.NaN;
+            } else {
+                unitPrice /= allCoinValues.stream().filter(map -> map.get("unitPrice") > 0D).count();
+            }
+            Map<String, Double> values = new HashMap<>();
+            values.put("coinQuantity", coinQuantity);
+            values.put("coinAmount", coinAmount);
+            values.put("unitPrice", unitPrice);
+            return values;
         }
 
         private void setToNaNValuesIfNulls() {
@@ -832,7 +856,11 @@ public class MainFragment extends Fragment {
         }
 
         private void setEuroValue(Double value) {
-            currentValues.put("euroValue", value);
+            if (value != null) {
+                currentValues.put("euroValue", value);
+            } else {
+                currentValues.remove("euroValue");
+            }
         }
 
         private void setAmount(Double value) {
