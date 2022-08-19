@@ -542,7 +542,7 @@ public class MainFragment extends Fragment {
                 textView.setText(
                     CharBuffer.allocate(emptySpaceCharCount).toString().replace( '\0', ' ' ) +
                     text +
-                    CharBuffer.allocate( emptySpaceCharCount ).toString().replace( '\0', ' ' )
+                    CharBuffer.allocate( emptySpaceCharCount).toString().replace( '\0', ' ' )
                 );
                 textView.setTextSize(23F);
                 textView.setTextColor(ResourcesCompat.getColor(fragment.getResources(), R.color.yellow, null));
