@@ -714,7 +714,6 @@ public class MainFragment extends Fragment {
                     return false;
                 }
             }
-
             Integer unitPriceRetrievingMode = Integer.valueOf(fragment.appPreferences.getString("unitPriceRetrievingMode", "3"));
             Supplier<Double> euroValueSupplier = null;
             Function<Map.Entry<String, Map<Wallet, Map<String, Double>>>, Map<String, Double>> valuesRetriever = null;
