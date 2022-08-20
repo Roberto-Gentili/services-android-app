@@ -44,17 +44,17 @@ public class CryptoComWallet extends Wallet.Abst {
 	) {
 		super(restTemplate, executorService, apiKey, apiSecret,
 		Optional.ofNullable(aliasesForCoinNames).orElseGet(()-> {
-			Map<String, String> coinCollateralsTemp = new LinkedHashMap<>();
-			coinCollateralsTemp.put("LUNA", "LUNA2");
-			return coinCollateralsTemp;
+			Map<String, String> valueMap = new LinkedHashMap<>();
+			valueMap.put("LUNA", "LUNA2");
+			return valueMap;
 		}),
 		Optional.ofNullable(coinCollaterals).orElseGet(()-> {
-			Map<String, String> coinCollateralsTemp = new LinkedHashMap<>();
-			coinCollateralsTemp.put("DEFAULT", "USDT");
-			coinCollateralsTemp.put("LUNC", "USDC");
-			coinCollateralsTemp.put("LUNA2", "USDC");
-			coinCollateralsTemp.put("BUSD", "USDT");
-			return coinCollateralsTemp;
+			Map<String, String> valueMap = new LinkedHashMap<>();
+			valueMap.put("DEFAULT", "USDT");
+			valueMap.put("LUNC", "USDC");
+			valueMap.put("LUNA2", "USDC");
+			valueMap.put("BUSD", "USDT");
+			return valueMap;
 		}));
 	}
 

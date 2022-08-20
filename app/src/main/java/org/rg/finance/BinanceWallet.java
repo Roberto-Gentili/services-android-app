@@ -39,11 +39,11 @@ public class BinanceWallet extends Wallet.Abst {
                 return new LinkedHashMap<>();
             }),
             Optional.ofNullable(coinCollaterals).orElseGet(()-> {
-                Map<String, String> coinCollateralsTemp = new LinkedHashMap<>();
-                coinCollateralsTemp.put("DEFAULT", "USDT");
-                coinCollateralsTemp.put("LUNC", "BUSD");
-                coinCollateralsTemp.put("BUSD", "USDT");
-                return coinCollateralsTemp;
+                Map<String, String> valueMap = new LinkedHashMap<>();
+                valueMap.put("DEFAULT", "USDT");
+                valueMap.put("LUNC", "BUSD");
+                valueMap.put("BUSD", "USDT");
+                return valueMap;
             })
         );
     }
