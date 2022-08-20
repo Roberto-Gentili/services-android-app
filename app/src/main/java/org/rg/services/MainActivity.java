@@ -4,6 +4,7 @@ import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 
 import android.os.Bundle;
+import android.os.StrictMode;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.widget.Toast;
@@ -13,7 +14,25 @@ import org.rg.services.ui.main.SettingsFragment;
 import org.rg.util.LoggerChain;
 import org.rg.util.RestTemplateSupplier;
 
+import java.text.DateFormat;
+import java.time.LocalDateTime;
+import java.time.ZoneId;
+import java.time.format.DateTimeFormatter;
+
 public class MainActivity extends AppCompatActivity {
+    private LocalDateTime lastUpdateTime;
+    private DateTimeFormatter dateFormatter;
+
+    public MainActivity() {
+        int SDK_INT = android.os.Build.VERSION.SDK_INT;
+        if (SDK_INT > 8)  {
+            StrictMode.ThreadPolicy policy = new StrictMode.ThreadPolicy.Builder()
+                    .permitAll().build();
+            StrictMode.setThreadPolicy(policy);
+        }
+        dateFormatter = DateTimeFormatter.ofPattern("HH:mm:ss - dd/MM/yyyy");
+        //RestTemplateSupplier.getSharedInstance().enableRequestLogger();
+    }
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -23,7 +42,6 @@ public class MainActivity extends AppCompatActivity {
                 Toast.makeText(this, message, Toast.LENGTH_LONG).show();
             });
         });
-        //RestTemplateSupplier.getSharedInstance().enableRequestLogger();
         setContentView(R.layout.activity_main);
         if (savedInstanceState == null) {
             goToMainView();
@@ -55,15 +73,26 @@ public class MainActivity extends AppCompatActivity {
 
     public void goToSettingsView() {
         getSupportFragmentManager().beginTransaction()
-            .replace(R.id.container, SettingsFragment.getInstance())
+            .replace(R.id.container, new SettingsFragment())
             .commit();
         setTitle(getResources().getString(R.string.settingsLabelText));
     }
 
     public void goToMainView() {
         getSupportFragmentManager().beginTransaction()
-            .replace(R.id.container, MainFragment.getInstance())
+            .replace(R.id.container, new MainFragment())
             .commitNow();
         setTitle(getResources().getString(R.string.cryptoInfoLabelText));
+    }
+
+    public void setLastUpdateTime() {
+        lastUpdateTime = LocalDateTime.now(ZoneId.systemDefault());
+    }
+
+    public String getLastUpdateTimeAsString() {
+        if (lastUpdateTime != null) {
+            return dateFormatter.format(lastUpdateTime);
+        }
+        return null;
     }
 }

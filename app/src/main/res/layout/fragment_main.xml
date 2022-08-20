@@ -83,16 +83,39 @@
         app:layout_constraintTop_toBottomOf="@id/balanceCurrency"
         android:layout_marginRight="15dp" />
 
+    <TextView
+        android:id="@+id/lastUpdateLabel"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:textColor="@color/yellow"
+        android:text="@string/lastUpdateLabelText"
+        android:textSize="20sp"
+        android:visibility="invisible"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/pureBalanceLabel"
+        android:layout_marginLeft="15dp" />
+
+    <TextView
+        android:id="@+id/lastUpdate"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:textAlignment="viewEnd"
+        android:textColor="#FFFFFF"
+        android:textSize="20sp"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/pureBalanceCurrency"
+        android:layout_marginRight="15dp" />
+
     <ScrollView
         android:id="@+id/coinsView"
         android:layout_width="wrap_content"
-        android:layout_height="400dp"
-        android:layout_marginTop="20dp"
+        android:layout_height="375dp"
+        android:layout_marginTop="15dp"
         android:visibility="invisible"
         android:scrollbars="none"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/pureBalanceLabel">
+        app:layout_constraintTop_toBottomOf="@id/lastUpdateLabel">
         <TableLayout
             android:id="@+id/coinsTableView"
             android:layout_width="match_parent"

@@ -6,7 +6,7 @@ import android.graphics.Color;
 import android.graphics.Typeface;
 import android.net.Uri;
 import android.os.Bundle;
-import android.os.StrictMode;
+import android.text.Html;
 import android.text.method.LinkMovementMethod;
 import android.view.Gravity;
 import android.view.LayoutInflater;
@@ -70,23 +70,17 @@ import java.util.stream.Collectors;
 
 public class MainFragment extends Fragment {
     private SharedPreferences appPreferences;
-    private static MainFragment INSTANCE;
     private final Collection<Wallet> wallets;
     private final ExecutorService executorService;
-    private BalanceUpdater balanceUpdater;
     private final DecimalFormatSymbols decimalFormatSymbols;
     private DecimalFormat numberFormatter;
     private DecimalFormat numberFormatterWithFourDecimals;
+    private BalanceUpdater balanceUpdater;
     private CoinViewManager coinViewManager;
+    private CompletableFuture<String> gitHubUsernameSupplier;
 
-    private MainFragment() {
+    public MainFragment() {
         try {
-            int SDK_INT = android.os.Build.VERSION.SDK_INT;
-            if (SDK_INT > 8)  {
-                StrictMode.ThreadPolicy policy = new StrictMode.ThreadPolicy.Builder()
-                        .permitAll().build();
-                StrictMode.setThreadPolicy(policy);
-            }
             executorService = ForkJoinPool.commonPool();
             wallets = new ArrayList<>();
             //executorService = Executors.newFixedThreadPool(4);
@@ -98,17 +92,6 @@ public class MainFragment extends Fragment {
             exc.printStackTrace();
             throw exc;
         }
-    }
-
-    public static MainFragment getInstance() {
-        if (INSTANCE == null) {
-            synchronized (MainFragment.class) {
-                if (INSTANCE == null) {
-                    INSTANCE = new MainFragment();
-                }
-            }
-        }
-        return INSTANCE;
     }
 
     private boolean isStringNotEmpty(String value){
@@ -123,6 +106,8 @@ public class MainFragment extends Fragment {
         ((TextView)getView().findViewById(R.id.pureBalance)).setVisibility(View.INVISIBLE);
         ((TextView)getView().findViewById(R.id.balanceCurrency)).setVisibility(View.INVISIBLE);
         ((TextView)getView().findViewById(R.id.pureBalanceCurrency)).setVisibility(View.INVISIBLE);
+        ((TextView)getView().findViewById(R.id.lastUpdateLabel)).setVisibility(View.INVISIBLE);
+        ((TextView)getView().findViewById(R.id.lastUpdate)).setVisibility(View.INVISIBLE);
         ((TextView)getView().findViewById(R.id.linkToReport)).setVisibility(View.INVISIBLE);
         ((Button)getView().findViewById(R.id.updateReportButton)).setVisibility(View.INVISIBLE);
         ((ScrollView)getView().findViewById(R.id.coinsView)).setVisibility(View.INVISIBLE);
@@ -168,6 +153,15 @@ public class MainFragment extends Fragment {
         } else {
             ((MainActivity)getActivity()).goToSettingsView();
         }
+        gitHubUsernameSupplier = CompletableFuture.supplyAsync(() -> {
+            if (isStringNotEmpty(appPreferences.getString("gitHubAuthorizationToken", null))) {
+                return retrieveGitHubUsername();
+            }
+            return null;
+        }).exceptionally(exc -> {
+            LoggerChain.getInstance().logError("Unable to retrieve GitHub username: " + exc.getMessage());
+            return null;
+        });
     }
 
     private boolean isCurrencyInEuro() {
@@ -193,13 +187,22 @@ public class MainFragment extends Fragment {
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         appPreferences = PreferenceManager.getDefaultSharedPreferences(this.getActivity());
         init();
-        Button updateButton = (Button)view.findViewById(R.id.updateReportButton);
-        updateButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                updateReport((Button)view);
-            }
-        });
+        if (gitHubUsernameSupplier.join() != null) {
+            TextView linkToReport = (TextView) view.findViewById(R.id.linkToReport);
+            linkToReport.setMovementMethod(LinkMovementMethod.getInstance());
+            String reportUrl = getResources().getString(R.string.reportUrl).replace(
+                "${username}",
+                gitHubUsernameSupplier.join()
+            );
+            linkToReport.setText(Html.fromHtml(String.valueOf(linkToReport.getText()).replace("&reportUrl;", reportUrl), Html.FROM_HTML_MODE_LEGACY));
+            Button updateButton = (Button) view.findViewById(R.id.updateReportButton);
+            updateButton.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View view) {
+                    updateReport((Button) view);
+                }
+            });
+        }
     }
 
     public void updateReport(Button updateButton) {
@@ -237,7 +240,11 @@ public class MainFragment extends Fragment {
                                 ((ProgressBar) getView().findViewById(R.id.updateReportProgressBar)).setVisibility(View.INVISIBLE);
                                 updateButton.setEnabled(true);
                                 scheduler.shutdownNow();
-                                Intent browserIntent = new Intent(Intent.ACTION_VIEW, Uri.parse(getResources().getString(R.string.reportUrl)));
+                                String reportUrl = getResources().getString(R.string.reportUrl).replace(
+                            "${username}",
+                                    gitHubUsernameSupplier.join()
+                                );
+                                Intent browserIntent = new Intent(Intent.ACTION_VIEW, Uri.parse(reportUrl));
                                 startActivity(browserIntent);
                             });
                         }, 30, TimeUnit.SECONDS);
@@ -258,23 +265,18 @@ public class MainFragment extends Fragment {
         HttpHeaders headers = new HttpHeaders();
         headers.add("Authorization", "token " + gitHubActionToken);
         UriComponents uriComponents = UriComponentsBuilder.newInstance().scheme("https").host("api.github.com")
-            .pathSegment("user")
-            .build();
-        ResponseEntity<Map> response = RestTemplateSupplier.getSharedInstance().get().exchange(uriComponents.toString(), HttpMethod.GET, new HttpEntity<>(headers), Map.class);
-        String username = (String)response.getBody().get("login");
-        uriComponents = UriComponentsBuilder.newInstance().scheme("https").host("api.github.com")
             .pathSegment("repos")
-            .pathSegment(username)
+            .pathSegment(gitHubUsernameSupplier.join())
             .pathSegment("services")
             .pathSegment("actions")
             .pathSegment("workflows")
             .build();
-        response = RestTemplateSupplier.getSharedInstance().get().exchange(uriComponents.toString(), HttpMethod.GET, new HttpEntity<>(headers), Map.class);
+        ResponseEntity<Map> response = RestTemplateSupplier.getSharedInstance().get().exchange(uriComponents.toString(), HttpMethod.GET, new HttpEntity<>(headers), Map.class);
         Collection<String> workflowIds = ((Collection<Map<String, Object>>)response.getBody().get("workflows"))
             .stream().map(workflowInfo ->
                 (Integer)((Map<String, Object>)workflowInfo).get("id")
             ).map(String::valueOf).collect(Collectors.toList());
-        Supplier<Boolean> runningChecker = buildUpdateCryptoReportRunningChecker(gitHubActionToken, username, workflowIds);
+        Supplier<Boolean> runningChecker = buildUpdateCryptoReportRunningChecker(gitHubActionToken, workflowIds);
         if (!runningChecker.get()) {
             String workflowId = ((Collection<Map<String, Object>>)response.getBody().get("workflows"))
                 .stream().filter(wFInfo ->
@@ -284,7 +286,7 @@ public class MainFragment extends Fragment {
                 ).map(String::valueOf).orElseGet(() -> null);
             uriComponents = UriComponentsBuilder.newInstance().scheme("https").host("api.github.com")
                     .pathSegment("repos")
-                    .pathSegment(username)
+                    .pathSegment(gitHubUsernameSupplier.join())
                     .pathSegment("services")
                     .pathSegment("actions")
                     .pathSegment("workflows")
@@ -318,7 +320,17 @@ public class MainFragment extends Fragment {
         return runningChecker;
     }
 
-    private Supplier<Boolean> buildUpdateCryptoReportRunningChecker(String gitHubActionToken, String username, Collection<String> workflowIds) {
+    private String retrieveGitHubUsername() {
+        HttpHeaders headers = new HttpHeaders();
+        headers.add("Authorization", "token " + appPreferences.getString("gitHubAuthorizationToken", null));
+        UriComponents uriComponents = UriComponentsBuilder.newInstance().scheme("https").host("api.github.com")
+                .pathSegment("user")
+                .build();
+        ResponseEntity<Map> response = RestTemplateSupplier.getSharedInstance().get().exchange(uriComponents.toString(), HttpMethod.GET, new HttpEntity<>(headers), Map.class);
+        return (String)response.getBody().get("login");
+    }
+
+    private Supplier<Boolean> buildUpdateCryptoReportRunningChecker(String gitHubActionToken, Collection<String> workflowIds) {
         HttpHeaders headers = new HttpHeaders();
         headers.add("Authorization", "token " + gitHubActionToken);
         return () -> {
@@ -327,7 +339,7 @@ public class MainFragment extends Fragment {
                     //Documentation at https://docs.github.com/en/rest/actions/workflow-runs#list-workflow-runs
                     UriComponents uriComponents = UriComponentsBuilder.newInstance().scheme("https").host("api.github.com")
                         .pathSegment("repos")
-                        .pathSegment(username)
+                        .pathSegment(gitHubUsernameSupplier.join())
                         .pathSegment("services")
                         .pathSegment("actions")
                         .pathSegment("workflows")
@@ -357,31 +369,27 @@ public class MainFragment extends Fragment {
         super.onPause();
     }
 
-    private void activate() {
-        synchronized(this) {
-            if (this.balanceUpdater == null) {
-                balanceUpdater = new BalanceUpdater(this);
-                balanceUpdater.activate();
-            }
-            if (this.coinViewManager == null) {
-                coinViewManager = new CoinViewManager(this);
-                coinViewManager.activate();
-            }
+    private synchronized void activate() {
+        if (this.balanceUpdater == null) {
+            balanceUpdater = new BalanceUpdater(this);
+            balanceUpdater.activate();
+        }
+        if (this.coinViewManager == null) {
+            coinViewManager = new CoinViewManager(this);
+            coinViewManager.activate();
         }
     }
 
-    private void stop() {
-        synchronized(this) {
-            BalanceUpdater balanceUpdater = this.balanceUpdater;
-            if (balanceUpdater != null) {
-                this.balanceUpdater = null;
-                balanceUpdater.stop();
-            }
-            CoinViewManager coinViewManager = this.coinViewManager;
-            if (coinViewManager != null) {
-                this.coinViewManager = null;
-                coinViewManager.stop();
-            }
+    private synchronized void stop() {
+        BalanceUpdater balanceUpdater = this.balanceUpdater;
+        if (balanceUpdater != null) {
+            this.balanceUpdater = null;
+            balanceUpdater.stop();
+        }
+        CoinViewManager coinViewManager = this.coinViewManager;
+        if (coinViewManager != null) {
+            this.coinViewManager = null;
+            coinViewManager.stop();
         }
     }
 
@@ -435,6 +443,8 @@ public class MainFragment extends Fragment {
             TextView pureBalance = (TextView) fragment.getView().findViewById(R.id.pureBalance);
             TextView balanceCurrency = (TextView) fragment.getView().findViewById(R.id.balanceCurrency);
             TextView pureBalanceCurrency = (TextView) fragment.getView().findViewById(R.id.pureBalanceCurrency);
+            TextView lastUpdateLabel = (TextView) fragment.getView().findViewById(R.id.lastUpdateLabel);
+            TextView lastUpdate = (TextView) fragment.getView().findViewById(R.id.lastUpdate);
             TextView linkToReport = (TextView) fragment.getView().findViewById(R.id.linkToReport);
             TextView loadingDataAdvisor = (TextView) fragment.getView().findViewById(R.id.loadingDataAdvisor);
             Button updateReportButton = (Button) fragment.getView().findViewById(R.id.updateReportButton);
@@ -452,25 +462,29 @@ public class MainFragment extends Fragment {
                             this.fragment.runOnUIThread(() -> {
                                 fragment.setHighlightedValue(balance, fragment.numberFormatter, amount);
                                 fragment.setHighlightedValue(pureBalance, fragment.numberFormatter, pureAmount);
-                                loadingDataAdvisor.setVisibility(View.INVISIBLE);
-                                progressBar.setVisibility(View.INVISIBLE);
-                                balanceLabel.setVisibility(View.VISIBLE);
-                                balanceCurrency.setVisibility(View.VISIBLE);
-                                balance.setVisibility(View.VISIBLE);
-                                pureBalanceLabel.setVisibility(View.VISIBLE);
-                                pureBalanceCurrency.setVisibility(View.VISIBLE);
-                                pureBalance.setVisibility(View.VISIBLE);
-                                linkToReport.setMovementMethod(LinkMovementMethod.getInstance());
-                                if (fragment.isStringNotEmpty(fragment.appPreferences.getString("gitHubAuthorizationToken", null))) {
-                                    linkToReport.setVisibility(View.VISIBLE);
-                                    updateReportButton.setVisibility(View.VISIBLE);
+                                lastUpdate.setText(((MainActivity)fragment.getActivity()).getLastUpdateTimeAsString());
+                                if (loadingDataAdvisor.getVisibility() != View.INVISIBLE) {
+                                    loadingDataAdvisor.setVisibility(View.INVISIBLE);
+                                    progressBar.setVisibility(View.INVISIBLE);
+                                    balanceLabel.setVisibility(View.VISIBLE);
+                                    balanceCurrency.setVisibility(View.VISIBLE);
+                                    balance.setVisibility(View.VISIBLE);
+                                    pureBalanceLabel.setVisibility(View.VISIBLE);
+                                    pureBalanceCurrency.setVisibility(View.VISIBLE);
+                                    pureBalance.setVisibility(View.VISIBLE);
+                                    lastUpdateLabel.setVisibility(View.VISIBLE);
+                                    lastUpdate.setVisibility(View.VISIBLE);
+                                    coinsView.setVisibility(View.VISIBLE);
+                                    if (fragment.gitHubUsernameSupplier.join() != null) {
+                                        linkToReport.setVisibility(View.VISIBLE);
+                                        updateReportButton.setVisibility(View.VISIBLE);
+                                    }
                                 }
-                                coinsView.setVisibility(View.VISIBLE);
                             });
                         }
                     }
                 } catch (Throwable exc) {
-                    exc.printStackTrace();
+                    LoggerChain.getInstance().logError("Exception occurred: " + exc.getMessage());
                 }
                 synchronized (this) {
                     try {
@@ -671,6 +685,7 @@ public class MainFragment extends Fragment {
                                                 coinValues.put("unitPrice", unitPriceInDollar);
                                                 coinValues.put("quantity", quantity);
                                                 allCoinValues.put(wallet, coinValues);
+                                                ((MainActivity)fragment.getActivity()).setLastUpdateTime();
                                             },
                                             fragment.executorService
                                         )

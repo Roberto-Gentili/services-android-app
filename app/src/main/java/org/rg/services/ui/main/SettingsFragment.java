@@ -11,18 +11,6 @@ import androidx.preference.PreferenceFragmentCompat;
 import org.rg.services.R;
 
 public class SettingsFragment extends PreferenceFragmentCompat {
-    private static SettingsFragment INSTANCE;
-
-    public static SettingsFragment getInstance() {
-        if (INSTANCE == null) {
-            synchronized (SettingsFragment.class) {
-                if (INSTANCE == null) {
-                    INSTANCE = new SettingsFragment();
-                }
-            }
-        }
-        return INSTANCE;
-    }
 
     @Override
     public void onCreatePreferences(Bundle savedInstanceState, String rootKey) {
