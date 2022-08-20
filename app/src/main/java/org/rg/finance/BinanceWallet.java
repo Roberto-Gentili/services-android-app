@@ -31,15 +31,21 @@ public class BinanceWallet extends Wallet.Abst {
             ExecutorService executorService,
             String apiKey,
             String apiSecret,
+            Map<String, String> aliasesForCoinNames,
             Map<String, String> coinCollaterals
     ) {
-        super(restTemplate, executorService, apiKey, apiSecret, Optional.ofNullable(coinCollaterals).orElseGet(()-> {
-            Map<String, String> coinCollateralsTemp = new LinkedHashMap<>();
-            coinCollateralsTemp.put("DEFAULT", "USDT");
-            coinCollateralsTemp.put("LUNC", "BUSD");
-            coinCollateralsTemp.put("BUSD", "USDT");
-            return coinCollateralsTemp;
-        }));
+        super(restTemplate, executorService, apiKey, apiSecret,
+            Optional.ofNullable(aliasesForCoinNames).orElseGet(()-> {
+                return new LinkedHashMap<>();
+            }),
+            Optional.ofNullable(coinCollaterals).orElseGet(()-> {
+                Map<String, String> coinCollateralsTemp = new LinkedHashMap<>();
+                coinCollateralsTemp.put("DEFAULT", "USDT");
+                coinCollateralsTemp.put("LUNC", "BUSD");
+                coinCollateralsTemp.put("BUSD", "USDT");
+                return coinCollateralsTemp;
+            })
+        );
     }
 
     public BinanceWallet(
@@ -47,16 +53,17 @@ public class BinanceWallet extends Wallet.Abst {
             ExecutorService executorService,
             String apiKey,
             String apiSecret) {
-        this(restTemplate, executorService, apiKey, apiSecret, null);
+        this(restTemplate, executorService, apiKey, apiSecret, null, null);
     }
 
     public BinanceWallet(
             RestTemplate restTemplate,
             String apiKey,
             String apiSecret,
+            Map<String, String> aliasesForCoinNames,
             Map<String, String> coinCollaterals
     ) {
-        super(restTemplate, apiKey, apiSecret, coinCollaterals);
+        super(restTemplate, apiKey, apiSecret, aliasesForCoinNames, coinCollaterals);
     }
 
     public BinanceWallet(
@@ -64,18 +71,18 @@ public class BinanceWallet extends Wallet.Abst {
             String apiKey,
             String apiSecret
     ) {
-        this(restTemplate, null, apiKey, apiSecret, null);
+        this(restTemplate, null, apiKey, apiSecret, null, null);
     }
 
     public BinanceWallet(
             String apiKey,
             String apiSecret
     ) {
-        this(null, null, apiKey, apiSecret, null);
+        this(null, null, apiKey, apiSecret, null, null);
     }
 
     @Override
-    public Collection<String> getAvailableCoins() {
+    protected Collection<String> getAvailableCoinsWithEffectiveNames() {
         Collection<Map<String, Object>> getAccountResponseBody = (Collection<Map<String, Object>>)getAccount().get("balances");
         Iterator<Map<String, Object>> iterator = getAccountResponseBody.iterator();
         Collection<String> coinNames = new TreeSet<>();
@@ -99,7 +106,7 @@ public class BinanceWallet extends Wallet.Abst {
     }
 
     @Override
-    public Collection<String> getOwnedCoins() {
+    protected Collection<String> getOwnedCoinsWithEffectiveNames() {
         Collection<Map<String, Object>> getAccountResponseBody = (Collection<Map<String, Object>>)getAccount().get("balances");
         Iterator<Map<String, Object>> iterator = getAccountResponseBody.iterator();
         Collection<String> coinNames = new TreeSet<>();
@@ -163,7 +170,7 @@ public class BinanceWallet extends Wallet.Abst {
     }
 
     @Override
-    public Double getQuantityForCoin(String coinName) {
+    protected Double getQuantityForEffectiveCoinName(String coinName) {
         Collection<Map<String, Object>> balances = (Collection<Map<String, Object>>)getAccount().get("balances");
         Iterator<Map<String, Object>> iterator = balances.iterator();
         Double amount = 0D;

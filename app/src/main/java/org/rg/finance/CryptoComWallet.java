@@ -39,12 +39,20 @@ public class CryptoComWallet extends Wallet.Abst {
 		ExecutorService executorService,
 		String apiKey,
 		String apiSecret,
+		Map<String, String> aliasesForCoinNames,
 		Map<String, String> coinCollaterals
 	) {
-		super(restTemplate, executorService, apiKey, apiSecret, Optional.ofNullable(coinCollaterals).orElseGet(()-> {
+		super(restTemplate, executorService, apiKey, apiSecret,
+		Optional.ofNullable(aliasesForCoinNames).orElseGet(()-> {
+			Map<String, String> coinCollateralsTemp = new LinkedHashMap<>();
+			coinCollateralsTemp.put("LUNA", "LUNA2");
+			return coinCollateralsTemp;
+		}),
+		Optional.ofNullable(coinCollaterals).orElseGet(()-> {
 			Map<String, String> coinCollateralsTemp = new LinkedHashMap<>();
 			coinCollateralsTemp.put("DEFAULT", "USDT");
 			coinCollateralsTemp.put("LUNC", "USDC");
+			coinCollateralsTemp.put("LUNA2", "USDC");
 			coinCollateralsTemp.put("BUSD", "USDT");
 			return coinCollateralsTemp;
 		}));
@@ -55,16 +63,17 @@ public class CryptoComWallet extends Wallet.Abst {
 		ExecutorService executorService,
 		String apiKey,
 		String apiSecret) {
-		this(restTemplate, executorService, apiKey, apiSecret, null);
+		this(restTemplate, executorService, apiKey, apiSecret, null, null);
 	}
 
 	public CryptoComWallet(
 		RestTemplate restTemplate,
 		String apiKey,
 		String apiSecret,
+		Map<String, String> aliasesForCoinNames,
 		Map<String, String> coinCollaterals
 	) {
-		super(restTemplate, apiKey, apiSecret, coinCollaterals);
+		super(restTemplate, apiKey, apiSecret, aliasesForCoinNames, coinCollaterals);
 	}
 
     public CryptoComWallet(
@@ -72,18 +81,18 @@ public class CryptoComWallet extends Wallet.Abst {
         String apiKey,
         String apiSecret
     ) {
-        this(restTemplate, null, apiKey, apiSecret, null);
+        this(restTemplate, null, apiKey, apiSecret, null, null);
     }
 
 	public CryptoComWallet(
 		String apiKey,
 		String apiSecret
 	) {
-		this(null, null, apiKey, apiSecret, null);
+		this(null, null, apiKey, apiSecret, null, null);
 	}
 
 	@Override
-	public Collection<String> getAvailableCoins() {
+	protected Collection<String> getAvailableCoinsWithEffectiveNames() {
         Collection<Map<Object, Object>> coinBalances = ((Collection<Map<Object, Object>>)((Map<Object, Object>)getAccountSummary()
                 .get("result")).get("accounts"));
         Collection<String> coinNames = new TreeSet<>();
@@ -94,7 +103,7 @@ public class CryptoComWallet extends Wallet.Abst {
 	}
 
 	@Override
-	public Collection<String> getOwnedCoins() {
+	protected Collection<String> getOwnedCoinsWithEffectiveNames() {
 		Collection<Map<Object, Object>> coinBalances = ((Collection<Map<Object, Object>>)((Map<Object, Object>)getAccountSummary()
                 .get("result")).get("accounts"));
         Collection<String> coinNames = new TreeSet<>();
@@ -135,7 +144,7 @@ public class CryptoComWallet extends Wallet.Abst {
 	}
 
 	@Override
-	public Double getQuantityForCoin(String coinName) {
+	protected Double getQuantityForEffectiveCoinName(String coinName) {
         Number value = (Number) ((Collection<Map<Object, Object>>)((Map<Object, Object>)getAccountSummary(coinName)
                 .get("result")).get("accounts")).iterator().next().get("balance");
         return value.doubleValue();
