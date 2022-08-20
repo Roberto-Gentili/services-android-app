@@ -414,6 +414,19 @@ public class MainFragment extends Fragment {
         }
     }
 
+    private void setHighlightedValue(TextView textView, String newValue) {
+        synchronized (textView) {
+            String previousValueAsString = String.valueOf(textView.getText());
+            if (!previousValueAsString.isEmpty() && !previousValueAsString.equals(newValue)) {
+                textView.setTextColor(Color.CYAN);
+                textView.setText(newValue);
+            } else {
+                textView.setText(newValue);
+                textView.setTextColor(Color.WHITE);
+            }
+        }
+    }
+
     private void runOnUIThread(Runnable action) {
         getActivity().runOnUiThread(() -> {
           try {
@@ -462,7 +475,8 @@ public class MainFragment extends Fragment {
                             this.fragment.runOnUIThread(() -> {
                                 fragment.setHighlightedValue(balance, fragment.numberFormatter, amount);
                                 fragment.setHighlightedValue(pureBalance, fragment.numberFormatter, pureAmount);
-                                lastUpdate.setText(((MainActivity)fragment.getActivity()).getLastUpdateTimeAsString());
+                                fragment.setHighlightedValue(lastUpdate, ((MainActivity)fragment.getActivity()).getLastUpdateTimeAsString());
+                                //lastUpdate.setText(((MainActivity)fragment.getActivity()).getLastUpdateTimeAsString());
                                 if (loadingDataAdvisor.getVisibility() != View.INVISIBLE) {
                                     loadingDataAdvisor.setVisibility(View.INVISIBLE);
                                     progressBar.setVisibility(View.INVISIBLE);
