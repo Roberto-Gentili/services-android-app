@@ -459,7 +459,6 @@ public class MainFragment extends Fragment {
                                 fragment.setHighlightedValue(balance, fragment.numberFormatter, amount);
                                 fragment.setHighlightedValue(pureBalance, fragment.numberFormatter, pureAmount);
                                 fragment.setHighlightedValue(lastUpdate, ((MainActivity)fragment.getActivity()).getLastUpdateTimeAsString());
-                                //lastUpdate.setText(((MainActivity)fragment.getActivity()).getLastUpdateTimeAsString());
                                 if (loadingDataAdvisor.getVisibility() != View.INVISIBLE) {
                                     loadingDataAdvisor.setVisibility(View.INVISIBLE);
                                     progressBar.setVisibility(View.INVISIBLE);
