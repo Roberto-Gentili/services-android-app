@@ -71,7 +71,6 @@ import java.util.stream.Collectors;
 public class MainFragment extends Fragment {
     private SharedPreferences appPreferences;
     private final Collection<Wallet> wallets;
-    private final ExecutorService executorService;
     private final DecimalFormatSymbols decimalFormatSymbols;
     private DecimalFormat numberFormatter;
     private DecimalFormat numberFormatterWithFourDecimals;
@@ -81,10 +80,7 @@ public class MainFragment extends Fragment {
 
     public MainFragment() {
         try {
-            executorService = ForkJoinPool.commonPool();
             wallets = new ArrayList<>();
-            //executorService = Executors.newFixedThreadPool(4);
-            //executorService = Executors.newSingleThreadExecutor();
             decimalFormatSymbols = new DecimalFormatSymbols();
             decimalFormatSymbols.setGroupingSeparator('.');
             decimalFormatSymbols.setDecimalSeparator(',');
@@ -121,7 +117,7 @@ public class MainFragment extends Fragment {
         if (isStringNotEmpty(cryptoComApiKey) && isStringNotEmpty(cryptoComApiSecret)) {
             CryptoComWallet wallet = new CryptoComWallet(
                 RestTemplateSupplier.getSharedInstance().get(),
-                executorService,
+                ((MainActivity)getActivity()).getExecutorService(),
                 cryptoComApiKey,
                 cryptoComApiSecret
             );
@@ -133,7 +129,7 @@ public class MainFragment extends Fragment {
         if (isStringNotEmpty(binanceApiKey) && isStringNotEmpty(binanceApiSecret)) {
             BinanceWallet wallet = new BinanceWallet(
                 RestTemplateSupplier.getSharedInstance().get(),
-                executorService,
+                ((MainActivity)getActivity()).getExecutorService(),
                 binanceApiKey,
                 binanceApiSecret
             );
@@ -160,7 +156,7 @@ public class MainFragment extends Fragment {
                 }
                 return null;
             },
-            executorService
+            ((MainActivity)getActivity()).getExecutorService()
         ).exceptionally(exc -> {
             LoggerChain.getInstance().logError("Unable to retrieve GitHub username: " + exc.getMessage());
             return null;
@@ -503,7 +499,7 @@ public class MainFragment extends Fragment {
                 } catch (Throwable exc) {
                     LoggerChain.getInstance().logError("Exception occurred: " + exc.getMessage());
                 }
-            }, fragment.executorService).atTheEndOfEveryIterationWaitFor(750L).activate();
+            }, ((MainActivity)fragment.getActivity()).getExecutorService()).atTheEndOfEveryIterationWaitFor(750L).activate();
         }
 
         private void stop() {
@@ -669,7 +665,7 @@ public class MainFragment extends Fragment {
             launchCoinToBeScannedSuppliers(coinToBeScannedSuppliers);
             AsyncLooper coinsToBeScannedRetriever = new AsyncLooper(() -> {
                 launchCoinToBeScannedSuppliers(coinToBeScannedSuppliers);
-            }, fragment.executorService).atTheStartOfEveryIterationWaitFor(60000L);
+            }, ((MainActivity)fragment.getActivity()).getExecutorService()).atTheStartOfEveryIterationWaitFor(60000L);
             return new AsyncLooper(() -> {
                 Collection<CompletableFuture<String>> retrievingCoinValueTasks = new CopyOnWriteArrayList<>();
                 for (Wallet wallet : fragment.wallets) {
@@ -697,14 +693,14 @@ public class MainFragment extends Fragment {
                                                 coinValues.put("quantity", quantity);
                                                 ((MainActivity)fragment.getActivity()).setLastUpdateTime();
                                             },
-                                            fragment.executorService
+                                            ((MainActivity)fragment.getActivity()).getExecutorService()
                                         )
                                     );
                                 }
                                 innerTasks.stream().forEach(CompletableFuture::join);
                                 return (String) null;
                             },
-                            fragment.executorService
+                            ((MainActivity)fragment.getActivity()).getExecutorService()
                         ).exceptionally(exc -> {
                             String exceptionMessage = wallet.getClass().getSimpleName() + " exception occurred: " + exc.getMessage();
                             LoggerChain.getInstance().logError(exceptionMessage);
@@ -714,7 +710,7 @@ public class MainFragment extends Fragment {
                 }
                 this.retrievingCoinValueTasks = retrievingCoinValueTasks;
                 retrievingCoinValueTasks.stream().forEach(CompletableFuture::join);
-            }, fragment.executorService)
+            }, ((MainActivity)fragment.getActivity()).getExecutorService())
             .whenStarted(coinsToBeScannedRetriever::activate)
             .whenKilled(coinsToBeScannedRetriever::kill)
             .atTheEndOfEveryIterationWaitFor(Long.valueOf(this.fragment.appPreferences.getString("intervalBetweenRequestGroups", "0")))
@@ -737,7 +733,7 @@ public class MainFragment extends Fragment {
         private CompletableFuture<Collection<String>> launchCoinToBeScannedSupplier(Wallet wallet) {
             return CompletableFuture.supplyAsync(() -> {
                 return getCoinsToBeScanned(wallet);
-            }, fragment.executorService).exceptionally(exc -> {
+            }, ((MainActivity)fragment.getActivity()).getExecutorService()).exceptionally(exc -> {
                 LoggerChain.getInstance().logError(exc.getMessage());
                 return getCoinsToBeScanned(wallet);
             });

@@ -18,10 +18,13 @@ import java.text.DateFormat;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 public class MainActivity extends AppCompatActivity {
     private LocalDateTime lastUpdateTime;
     private DateTimeFormatter dateFormatter;
+    private ExecutorService executorService;
 
     public MainActivity() {
         int SDK_INT = android.os.Build.VERSION.SDK_INT;
@@ -37,6 +40,7 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        executorService = Executors.newFixedThreadPool(16);
         LoggerChain.getInstance().appendExceptionLogger(message -> {
             runOnUiThread(()-> {
                 Toast.makeText(this, message, Toast.LENGTH_LONG).show();
@@ -94,5 +98,9 @@ public class MainActivity extends AppCompatActivity {
             return dateFormatter.format(lastUpdateTime);
         }
         return null;
+    }
+
+    public ExecutorService getExecutorService(){
+        return this.executorService;
     }
 }
