@@ -153,12 +153,15 @@ public class MainFragment extends Fragment {
         } else {
             ((MainActivity)getActivity()).goToSettingsView();
         }
-        gitHubUsernameSupplier = CompletableFuture.supplyAsync(() -> {
-            if (isStringNotEmpty(appPreferences.getString("gitHubAuthorizationToken", null))) {
-                return retrieveGitHubUsername();
-            }
-            return null;
-        }).exceptionally(exc -> {
+        gitHubUsernameSupplier = CompletableFuture.supplyAsync(
+            () -> {
+                if (isStringNotEmpty(appPreferences.getString("gitHubAuthorizationToken", null))) {
+                    return retrieveGitHubUsername();
+                }
+                return null;
+            },
+            executorService
+        ).exceptionally(exc -> {
             LoggerChain.getInstance().logError("Unable to retrieve GitHub username: " + exc.getMessage());
             return null;
         });
@@ -500,14 +503,7 @@ public class MainFragment extends Fragment {
                 } catch (Throwable exc) {
                     LoggerChain.getInstance().logError("Exception occurred: " + exc.getMessage());
                 }
-                synchronized (this) {
-                    try {
-                        this.wait(750);
-                    } catch (InterruptedException exc) {
-                        exc.printStackTrace();
-                    }
-                }
-            }).activate();
+            }, fragment.executorService).atTheEndOfEveryIterationWaitFor(750L).activate();
         }
 
         private void stop() {
@@ -669,6 +665,11 @@ public class MainFragment extends Fragment {
         }
 
         private AsyncLooper retrieveCoinValues() {
+            Map<Wallet, CompletableFuture<Collection<String>>> coinToBeScannedSuppliers = new ConcurrentHashMap<>();
+            launchCoinToBeScannedSuppliers(coinToBeScannedSuppliers);
+            AsyncLooper coinsToBeScannedRetriever = new AsyncLooper(() -> {
+                launchCoinToBeScannedSuppliers(coinToBeScannedSuppliers);
+            }, fragment.executorService).atTheStartOfEveryIterationWaitFor(60000L);
             return new AsyncLooper(() -> {
                 Collection<CompletableFuture<String>> retrievingCoinValueTasks = new CopyOnWriteArrayList<>();
                 for (Wallet wallet : fragment.wallets) {
@@ -676,12 +677,7 @@ public class MainFragment extends Fragment {
                         CompletableFuture.supplyAsync(
                             () -> {
                                 Collection<CompletableFuture<Void>> innerTasks = new ArrayList<>();
-                                Collection<String> coinsToBeScanned = wallet.getOwnedCoins();
-                                coinsToBeScanned.addAll(coinsToBeAlwaysDisplayed);
-                                if (fragment.isCurrencyInEuro()) {
-                                    coinsToBeScanned.add("EUR");
-                                }
-                                for (String coinName : coinsToBeScanned) {
+                                for (String coinName : coinToBeScannedSuppliers.get(wallet).join()) {
                                     innerTasks.add(
                                         CompletableFuture.runAsync(
                                             () -> {
@@ -695,10 +691,10 @@ public class MainFragment extends Fragment {
                                                         allCoinValues = currentCoinValues.computeIfAbsent(coinName, key -> new ConcurrentHashMap<>());
                                                     }
                                                 }
-                                                Map<String, Double> coinValues = new HashMap<>();
+                                                Map<String, Double> coinValues = allCoinValues.computeIfAbsent(wallet, key -> new ConcurrentHashMap<>());
                                                 coinValues.put("unitPrice", unitPriceInDollar);
+                                                ((MainActivity)fragment.getActivity()).setLastUpdateTime();
                                                 coinValues.put("quantity", quantity);
-                                                allCoinValues.put(wallet, coinValues);
                                                 ((MainActivity)fragment.getActivity()).setLastUpdateTime();
                                             },
                                             fragment.executorService
@@ -718,19 +714,43 @@ public class MainFragment extends Fragment {
                 }
                 this.retrievingCoinValueTasks = retrievingCoinValueTasks;
                 retrievingCoinValueTasks.stream().forEach(CompletableFuture::join);
-                Long intervalBetweenRequestGroups = Long.valueOf(
-                    this.fragment.appPreferences.getString("intervalBetweenRequestGroups", "0")
-                );
-                if (intervalBetweenRequestGroups > 0) {
-                    synchronized (retrievingCoinValueTasks) {
-                        try {
-                            retrievingCoinValueTasks.wait(intervalBetweenRequestGroups);
-                        } catch (InterruptedException exc) {
-                            LoggerChain.getInstance().logError(exc.getMessage());
-                        }
-                    }
+            }, fragment.executorService)
+            .whenStarted(coinsToBeScannedRetriever::activate)
+            .whenKilled(coinsToBeScannedRetriever::kill)
+            .atTheEndOfEveryIterationWaitFor(Long.valueOf(this.fragment.appPreferences.getString("intervalBetweenRequestGroups", "0")))
+            .activate();
+        }
+
+        private void launchCoinToBeScannedSuppliers(Map<Wallet, CompletableFuture<Collection<String>>> coinSuppliers) {
+            for (Wallet wallet : fragment.wallets) {
+                CompletableFuture<Collection<String>> coinSupplier = coinSuppliers.get(wallet);
+                if (coinSupplier != null && !coinSupplier.isDone()) {
+                    coinSupplier.join();
+                    coinSupplier = launchCoinToBeScannedSupplier(wallet);
+                    coinSuppliers.put(wallet, coinSupplier);
+                } else if (coinSupplier == null) {
+                    coinSuppliers.put(wallet, launchCoinToBeScannedSupplier(wallet));
                 }
-            }).activate();
+            }
+        }
+
+        private CompletableFuture<Collection<String>> launchCoinToBeScannedSupplier(Wallet wallet) {
+            return CompletableFuture.supplyAsync(() -> {
+                return getCoinsToBeScanned(wallet);
+            }, fragment.executorService).exceptionally(exc -> {
+                LoggerChain.getInstance().logError(exc.getMessage());
+                return getCoinsToBeScanned(wallet);
+            });
+        }
+
+        @NonNull
+        private Collection<String> getCoinsToBeScanned(Wallet wallet) {
+            Collection<String> coinsForWallet = wallet.getOwnedCoins();
+            coinsForWallet.addAll(coinsToBeAlwaysDisplayed);
+            if (fragment.isCurrencyInEuro()) {
+                coinsForWallet.add("EUR");
+            }
+            return coinsForWallet;
         }
 
         public boolean refresh () {
