@@ -77,7 +77,6 @@ public class MainFragment extends Fragment {
     private BalanceUpdater balanceUpdater;
     private CoinViewManager coinViewManager;
     private CompletableFuture<String> gitHubUsernameSupplier;
-    private CompletableFuture<Boolean> reportItemsSetter;
 
     public MainFragment() {
         try {
@@ -187,26 +186,6 @@ public class MainFragment extends Fragment {
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         appPreferences = PreferenceManager.getDefaultSharedPreferences(this.getActivity());
         init();
-        reportItemsSetter = CompletableFuture.supplyAsync(() -> {
-            if (gitHubUsernameSupplier.join() != null) {
-                TextView linkToReport = (TextView) view.findViewById(R.id.linkToReport);
-                linkToReport.setMovementMethod(LinkMovementMethod.getInstance());
-                String reportUrl = getResources().getString(R.string.reportUrl).replace(
-                        "${username}",
-                        gitHubUsernameSupplier.join()
-                );
-                linkToReport.setText(Html.fromHtml(String.valueOf(linkToReport.getText()).replace("&reportUrl;", reportUrl), Html.FROM_HTML_MODE_LEGACY));
-                Button updateButton = (Button) view.findViewById(R.id.updateReportButton);
-                updateButton.setOnClickListener(new View.OnClickListener() {
-                    @Override
-                    public void onClick(View view) {
-                        updateReport((Button) view);
-                    }
-                });
-                return true;
-            }
-            return false;
-        });
     }
 
     public void updateReport(Button updateButton) {
@@ -493,7 +472,19 @@ public class MainFragment extends Fragment {
                                     lastUpdateLabel.setVisibility(View.VISIBLE);
                                     lastUpdate.setVisibility(View.VISIBLE);
                                     coinsView.setVisibility(View.VISIBLE);
-                                    if (fragment.reportItemsSetter.join()) {
+                                    if (fragment.gitHubUsernameSupplier.join() != null) {
+                                        linkToReport.setMovementMethod(LinkMovementMethod.getInstance());
+                                        String reportUrl = fragment.getResources().getString(R.string.reportUrl).replace(
+                                                "${username}",
+                                                fragment.gitHubUsernameSupplier.join()
+                                        );
+                                        linkToReport.setText(Html.fromHtml(String.valueOf(linkToReport.getText()).replace("&reportUrl;", reportUrl), Html.FROM_HTML_MODE_LEGACY));
+                                        updateReportButton.setOnClickListener(new View.OnClickListener() {
+                                            @Override
+                                            public void onClick(View view) {
+                                                fragment.updateReport((Button) view);
+                                            }
+                                        });
                                         linkToReport.setVisibility(View.VISIBLE);
                                         updateReportButton.setVisibility(View.VISIBLE);
                                     }
