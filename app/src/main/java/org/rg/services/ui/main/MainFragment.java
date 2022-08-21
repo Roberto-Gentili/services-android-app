@@ -665,7 +665,7 @@ public class MainFragment extends Fragment {
             launchCoinToBeScannedSuppliers(coinToBeScannedSuppliers);
             AsyncLooper coinsToBeScannedRetriever = new AsyncLooper(() -> {
                 launchCoinToBeScannedSuppliers(coinToBeScannedSuppliers);
-            }, ((MainActivity)fragment.getActivity()).getExecutorService()).atTheStartOfEveryIterationWaitFor(60000L);
+            }, ((MainActivity)fragment.getActivity()).getExecutorService()).atTheStartOfEveryIterationWaitFor(120000L);
             return new AsyncLooper(() -> {
                 Collection<CompletableFuture<String>> retrievingCoinValueTasks = new CopyOnWriteArrayList<>();
                 for (Wallet wallet : fragment.wallets) {
