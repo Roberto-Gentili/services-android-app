@@ -732,11 +732,14 @@ public class MainFragment extends Fragment {
 
         private CompletableFuture<Collection<String>> launchCoinToBeScannedSupplier(Wallet wallet) {
             return CompletableFuture.supplyAsync(() -> {
-                return getCoinsToBeScanned(wallet);
-            }, ((MainActivity)fragment.getActivity()).getExecutorService()).exceptionally(exc -> {
-                LoggerChain.getInstance().logError(exc.getMessage());
-                return getCoinsToBeScanned(wallet);
-            });
+                while (true) {
+                    try {
+                        return getCoinsToBeScanned(wallet);
+                    } catch (Throwable exc) {
+                        LoggerChain.getInstance().logError(exc.getMessage());
+                    }
+                }
+            }, ((MainActivity)fragment.getActivity()).getExecutorService());
         }
 
         @NonNull
