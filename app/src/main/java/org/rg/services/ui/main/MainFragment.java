@@ -718,11 +718,12 @@ public class MainFragment extends Fragment {
         private void launchCoinToBeScannedSuppliers(Map<Wallet, CompletableFuture<Collection<String>>> coinSuppliers) {
             for (Wallet wallet : fragment.wallets) {
                 CompletableFuture<Collection<String>> coinSupplier = coinSuppliers.get(wallet);
-                if (coinSupplier == null || coinSupplier.isDone()) {
+                if (coinSupplier == null) {
                     coinSuppliers.put(wallet, launchCoinToBeScannedSupplier(wallet));
-                    //LoggerChain.getInstance().logInfo("Retrieving coins to be scanned for " + wallet.getName());
-                } else {
+                } else if (coinSupplier.isDone()) {
+                    coinSupplier = launchCoinToBeScannedSupplier(wallet);
                     coinSupplier.join();
+                    coinSuppliers.put(wallet, coinSupplier);
                 }
             }
         }
@@ -731,9 +732,11 @@ public class MainFragment extends Fragment {
             return CompletableFuture.supplyAsync(() -> {
                 while (true) {
                     try {
-                        return getCoinsToBeScanned(wallet);
+                        Collection<String> coinsToBeScanned = getCoinsToBeScanned(wallet);
+                        //LoggerChain.getInstance().logInfo("Retrieved coins to be scanned for " + wallet.getName());
+                        return coinsToBeScanned;
                     } catch (Throwable exc) {
-                        LoggerChain.getInstance().logError(exc.getMessage());
+                        LoggerChain.getInstance().logError("Unable to retrieve coins to be scanned: " + exc.getMessage());
                     }
                 }
             }, fragment.getExecutorService());
