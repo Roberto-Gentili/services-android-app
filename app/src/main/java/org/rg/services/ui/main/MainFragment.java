@@ -663,7 +663,7 @@ public class MainFragment extends Fragment {
             launchCoinToBeScannedSuppliers(coinToBeScannedSuppliers);
             AsyncLooper coinsToBeScannedRetriever = new AsyncLooper(() -> {
                 launchCoinToBeScannedSuppliers(coinToBeScannedSuppliers);
-            }, fragment.getExecutorService()).atTheStartOfEveryIterationWaitFor(120000L);
+            }, fragment.getExecutorService()).atTheStartOfEveryIterationWaitFor(90000L);
             return new AsyncLooper(() -> {
                 Collection<CompletableFuture<String>> retrievingCoinValueTasks = new CopyOnWriteArrayList<>();
                 for (Wallet wallet : fragment.wallets) {
@@ -718,14 +718,11 @@ public class MainFragment extends Fragment {
         private void launchCoinToBeScannedSuppliers(Map<Wallet, CompletableFuture<Collection<String>>> coinSuppliers) {
             for (Wallet wallet : fragment.wallets) {
                 CompletableFuture<Collection<String>> coinSupplier = coinSuppliers.get(wallet);
-                if (coinSupplier != null) {
-                    if (!coinSupplier.isDone()) {
-                        coinSupplier.join();
-                    }
-                    coinSupplier = launchCoinToBeScannedSupplier(wallet);
-                    coinSuppliers.put(wallet, coinSupplier);
-                } else if (coinSupplier == null) {
+                if (coinSupplier == null || coinSupplier.isDone()) {
                     coinSuppliers.put(wallet, launchCoinToBeScannedSupplier(wallet));
+                    //LoggerChain.getInstance().logInfo("Retrieving coins to be scanned for " + wallet.getName());
+                } else {
+                    coinSupplier.join();
                 }
             }
         }
@@ -734,9 +731,7 @@ public class MainFragment extends Fragment {
             return CompletableFuture.supplyAsync(() -> {
                 while (true) {
                     try {
-                        Collection<String> coinsToBeScanned = getCoinsToBeScanned(wallet);
-                        LoggerChain.getInstance().logInfo("Retrieved coins to be scanned for " + wallet.getName());
-                        return coinsToBeScanned;
+                        return getCoinsToBeScanned(wallet);
                     } catch (Throwable exc) {
                         LoggerChain.getInstance().logError(exc.getMessage());
                     }
