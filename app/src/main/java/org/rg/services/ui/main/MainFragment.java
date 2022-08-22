@@ -51,6 +51,7 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.TreeMap;
@@ -141,13 +142,6 @@ public class MainFragment extends Fragment {
                     binanceApiSecret
             );
             wallets.add(wallet);
-        }
-        if (isCurrencyInEuro()) {
-            ((TextView) getView().findViewById(R.id.balanceCurrency)).setText("€");
-            ((TextView) getView().findViewById(R.id.pureBalanceCurrency)).setText("€");
-        } else {
-            ((TextView) getView().findViewById(R.id.balanceCurrency)).setText("$");
-            ((TextView) getView().findViewById(R.id.pureBalanceCurrency)).setText("$");
         }
         numberFormatter = new DecimalFormat("#,##0.00", decimalFormatSymbols);
         numberFormatterWithFourDecimals = new DecimalFormat("#,##0.0000", decimalFormatSymbols);
@@ -380,12 +374,17 @@ public class MainFragment extends Fragment {
     }
 
     private void setHighlightedValue(TextView textView, DecimalFormat numberFormatter, Double newValue) {
+        setHighlightedValue(textView, numberFormatter, newValue, false);
+    }
+
+    private void setHighlightedValue(TextView textView, DecimalFormat numberFormatter, Double newValue, boolean inverted) {
         synchronized (textView) {
             String previousValueAsString = String.valueOf(textView.getText());
             String currentValueAsString = numberFormatter.format(newValue);
             if (!previousValueAsString.isEmpty() && !previousValueAsString.equals(currentValueAsString)) {
                 try {
-                    if (numberFormatter.parse(currentValueAsString).doubleValue() > numberFormatter.parse(previousValueAsString).doubleValue()) {
+                    Double previousValue = numberFormatter.parse(previousValueAsString).doubleValue();
+                    if ((!inverted && newValue > previousValue) || (inverted && newValue < previousValue)) {
                         textView.setTextColor(Color.GREEN);
                     } else {
                         textView.setTextColor(Color.RED);
@@ -395,6 +394,9 @@ public class MainFragment extends Fragment {
                 textView.setText(currentValueAsString);
             } else {
                 textView.setText(currentValueAsString);
+                if (currentValueAsString.equals("NaN")) {
+                    textView.setTypeface(textView.getTypeface(), Typeface.ITALIC);
+                }
                 textView.setTextColor(Color.WHITE);
             }
         }
@@ -454,15 +456,18 @@ public class MainFragment extends Fragment {
                     CoinViewManager coinViewManager = fragment.coinViewManager;
                     if (coinViewManager != null) {
                         if (coinViewManager.refresh()) {
-                            Double eurValue = fragment.isCurrencyInEuro() ? coinViewManager.getEuroValue() : null;
-                            Double summedCoinAmountInUSDT = coinViewManager.getAmountInDollar();
-                            Double amount = fragment.isCurrencyInEuro() ? summedCoinAmountInUSDT / eurValue : summedCoinAmountInUSDT;
-                            Double pureAmount = ((((((summedCoinAmountInUSDT * 99.6D) / 100D) - 1D) * 99.9D) / 100D) - (eurValue != null ? eurValue : 1D)) / (eurValue != null ? eurValue : 1D);
                             this.fragment.runOnUIThread(() -> {
-                                fragment.setHighlightedValue(balance, fragment.numberFormatter, amount);
-                                fragment.setHighlightedValue(pureBalance, fragment.numberFormatter, pureAmount);
+                                fragment.setHighlightedValue(balance, fragment.numberFormatter, fragment.coinViewManager.getAmount());
+                                fragment.setHighlightedValue(pureBalance, fragment.numberFormatter, fragment.coinViewManager.getPureAmount());
                                 fragment.setHighlightedValue(lastUpdate, ((MainActivity)fragment.getActivity()).getLastUpdateTimeAsString());
                                 if (loadingDataAdvisor.getVisibility() != View.INVISIBLE) {
+                                    if (coinViewManager.isCurrencyInEuro()) {
+                                        balanceCurrency.setText("€");
+                                        pureBalanceCurrency.setText("€");
+                                    } else {
+                                        balanceCurrency.setText("$");
+                                        pureBalanceCurrency.setText("$");
+                                    }
                                     loadingDataAdvisor.setVisibility(View.INVISIBLE);
                                     progressBar.setVisibility(View.INVISIBLE);
                                     balanceLabel.setVisibility(View.VISIBLE);
@@ -515,18 +520,42 @@ public class MainFragment extends Fragment {
     }
 
     private static class CoinViewManager {
+        private static class HeaderLabel {
+            private final static String COIN = "Coin";
+            private final static String UP_IN_USDT = "U.P. in $";
+            private final static String PPR_IN_USDT = "PPR in $";
+            private final static String QUANTITY = "Quant.";
+            private final static String AMOUNT_IN_USDT = "Am. in $";
+            private final static String AMOUNT_IN_EURO = "Am. in €";
+        }
+
         private final MainFragment fragment;
         private Map<String, Object> currentValues;
         private Map<String, Map<Wallet, Map<String, Double>>> currentCoinValues;
         private Collection<CompletableFuture<Collection<String>>> retrievingCoinValueTasks;
         private Collection<String> coinsToBeAlwaysDisplayed;
         private AsyncLooper retrievingCoinValuesTask;
+        private Map<String, Integer> headerLabelsForSpaces;
 
         private CoinViewManager(MainFragment fragment) {
             this.fragment = fragment;
             this.currentValues = new ConcurrentHashMap<>();
-            this.currentCoinValues = new TreeMap<>();
+            this.currentCoinValues = new ConcurrentHashMap<>();
             this.coinsToBeAlwaysDisplayed = Arrays.asList(fragment.appPreferences.getString("coinsToBeAlwaysDisplayed", "BTC, ETH").toUpperCase().replace(" ", "").split(","));
+            headerLabelsForSpaces = new LinkedHashMap<>();
+        }
+
+        private void setUpHeaderLabelsForSpaces() {
+            headerLabelsForSpaces.put(HeaderLabel.COIN, 1);
+            headerLabelsForSpaces.put(HeaderLabel.UP_IN_USDT, 1);
+            headerLabelsForSpaces.put(HeaderLabel.PPR_IN_USDT, 1);
+            headerLabelsForSpaces.put(HeaderLabel.QUANTITY, 4);
+            Double euroValue = getEuroValue();
+            if (fragment.isCurrencyInEuro() && euroValue != null && !euroValue.isNaN()) {
+                headerLabelsForSpaces.put(HeaderLabel.AMOUNT_IN_EURO, 1);
+            } else {
+                headerLabelsForSpaces.put(HeaderLabel.AMOUNT_IN_USDT, 1);
+            }
         }
 
         private synchronized void buildHeader() {
@@ -534,14 +563,43 @@ public class MainFragment extends Fragment {
             if (coinsTable.getChildAt(0) != null) {
                 return;
             }
-            addHeaderColumn("Coin", 1);
-            addHeaderColumn("U.P. in $", 3);
-            addHeaderColumn("Quant.", 4);
-            if (fragment.isCurrencyInEuro()) {
-                addHeaderColumn("Am. in €", 2);
-            } else {
-                addHeaderColumn("Am. in $", 2);
+            for (Map.Entry<String, Integer> headerValue : headerLabelsForSpaces.entrySet()) {
+                addHeaderColumn(headerValue.getKey(), headerValue.getValue());
             }
+        }
+
+        private int getIndexOfHeaderLabel(String label) {
+            int index = 0;
+            for (Map.Entry<String, Integer> headerValue : headerLabelsForSpaces.entrySet()) {
+                if (headerValue.getKey().equals(label)) {
+                    return index;
+                }
+                index++;
+            }
+            return -1;
+        }
+
+        private void setUnitPriceForCoinInDollar(String coinName, Double value) {
+            setValueForCoin(coinName, value, getIndexOfHeaderLabel(HeaderLabel.UP_IN_USDT), fragment.numberFormatterWithFourDecimals);
+        }
+
+        private void setQuantityForCoin(String coinName, Double value) {
+            setValueForCoin(coinName, value, getIndexOfHeaderLabel(HeaderLabel.QUANTITY), fragment.numberFormatterWithFourDecimals);
+        }
+
+        private void setAmountForCoin(String coinName, Double value) {
+            Double euroValue = getEuroValue();
+            int index = headerLabelsForSpaces.containsKey(HeaderLabel.AMOUNT_IN_EURO) ?
+                getIndexOfHeaderLabel(HeaderLabel.AMOUNT_IN_EURO) : getIndexOfHeaderLabel(HeaderLabel.AMOUNT_IN_USDT);
+            setValueForCoin(coinName, fragment.isCurrencyInEuro() && euroValue != null && !euroValue.isNaN() ? value / euroValue : value, index, fragment.numberFormatter);
+        }
+
+        private void setPPRForCoin(String coinName, Double value) {
+            setValueForCoin(coinName, value, getIndexOfHeaderLabel(HeaderLabel.PPR_IN_USDT), fragment.numberFormatterWithFourDecimals, true);
+        }
+
+        private void setValueForCoin(String coinName, Double value, int columnIndex, DecimalFormat numberFormatter) {
+            setValueForCoin(coinName, value, columnIndex, numberFormatter, false);
         }
 
         private void addHeaderColumn(String text) {
@@ -558,30 +616,18 @@ public class MainFragment extends Fragment {
                 }
                 TextView textView = new TextView(fragment.getActivity());
                 textView.setText(
-                    CharBuffer.allocate(emptySpaceCharCount).toString().replace( '\0', ' ' ) +
-                    text +
-                    CharBuffer.allocate( emptySpaceCharCount).toString().replace( '\0', ' ' )
+                        CharBuffer.allocate(emptySpaceCharCount).toString().replace( '\0', ' ' ) +
+                                text +
+                                CharBuffer.allocate( emptySpaceCharCount).toString().replace( '\0', ' ' )
                 );
-                textView.setTextSize(23F);
+                textView.setTextSize(20F);
                 textView.setTextColor(ResourcesCompat.getColor(fragment.getResources(), R.color.yellow, null));
                 textView.setTypeface(null, Typeface.BOLD);
                 header.addView(textView);
             });
         }
 
-        private void setUnitPriceForCoinInDollar(String coinName, Double value) {
-            setValueForCoin(coinName, value, 1, fragment.numberFormatterWithFourDecimals);
-        }
-
-        private void setQuantityForCoin(String coinName, Double value) {
-            setValueForCoin(coinName, value, 2, fragment.numberFormatterWithFourDecimals);
-        }
-
-        private void setAmountForCoin(String coinName, Double value) {
-            setValueForCoin(coinName, fragment.isCurrencyInEuro()? value / getEuroValue() : value, 3, fragment.numberFormatter);
-        }
-
-        private void setValueForCoin(String coinName, Double value, int columnIndex, DecimalFormat numberFormatter) {
+        private void setValueForCoin(String coinName, Double value, int columnIndex, DecimalFormat numberFormatter, boolean inverted) {
             fragment.runOnUIThread(() -> {
                 TableLayout coinsTable = (TableLayout) fragment.getActivity().findViewById(R.id.coinsTableView);
                 int childCount = coinsTable.getChildCount();
@@ -593,7 +639,7 @@ public class MainFragment extends Fragment {
                     row = new TableRow(fragment.getActivity());
                     TextView coinNameTextView = new TextView(fragment.getActivity());
                     coinNameTextView.setText(coinName);
-                    coinNameTextView.setTextSize(18F);
+                    coinNameTextView.setTextSize(15F);
                     coinNameTextView.setTextColor(Color.WHITE);
                     coinNameTextView.setGravity(Gravity.LEFT);
                     coinNameTextView.setTypeface(null, Typeface.BOLD);
@@ -604,14 +650,14 @@ public class MainFragment extends Fragment {
                 if (valueTextView == null) {
                     for (int i = 1; i <= columnIndex; i++) {
                         valueTextView = new TextView(fragment.getActivity());
-                        valueTextView.setTextSize(16F);
+                        valueTextView.setTextSize(15F);
                         valueTextView.setGravity(Gravity.RIGHT);
                         valueTextView.setTextColor(Color.WHITE);
                         row.addView(valueTextView);
                     }
                     valueTextView = (TextView) row.getChildAt(columnIndex);
                 }
-                fragment.setHighlightedValue(valueTextView, numberFormatter, value);
+                fragment.setHighlightedValue(valueTextView, numberFormatter, value, inverted);
             });
         }
 
@@ -677,14 +723,7 @@ public class MainFragment extends Fragment {
                                             () -> {
                                                 Double unitPriceInDollar = wallet.getValueForCoin(coinName);
                                                 Double quantity = wallet.getQuantityForCoin(coinName);
-                                                Map<Wallet, Map<String, Double>> allCoinValues = null;
-                                                if (currentCoinValues instanceof ConcurrentHashMap) {
-                                                    allCoinValues = currentCoinValues.computeIfAbsent(coinName, key -> new ConcurrentHashMap<>());
-                                                } else {
-                                                    synchronized (currentCoinValues) {
-                                                        allCoinValues = currentCoinValues.computeIfAbsent(coinName, key -> new ConcurrentHashMap<>());
-                                                    }
-                                                }
+                                                Map<Wallet, Map<String, Double>> allCoinValues = currentCoinValues.computeIfAbsent(coinName, key -> new ConcurrentHashMap<>());
                                                 Map<String, Double> coinValues = allCoinValues.computeIfAbsent(wallet, key -> new ConcurrentHashMap<>());
                                                 coinValues.put("unitPrice", unitPriceInDollar);
                                                 ((MainActivity)fragment.getActivity()).setLastUpdateTime();
@@ -756,12 +795,13 @@ public class MainFragment extends Fragment {
             if (retrievingCoinValueTasks == null) {
                 return false;
             }
-            if (currentCoinValues instanceof TreeMap) {
+            if (((TableLayout) fragment.getActivity().findViewById(R.id.coinsTableView)).getChildCount() == 0) {
                 if (retrievingCoinValueTasks.stream().map(CompletableFuture::join).filter(excMsgs -> !excMsgs.isEmpty()).count() > 0) {
                     setToNaNValuesIfNulls();
                     return false;
                 }
             }
+            Map<String, Map<Wallet, Map<String, Double>>> currentCoinValuesSnapshot = getCurrentCoinValuesSnapshot();
             Integer unitPriceRetrievingMode = Integer.valueOf(fragment.appPreferences.getString("unitPriceRetrievingMode", "3"));
             Supplier<Double> euroValueSupplier = null;
             Function<Map.Entry<String, Map<Wallet, Map<String, Double>>>, Map<String, Double>> valuesRetriever = null;
@@ -769,19 +809,24 @@ public class MainFragment extends Fragment {
                 BiPredicate<Double, Double> unitPriceTester = unitPriceRetrievingMode == 1 ?
                     (valueOne, valueTwo) -> valueOne < valueTwo :
                     (valueOne, valueTwo) -> valueOne > valueTwo;
-                euroValueSupplier = () -> retrieveValuesWithMinMaxUnitPrice(currentCoinValues.get("EUR").values(), unitPriceTester).get("unitPrice");
+                euroValueSupplier = () -> retrieveValuesWithMinMaxUnitPrice(currentCoinValuesSnapshot.get("EUR").values(), unitPriceTester).get("unitPrice");
                 valuesRetriever = allCoinValues -> retrieveValuesWithMinMaxUnitPrice(allCoinValues.getValue().values(), unitPriceTester);
             } else if (unitPriceRetrievingMode == 3) {
-                euroValueSupplier = () -> retrieveValuesWithAvgUnitPrice(currentCoinValues.get("EUR").values()).get("unitPrice");
+                euroValueSupplier = () -> retrieveValuesWithAvgUnitPrice(currentCoinValuesSnapshot.get("EUR").values()).get("unitPrice");
                 valuesRetriever = allCoinValues -> retrieveValuesWithAvgUnitPrice(allCoinValues.getValue().values());
             }
-            if (fragment.isCurrencyInEuro() && currentCoinValues.get("EUR") != null) {
-                setEuroValue(euroValueSupplier.get());
+            Double euroValue = null;
+            if (fragment.isCurrencyInEuro() && currentCoinValuesSnapshot.get("EUR") != null) {
+                setEuroValue(euroValue = euroValueSupplier.get());
             } else if (!fragment.isCurrencyInEuro()) {
-                setEuroValue(null);
+                setEuroValue(euroValue);
+            }
+            if (headerLabelsForSpaces.isEmpty()) {
+                setUpHeaderLabelsForSpaces();
             }
             Double amount = 0D;
-            for (Map.Entry<String, Map<Wallet, Map<String, Double>>> allCoinValues : currentCoinValues.entrySet()) {
+            Map<String, Map<String, Double>> allCoinsValues = new TreeMap<>();
+            for (Map.Entry<String, Map<Wallet, Map<String, Double>>> allCoinValues : currentCoinValuesSnapshot.entrySet()) {
                 Map<String, Double> values = valuesRetriever.apply(allCoinValues);
                 Double coinQuantity = values.get("coinQuantity");
                 Double coinAmount = values.get("coinAmount");
@@ -792,13 +837,24 @@ public class MainFragment extends Fragment {
                     setAmountForCoin(allCoinValues.getKey(), coinAmount);
                     amount += (!coinAmount.isNaN() ? coinAmount : 0D);
                     setUnitPriceForCoinInDollar(allCoinValues.getKey(), unitPrice);
+                    allCoinsValues.put(allCoinValues.getKey(), values);
                 } else if (coinAmount.isNaN()) {
                     removeCoinRow(allCoinValues.getKey());
                 }
             }
             setAmount(amount);
-            if (currentCoinValues instanceof TreeMap) {
-                currentCoinValues = new ConcurrentHashMap<>(currentCoinValues);
+            Double totalInvestment = 17940.63;
+            if (totalInvestment != null) {
+                Double pureAmount = getPureAmountInDollar();
+                Double currencyValue = fragment.isCurrencyInEuro() && euroValue != null ? euroValue : 1D;
+                for (Map.Entry<String, Map<String, Double>> allCoinValues : allCoinsValues.entrySet()) {
+                    Map<String, Double> values = allCoinValues.getValue();
+                    Double coinQuantity = values.get("coinQuantity");
+                    Double coinAmount = values.get("coinAmount");
+                    setPPRForCoin(allCoinValues.getKey(), coinAmount.isNaN() || coinAmount < (amount / 100)? Double.NaN :
+                        (((((((totalInvestment + 1D) * 100D) / 99.9D) + 1D) * 100D) / 99.6) - ((amount - coinAmount) / currencyValue)) / coinQuantity
+                    );
+                }
             }
             return true;
         }
@@ -826,6 +882,21 @@ public class MainFragment extends Fragment {
             values.put("coinAmount", coinAmount);
             values.put("unitPrice", unitPrice);
             return values;
+        }
+
+        private Map<String, Map<Wallet, Map<String, Double>>> getCurrentCoinValuesSnapshot() {
+            Map<String, Map<Wallet, Map<String, Double>>> currentCoinValuesSnapshot =
+                currentCoinValues instanceof TreeMap ?
+                    new TreeMap<>() :
+                    new ConcurrentHashMap<>();
+            for (Map.Entry<String, Map<Wallet, Map<String, Double>>> allCoinValues : currentCoinValues.entrySet()) {
+                Map<Wallet, Map<String, Double>> coinValuesForWallets = new HashMap<>();
+                currentCoinValuesSnapshot.put(allCoinValues.getKey(), coinValuesForWallets);
+                for (Map.Entry<Wallet, Map<String, Double>> coinValuesForWallet : allCoinValues.getValue().entrySet()) {
+                    coinValuesForWallets.put(coinValuesForWallet.getKey(), new HashMap<>(coinValuesForWallet.getValue()));
+                }
+            }
+            return currentCoinValuesSnapshot;
         }
 
         private Map<String, Double> retrieveValuesWithAvgUnitPrice(Collection<Map<String, Double>> allCoinValues) {
@@ -870,24 +941,47 @@ public class MainFragment extends Fragment {
                     a + b;
         }
 
+        public Double getAmount() {
+            Double amountInDollar = getAmountInDollar();
+            Double euroValue = getEuroValue();
+            if (fragment.isCurrencyInEuro() && euroValue != null && !euroValue.isNaN()) {
+                return amountInDollar / euroValue;
+            }
+            return amountInDollar;
+        }
+
         public Double getAmountInDollar() {
             return (Double)currentValues.get("amount");
         }
 
         public Double getAmountInEuro() {
             Double euroValue = getEuroValue();
-            if (euroValue != null) {
+            if (euroValue != null && !euroValue.isNaN()) {
                 return getAmountInDollar() / euroValue;
             }
             return null;
         }
 
-        public LocalDateTime getUpdateTime() {
-            return (LocalDateTime)currentValues.get("updateTime");
-        }
-
         public Double getEuroValue() {
             return (Double)currentValues.get("euroValue");
+        }
+
+        public Double getPureAmountInDollar() {
+            Double amount = getAmountInDollar();
+            Double eurValue = getEuroValue();
+            return ((((((amount * 99.6D) / 100D) - 1D) * 99.9D) / 100D) - (eurValue != null ? eurValue : 1D));
+        }
+
+        public Double getPureAmount() {
+            Double amount = getAmountInDollar();
+            Double eurValue = getEuroValue();
+            Double currencyUnit = (eurValue != null && !eurValue.isNaN() ? eurValue : 1D);
+            return ((((((amount * 99.6D) / 100D) - 1D) * 99.9D) / 100D) - currencyUnit) / currencyUnit;
+        }
+
+        public boolean isCurrencyInEuro() {
+            Double eurValue = getEuroValue();
+            return fragment.isCurrencyInEuro() && eurValue != null && !eurValue.isNaN();
         }
 
         private void setEuroValue(Double value) {
@@ -901,6 +995,7 @@ public class MainFragment extends Fragment {
         private void setAmount(Double value) {
             currentValues.put("amount", value);
         }
+
     }
 
 }
