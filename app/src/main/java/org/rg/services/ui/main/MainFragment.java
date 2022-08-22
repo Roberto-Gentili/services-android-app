@@ -59,7 +59,6 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
-import java.util.concurrent.ForkJoinPool;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 import java.util.function.BiPredicate;
@@ -94,21 +93,29 @@ public class MainFragment extends Fragment {
         return value != null && !value.trim().isEmpty();
     }
 
+    private ExecutorService getExecutorService() {
+        return ((MainActivity)getActivity()).getExecutorService();
+    }
+
+    private boolean isCurrencyInEuro() {
+        return !appPreferences.getBoolean("useAlwaysTheDollarCurrencyForBalances", false);
+    }
+
     private synchronized void init() {
         stop();
-        ((TextView)getView().findViewById(R.id.balanceLabel)).setVisibility(View.INVISIBLE);
-        ((TextView)getView().findViewById(R.id.pureBalanceLabel)).setVisibility(View.INVISIBLE);
-        ((TextView)getView().findViewById(R.id.balance)).setVisibility(View.INVISIBLE);
-        ((TextView)getView().findViewById(R.id.pureBalance)).setVisibility(View.INVISIBLE);
-        ((TextView)getView().findViewById(R.id.balanceCurrency)).setVisibility(View.INVISIBLE);
-        ((TextView)getView().findViewById(R.id.pureBalanceCurrency)).setVisibility(View.INVISIBLE);
-        ((TextView)getView().findViewById(R.id.lastUpdateLabel)).setVisibility(View.INVISIBLE);
-        ((TextView)getView().findViewById(R.id.lastUpdate)).setVisibility(View.INVISIBLE);
-        ((TextView)getView().findViewById(R.id.linkToReport)).setVisibility(View.INVISIBLE);
-        ((Button)getView().findViewById(R.id.updateReportButton)).setVisibility(View.INVISIBLE);
-        ((ScrollView)getView().findViewById(R.id.coinsView)).setVisibility(View.INVISIBLE);
-        ((TextView)getView().findViewById(R.id.loadingDataAdvisor)).setVisibility(View.VISIBLE);
-        ((ProgressBar)getView().findViewById(R.id.progressBar)).setVisibility(View.VISIBLE);
+        ((TextView) getView().findViewById(R.id.balanceLabel)).setVisibility(View.INVISIBLE);
+        ((TextView) getView().findViewById(R.id.pureBalanceLabel)).setVisibility(View.INVISIBLE);
+        ((TextView) getView().findViewById(R.id.balance)).setVisibility(View.INVISIBLE);
+        ((TextView) getView().findViewById(R.id.pureBalance)).setVisibility(View.INVISIBLE);
+        ((TextView) getView().findViewById(R.id.balanceCurrency)).setVisibility(View.INVISIBLE);
+        ((TextView) getView().findViewById(R.id.pureBalanceCurrency)).setVisibility(View.INVISIBLE);
+        ((TextView) getView().findViewById(R.id.lastUpdateLabel)).setVisibility(View.INVISIBLE);
+        ((TextView) getView().findViewById(R.id.lastUpdate)).setVisibility(View.INVISIBLE);
+        ((TextView) getView().findViewById(R.id.linkToReport)).setVisibility(View.INVISIBLE);
+        ((Button) getView().findViewById(R.id.updateReportButton)).setVisibility(View.INVISIBLE);
+        ((ScrollView) getView().findViewById(R.id.coinsView)).setVisibility(View.INVISIBLE);
+        ((TextView) getView().findViewById(R.id.loadingDataAdvisor)).setVisibility(View.VISIBLE);
+        ((ProgressBar) getView().findViewById(R.id.progressBar)).setVisibility(View.VISIBLE);
         String binanceApiKey = appPreferences.getString("binanceApiKey", null);
         String binanceApiSecret = appPreferences.getString("binanceApiSecret", null);
         String cryptoComApiKey = appPreferences.getString("cryptoComApiKey", null);
@@ -116,55 +123,51 @@ public class MainFragment extends Fragment {
         wallets.clear();
         if (isStringNotEmpty(cryptoComApiKey) && isStringNotEmpty(cryptoComApiSecret)) {
             CryptoComWallet wallet = new CryptoComWallet(
-                RestTemplateSupplier.getSharedInstance().get(),
-                ((MainActivity)getActivity()).getExecutorService(),
-                cryptoComApiKey,
-                cryptoComApiSecret
+                    RestTemplateSupplier.getSharedInstance().get(),
+                    getExecutorService(),
+                    cryptoComApiKey,
+                    cryptoComApiSecret
             );
             wallet.setTimeOffset(Long.valueOf(
-                appPreferences.getString("cryptoComTimeOffset", "-1000")
+                    appPreferences.getString("cryptoComTimeOffset", "-1000")
             ));
             wallets.add(wallet);
         }
         if (isStringNotEmpty(binanceApiKey) && isStringNotEmpty(binanceApiSecret)) {
             BinanceWallet wallet = new BinanceWallet(
-                RestTemplateSupplier.getSharedInstance().get(),
-                ((MainActivity)getActivity()).getExecutorService(),
-                binanceApiKey,
-                binanceApiSecret
+                    RestTemplateSupplier.getSharedInstance().get(),
+                    getExecutorService(),
+                    binanceApiKey,
+                    binanceApiSecret
             );
             wallets.add(wallet);
         }
         if (isCurrencyInEuro()) {
-            ((TextView)getView().findViewById(R.id.balanceCurrency)).setText("€");
-            ((TextView)getView().findViewById(R.id.pureBalanceCurrency)).setText("€");
+            ((TextView) getView().findViewById(R.id.balanceCurrency)).setText("€");
+            ((TextView) getView().findViewById(R.id.pureBalanceCurrency)).setText("€");
         } else {
-            ((TextView)getView().findViewById(R.id.balanceCurrency)).setText("$");
-            ((TextView)getView().findViewById(R.id.pureBalanceCurrency)).setText("$");
+            ((TextView) getView().findViewById(R.id.balanceCurrency)).setText("$");
+            ((TextView) getView().findViewById(R.id.pureBalanceCurrency)).setText("$");
         }
         numberFormatter = new DecimalFormat("#,##0.00", decimalFormatSymbols);
         numberFormatterWithFourDecimals = new DecimalFormat("#,##0.0000", decimalFormatSymbols);
         if (!wallets.isEmpty()) {
             activate();
         } else {
-            ((MainActivity)getActivity()).goToSettingsView();
+            ((MainActivity) getActivity()).goToSettingsView();
         }
         gitHubUsernameSupplier = CompletableFuture.supplyAsync(
-            () -> {
-                if (isStringNotEmpty(appPreferences.getString("gitHubAuthorizationToken", null))) {
-                    return retrieveGitHubUsername();
-                }
-                return null;
-            },
-            ((MainActivity)getActivity()).getExecutorService()
+                () -> {
+                    if (isStringNotEmpty(appPreferences.getString("gitHubAuthorizationToken", null))) {
+                        return retrieveGitHubUsername();
+                    }
+                    return null;
+                },
+                getExecutorService()
         ).exceptionally(exc -> {
             LoggerChain.getInstance().logError("Unable to retrieve GitHub username: " + exc.getMessage());
             return null;
         });
-    }
-
-    private boolean isCurrencyInEuro() {
-        return !appPreferences.getBoolean("useAlwaysTheDollarCurrencyForBalances", false);
     }
 
     public boolean canRun() {
@@ -494,7 +497,7 @@ public class MainFragment extends Fragment {
                 } catch (Throwable exc) {
                     LoggerChain.getInstance().logError("Exception occurred: " + exc.getMessage());
                 }
-            }, ((MainActivity)fragment.getActivity()).getExecutorService()).atTheEndOfEveryIterationWaitFor(750L).activate();
+            }, fragment.getExecutorService()).atTheEndOfEveryIterationWaitFor(750L).activate();
         }
 
         private void stop() {
@@ -660,7 +663,7 @@ public class MainFragment extends Fragment {
             launchCoinToBeScannedSuppliers(coinToBeScannedSuppliers);
             AsyncLooper coinsToBeScannedRetriever = new AsyncLooper(() -> {
                 launchCoinToBeScannedSuppliers(coinToBeScannedSuppliers);
-            }, ((MainActivity)fragment.getActivity()).getExecutorService()).atTheStartOfEveryIterationWaitFor(120000L);
+            }, fragment.getExecutorService()).atTheStartOfEveryIterationWaitFor(120000L);
             return new AsyncLooper(() -> {
                 Collection<CompletableFuture<String>> retrievingCoinValueTasks = new CopyOnWriteArrayList<>();
                 for (Wallet wallet : fragment.wallets) {
@@ -688,14 +691,14 @@ public class MainFragment extends Fragment {
                                                 coinValues.put("quantity", quantity);
                                                 ((MainActivity)fragment.getActivity()).setLastUpdateTime();
                                             },
-                                            ((MainActivity)fragment.getActivity()).getExecutorService()
+                                            fragment.getExecutorService()
                                         )
                                     );
                                 }
                                 innerTasks.stream().forEach(CompletableFuture::join);
                                 return (String) null;
                             },
-                            ((MainActivity)fragment.getActivity()).getExecutorService()
+                            fragment.getExecutorService()
                         ).exceptionally(exc -> {
                             String exceptionMessage = wallet.getClass().getSimpleName() + " exception occurred: " + exc.getMessage();
                             LoggerChain.getInstance().logError(exceptionMessage);
@@ -705,7 +708,7 @@ public class MainFragment extends Fragment {
                 }
                 this.retrievingCoinValueTasks = retrievingCoinValueTasks;
                 retrievingCoinValueTasks.stream().forEach(CompletableFuture::join);
-            }, ((MainActivity)fragment.getActivity()).getExecutorService())
+            }, fragment.getExecutorService())
             .whenStarted(coinsToBeScannedRetriever::activate)
             .whenKilled(coinsToBeScannedRetriever::kill)
             .atTheEndOfEveryIterationWaitFor(Long.valueOf(this.fragment.appPreferences.getString("intervalBetweenRequestGroups", "0")))
@@ -734,7 +737,7 @@ public class MainFragment extends Fragment {
                         LoggerChain.getInstance().logError(exc.getMessage());
                     }
                 }
-            }, ((MainActivity)fragment.getActivity()).getExecutorService());
+            }, fragment.getExecutorService());
         }
 
         @NonNull

@@ -20,6 +20,7 @@ import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.ForkJoinPool;
 
 public class MainActivity extends AppCompatActivity {
     private LocalDateTime lastUpdateTime;
@@ -40,7 +41,8 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        executorService = Executors.newFixedThreadPool(16);
+        //executorService = ForkJoinPool.commonPool();
+        executorService = Executors.newFixedThreadPool(12);
         LoggerChain.getInstance().appendExceptionLogger(message -> {
             runOnUiThread(()-> {
                 Toast.makeText(this, message, Toast.LENGTH_LONG).show();
