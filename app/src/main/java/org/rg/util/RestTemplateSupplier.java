@@ -78,15 +78,15 @@ public class RestTemplateSupplier {
                     restTemplate.setErrorHandler(new DefaultResponseErrorHandler() {
                         @Override
                         public void handleError(ClientHttpResponse httpResponse) throws IOException {
-                            try {
-                                super.handleError(httpResponse);
-                            } catch (HttpClientErrorException | HttpServerErrorException exc) {
-                                LoggerChain.getInstance().logError("Http response error: " + exc.getStatusCode().value() + " (" + exc.getStatusText() + "). Body: " + exc.getResponseBodyAsString());
-                                throw exc;
-                            } catch (Throwable exc) {
-                                LoggerChain.getInstance().logError("Exception occurred: " + exc.getMessage());
-                                throw exc;
-                            }
+                        try {
+                            super.handleError(httpResponse);
+                        } catch (HttpClientErrorException | HttpServerErrorException exc) {
+                            LoggerChain.getInstance().logError("Http response error: " + exc.getStatusCode().value() + " (" + exc.getStatusText() + "). Body: " + exc.getResponseBodyAsString());
+                            throw exc;
+                        } catch (Throwable exc) {
+                            LoggerChain.getInstance().logError("Exception occurred: " + exc.getMessage());
+                            throw exc;
+                        }
                         }
                     });
                     this.restTemplate = restTemplate;
