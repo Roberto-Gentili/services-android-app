@@ -18,6 +18,7 @@ import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.function.Consumer;
 
 public class MainActivity extends AppCompatActivity {
     private LocalDateTime lastUpdateTime;
@@ -40,11 +41,13 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         //executorService = ForkJoinPool.commonPool();
         executorService = Executors.newFixedThreadPool(12);
-        LoggerChain.getInstance().appendExceptionLogger(message -> {
+        Consumer<String> logger = message -> {
             runOnUiThread(()-> {
                 Toast.makeText(this, message, Toast.LENGTH_LONG).show();
             });
-        });
+        };
+        LoggerChain.getInstance().appendExceptionLogger(logger);
+        LoggerChain.getInstance().appendInfoLogger(logger);
         setContentView(R.layout.activity_main);
         if (savedInstanceState == null) {
             goToMainView();
