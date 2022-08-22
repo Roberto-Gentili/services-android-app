@@ -45,13 +45,11 @@ import java.nio.CharBuffer;
 import java.text.DecimalFormat;
 import java.text.DecimalFormatSymbols;
 import java.text.ParseException;
-import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.TreeMap;
@@ -536,6 +534,7 @@ public class MainFragment extends Fragment {
         private Collection<String> coinsToBeAlwaysDisplayed;
         private AsyncLooper retrievingCoinValuesTask;
         private Map<String, Integer> headerLabelsForSpaces;
+        private boolean canBeRefreshed;
 
         private CoinViewManager(MainFragment fragment) {
             this.fragment = fragment;
@@ -795,7 +794,7 @@ public class MainFragment extends Fragment {
             if (retrievingCoinValueTasks == null) {
                 return false;
             }
-            if (((TableLayout) fragment.getActivity().findViewById(R.id.coinsTableView)).getChildCount() == 0) {
+            if (!canBeRefreshed) {
                 if (retrievingCoinValueTasks.stream().map(CompletableFuture::join).filter(excMsgs -> !excMsgs.isEmpty()).count() > 0) {
                     setToNaNValuesIfNulls();
                     return false;
@@ -856,7 +855,7 @@ public class MainFragment extends Fragment {
                     );
                 }
             }
-            return true;
+            return canBeRefreshed = true;
         }
 
         private Map<String, Double> retrieveValuesWithMinMaxUnitPrice(Collection<Map<String, Double>> allCoinValues, BiPredicate<Double, Double> unitPriceTester) {
