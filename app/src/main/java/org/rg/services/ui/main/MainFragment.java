@@ -518,7 +518,7 @@ public class MainFragment extends Fragment {
         private final MainFragment fragment;
         private Map<String, Object> currentValues;
         private Map<String, Map<Wallet, Map<String, Double>>> currentCoinValues;
-        private Collection<CompletableFuture<String>> retrievingCoinValueTasks;
+        private Collection<CompletableFuture<Collection<String>>> retrievingCoinValueTasks;
         private Collection<String> coinsToBeAlwaysDisplayed;
         private AsyncLooper retrievingCoinValuesTask;
 
@@ -665,15 +665,15 @@ public class MainFragment extends Fragment {
                 launchCoinToBeScannedSuppliers(coinToBeScannedSuppliers);
             }, fragment.getExecutorService()).atTheStartOfEveryIterationWaitFor(90000L);
             return new AsyncLooper(() -> {
-                Collection<CompletableFuture<String>> retrievingCoinValueTasks = new CopyOnWriteArrayList<>();
+                Collection<CompletableFuture<Collection<String>>> retrievingCoinValueTasks = new CopyOnWriteArrayList<>();
                 for (Wallet wallet : fragment.wallets) {
                     retrievingCoinValueTasks.add(
                         CompletableFuture.supplyAsync(
                             () -> {
-                                Collection<CompletableFuture<Void>> innerTasks = new ArrayList<>();
+                                Collection<CompletableFuture<String>> innerTasks = new ArrayList<>();
                                 for (String coinName : coinToBeScannedSuppliers.get(wallet).join()) {
                                     innerTasks.add(
-                                        CompletableFuture.runAsync(
+                                        CompletableFuture.supplyAsync(
                                             () -> {
                                                 Double unitPriceInDollar = wallet.getValueForCoin(coinName);
                                                 Double quantity = wallet.getQuantityForCoin(coinName);
@@ -690,20 +690,20 @@ public class MainFragment extends Fragment {
                                                 ((MainActivity)fragment.getActivity()).setLastUpdateTime();
                                                 coinValues.put("quantity", quantity);
                                                 ((MainActivity)fragment.getActivity()).setLastUpdateTime();
+                                                return (String)null;
                                             },
                                             fragment.getExecutorService()
-                                        )
+                                        ).exceptionally(exc -> {
+                                            String exceptionMessage = wallet.getName() + " exception occurred: " + exc.getMessage();
+                                            LoggerChain.getInstance().logError(exceptionMessage);
+                                            return exceptionMessage;
+                                        })
                                     );
                                 }
-                                innerTasks.stream().forEach(CompletableFuture::join);
-                                return (String) null;
+                                return innerTasks.stream().map(CompletableFuture::join).filter(Objects::nonNull).collect(Collectors.toList());
                             },
                             fragment.getExecutorService()
-                        ).exceptionally(exc -> {
-                            String exceptionMessage = wallet.getName() + " exception occurred: " + exc.getMessage();
-                            LoggerChain.getInstance().logError(exceptionMessage);
-                            return exceptionMessage;
-                        })
+                        )
                     );
                 }
                 this.retrievingCoinValueTasks = retrievingCoinValueTasks;
@@ -757,7 +757,7 @@ public class MainFragment extends Fragment {
                 return false;
             }
             if (currentCoinValues instanceof TreeMap) {
-                if (retrievingCoinValueTasks.stream().map(CompletableFuture::join).filter(Objects::nonNull).count() > 0) {
+                if (retrievingCoinValueTasks.stream().map(CompletableFuture::join).filter(excMsgs -> !excMsgs.isEmpty()).count() > 0) {
                     setToNaNValuesIfNulls();
                     return false;
                 }
