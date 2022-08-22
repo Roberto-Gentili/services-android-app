@@ -23,6 +23,7 @@ public class SettingsFragment extends PreferenceFragmentCompat {
         setPreferenceType("gitHubAuthorizationToken", InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_VARIATION_PASSWORD);
         setPreferenceType("coinsToBeAlwaysDisplayed", InputType.TYPE_TEXT_FLAG_CAP_CHARACTERS);
         setPreferenceType("intervalBetweenRequestGroups", InputType.TYPE_CLASS_NUMBER);
+        setPreferenceType("totalInvestment", InputType.TYPE_CLASS_NUMBER | InputType.TYPE_NUMBER_FLAG_DECIMAL);
     }
 
     private void setPreferenceType(String id, int type) {

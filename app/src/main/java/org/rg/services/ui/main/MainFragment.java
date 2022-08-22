@@ -151,13 +151,13 @@ public class MainFragment extends Fragment {
             ((MainActivity) getActivity()).goToSettingsView();
         }
         gitHubUsernameSupplier = CompletableFuture.supplyAsync(
-                () -> {
-                    if (isStringNotEmpty(appPreferences.getString("gitHubAuthorizationToken", null))) {
-                        return retrieveGitHubUsername();
-                    }
-                    return null;
-                },
-                getExecutorService()
+            () -> {
+                if (isStringNotEmpty(appPreferences.getString("gitHubAuthorizationToken", null))) {
+                    return retrieveGitHubUsername();
+                }
+                return null;
+            },
+            getExecutorService()
         ).exceptionally(exc -> {
             LoggerChain.getInstance().logError("Unable to retrieve GitHub username: " + exc.getMessage());
             return null;
@@ -842,8 +842,8 @@ public class MainFragment extends Fragment {
                 }
             }
             setAmount(amount);
-            Double totalInvestment = 17940.63;
-            if (totalInvestment != null) {
+            Double totalInvestment = Double.valueOf(fragment.appPreferences.getString("totalInvestment", "0"));
+            if (totalInvestment > 0) {
                 Double pureAmount = getPureAmountInDollar();
                 Double currencyValue = isCurrencyInEuro() ? euroValue : 1D;
                 for (Map.Entry<String, Map<String, Double>> allCoinValues : allCoinsValues.entrySet()) {
