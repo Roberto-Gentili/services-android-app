@@ -549,8 +549,7 @@ public class MainFragment extends Fragment {
             headerLabelsForSpaces.put(HeaderLabel.UP_IN_USDT, 1);
             headerLabelsForSpaces.put(HeaderLabel.PPR_IN_USDT, 1);
             headerLabelsForSpaces.put(HeaderLabel.QUANTITY, 4);
-            Double euroValue = getEuroValue();
-            if (fragment.isCurrencyInEuro() && euroValue != null && !euroValue.isNaN()) {
+            if (isCurrencyInEuro()) {
                 headerLabelsForSpaces.put(HeaderLabel.AMOUNT_IN_EURO, 1);
             } else {
                 headerLabelsForSpaces.put(HeaderLabel.AMOUNT_IN_USDT, 1);
@@ -587,10 +586,9 @@ public class MainFragment extends Fragment {
         }
 
         private void setAmountForCoin(String coinName, Double value) {
-            Double euroValue = getEuroValue();
             int index = headerLabelsForSpaces.containsKey(HeaderLabel.AMOUNT_IN_EURO) ?
                 getIndexOfHeaderLabel(HeaderLabel.AMOUNT_IN_EURO) : getIndexOfHeaderLabel(HeaderLabel.AMOUNT_IN_USDT);
-            setValueForCoin(coinName, fragment.isCurrencyInEuro() && euroValue != null && !euroValue.isNaN() ? value / euroValue : value, index, fragment.numberFormatter);
+            setValueForCoin(coinName, isCurrencyInEuro() ? value / getEuroValue() : value, index, fragment.numberFormatter);
         }
 
         private void setPPRForCoin(String coinName, Double value) {
@@ -845,7 +843,7 @@ public class MainFragment extends Fragment {
             Double totalInvestment = 17940.63;
             if (totalInvestment != null) {
                 Double pureAmount = getPureAmountInDollar();
-                Double currencyValue = fragment.isCurrencyInEuro() && euroValue != null && !euroValue.isNaN() ? euroValue : 1D;
+                Double currencyValue = isCurrencyInEuro() ? euroValue : 1D;
                 for (Map.Entry<String, Map<String, Double>> allCoinValues : allCoinsValues.entrySet()) {
                     Map<String, Double> values = allCoinValues.getValue();
                     Double coinQuantity = values.get("coinQuantity");
@@ -943,7 +941,7 @@ public class MainFragment extends Fragment {
         public Double getAmount() {
             Double amountInDollar = getAmountInDollar();
             Double euroValue = getEuroValue();
-            if (fragment.isCurrencyInEuro() && euroValue != null && !euroValue.isNaN()) {
+            if (isCurrencyInEuro()) {
                 return amountInDollar / euroValue;
             }
             return amountInDollar;
@@ -968,7 +966,7 @@ public class MainFragment extends Fragment {
         public Double getPureAmountInDollar() {
             Double amount = getAmountInDollar();
             Double eurValue = getEuroValue();
-            return ((((((amount * 99.6D) / 100D) - 1D) * 99.9D) / 100D) - (eurValue != null ? eurValue : 1D));
+            return ((((((amount * 99.6D) / 100D) - 1D) * 99.9D) / 100D) - (eurValue != null && !eurValue.isNaN() ? eurValue : 1D));
         }
 
         public Double getPureAmount() {
