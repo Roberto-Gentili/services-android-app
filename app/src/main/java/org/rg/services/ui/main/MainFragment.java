@@ -71,7 +71,8 @@ public class MainFragment extends Fragment {
     private final Collection<Wallet> wallets;
     private final DecimalFormatSymbols decimalFormatSymbols;
     private DecimalFormat numberFormatter;
-    private DecimalFormat numberFormatterWithFourDecimals;
+    private DecimalFormat numberFormatterWithTwoVariableDecimals;
+    private DecimalFormat numberFormatterWithFiveVariableDecimals;
     private BalanceUpdater balanceUpdater;
     private CoinViewManager coinViewManager;
     private CompletableFuture<String> gitHubUsernameSupplier;
@@ -142,7 +143,8 @@ public class MainFragment extends Fragment {
             wallets.add(wallet);
         }
         numberFormatter = new DecimalFormat("#,##0.00", decimalFormatSymbols);
-        numberFormatterWithFourDecimals = new DecimalFormat("#,##0.0000", decimalFormatSymbols);
+        numberFormatterWithTwoVariableDecimals = new DecimalFormat("#,##0.##", decimalFormatSymbols);
+        numberFormatterWithFiveVariableDecimals = new DecimalFormat("#,##0.#####", decimalFormatSymbols);
         if (!wallets.isEmpty()) {
             activate();
         } else {
@@ -578,21 +580,21 @@ public class MainFragment extends Fragment {
         }
 
         private void setUnitPriceForCoinInDollar(String coinName, Double value) {
-            setValueForCoin(coinName, value, getIndexOfHeaderLabel(HeaderLabel.UP_IN_USDT), fragment.numberFormatterWithFourDecimals);
+            setValueForCoin(coinName, value, getIndexOfHeaderLabel(HeaderLabel.UP_IN_USDT), fragment.numberFormatterWithFiveVariableDecimals);
         }
 
         private void setQuantityForCoin(String coinName, Double value) {
-            setValueForCoin(coinName, value, getIndexOfHeaderLabel(HeaderLabel.QUANTITY), fragment.numberFormatterWithFourDecimals);
+            setValueForCoin(coinName, value, getIndexOfHeaderLabel(HeaderLabel.QUANTITY), fragment.numberFormatterWithFiveVariableDecimals);
         }
 
         private void setAmountForCoin(String coinName, Double value) {
             int index = headerLabelsForSpaces.containsKey(HeaderLabel.AMOUNT_IN_EURO) ?
                 getIndexOfHeaderLabel(HeaderLabel.AMOUNT_IN_EURO) : getIndexOfHeaderLabel(HeaderLabel.AMOUNT_IN_USDT);
-            setValueForCoin(coinName, isCurrencyInEuro() ? value / getEuroValue() : value, index, fragment.numberFormatter);
+            setValueForCoin(coinName, isCurrencyInEuro() ? value / getEuroValue() : value, index, fragment.numberFormatterWithTwoVariableDecimals);
         }
 
         private void setPPRForCoin(String coinName, Double value) {
-            setValueForCoin(coinName, value, getIndexOfHeaderLabel(HeaderLabel.PPR_IN_USDT), fragment.numberFormatterWithFourDecimals, true);
+            setValueForCoin(coinName, value, getIndexOfHeaderLabel(HeaderLabel.PPR_IN_USDT), fragment.numberFormatterWithFiveVariableDecimals, true);
         }
 
         private void setValueForCoin(String coinName, Double value, int columnIndex, DecimalFormat numberFormatter) {
