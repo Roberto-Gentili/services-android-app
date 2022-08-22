@@ -718,8 +718,10 @@ public class MainFragment extends Fragment {
         private void launchCoinToBeScannedSuppliers(Map<Wallet, CompletableFuture<Collection<String>>> coinSuppliers) {
             for (Wallet wallet : fragment.wallets) {
                 CompletableFuture<Collection<String>> coinSupplier = coinSuppliers.get(wallet);
-                if (coinSupplier != null && !coinSupplier.isDone()) {
-                    coinSupplier.join();
+                if (coinSupplier != null) {
+                    if (!coinSupplier.isDone()) {
+                        coinSupplier.join();
+                    }
                     coinSupplier = launchCoinToBeScannedSupplier(wallet);
                     coinSuppliers.put(wallet, coinSupplier);
                 } else if (coinSupplier == null) {
@@ -732,7 +734,9 @@ public class MainFragment extends Fragment {
             return CompletableFuture.supplyAsync(() -> {
                 while (true) {
                     try {
-                        return getCoinsToBeScanned(wallet);
+                        Collection<String> coinsToBeScanned = getCoinsToBeScanned(wallet);
+                        LoggerChain.getInstance().logInfo("Retrieved coins to be scanned for wallet " + wallet.getClass().getSimpleName());
+                        return coinsToBeScanned;
                     } catch (Throwable exc) {
                         LoggerChain.getInstance().logError(exc.getMessage());
                     }
