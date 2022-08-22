@@ -1,26 +1,23 @@
 package org.rg.services;
 
-import androidx.annotation.NonNull;
-import androidx.appcompat.app.AppCompatActivity;
-
 import android.os.Bundle;
 import android.os.StrictMode;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.widget.Toast;
 
+import androidx.annotation.NonNull;
+import androidx.appcompat.app.AppCompatActivity;
+
 import org.rg.services.ui.main.MainFragment;
 import org.rg.services.ui.main.SettingsFragment;
 import org.rg.util.LoggerChain;
-import org.rg.util.RestTemplateSupplier;
 
-import java.text.DateFormat;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
-import java.util.concurrent.ForkJoinPool;
 
 public class MainActivity extends AppCompatActivity {
     private LocalDateTime lastUpdateTime;
