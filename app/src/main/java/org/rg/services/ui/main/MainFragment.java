@@ -845,7 +845,7 @@ public class MainFragment extends Fragment {
             Double totalInvestment = 17940.63;
             if (totalInvestment != null) {
                 Double pureAmount = getPureAmountInDollar();
-                Double currencyValue = fragment.isCurrencyInEuro() && euroValue != null ? euroValue : 1D;
+                Double currencyValue = fragment.isCurrencyInEuro() && euroValue != null && !euroValue.isNaN() ? euroValue : 1D;
                 for (Map.Entry<String, Map<String, Double>> allCoinValues : allCoinsValues.entrySet()) {
                     Map<String, Double> values = allCoinValues.getValue();
                     Double coinQuantity = values.get("coinQuantity");
