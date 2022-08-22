@@ -60,12 +60,12 @@ public class AsyncLooper {
         return this;
     }
 
-    public AsyncLooper atTheStartOfEveryIterationWaitFor(Long millis) {
+    public AsyncLooper atTheStartOfEveryIterationWaitFor(long millis) {
         this.waitingTimeAtTheStartOfEveryIteration = millis;
         return this;
     }
 
-    public AsyncLooper atTheEndOfEveryIterationWaitFor(Long millis) {
+    public AsyncLooper atTheEndOfEveryIterationWaitFor(long millis) {
         this.waitingTimeAtTheEndOfEveryIteration = millis;
         return this;
     }
