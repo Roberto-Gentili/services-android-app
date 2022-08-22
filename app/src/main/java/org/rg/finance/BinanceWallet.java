@@ -46,6 +46,7 @@ public class BinanceWallet extends Wallet.Abst {
                 return valueMap;
             })
         );
+        this.name = "Binance wallet";
     }
 
     public BinanceWallet(
@@ -63,7 +64,7 @@ public class BinanceWallet extends Wallet.Abst {
             Map<String, String> aliasesForCoinNames,
             Map<String, String> coinCollaterals
     ) {
-        super(restTemplate, apiKey, apiSecret, aliasesForCoinNames, coinCollaterals);
+        this(restTemplate, null, apiKey, apiSecret, aliasesForCoinNames, coinCollaterals);
     }
 
     public BinanceWallet(

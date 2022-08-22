@@ -56,6 +56,7 @@ public class CryptoComWallet extends Wallet.Abst {
 			valueMap.put("BUSD", "USDT");
 			return valueMap;
 		}));
+		this.name = "Crypto.com wallet";
 	}
 
 	public CryptoComWallet(
@@ -73,7 +74,7 @@ public class CryptoComWallet extends Wallet.Abst {
 		Map<String, String> aliasesForCoinNames,
 		Map<String, String> coinCollaterals
 	) {
-		super(restTemplate, apiKey, apiSecret, aliasesForCoinNames, coinCollaterals);
+		this(restTemplate, null, apiKey, apiSecret, aliasesForCoinNames, coinCollaterals);
 	}
 
     public CryptoComWallet(

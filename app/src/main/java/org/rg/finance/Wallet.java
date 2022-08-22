@@ -21,6 +21,8 @@ import org.springframework.web.client.RestTemplate;
 
 public interface Wallet {
 
+	String getName();
+
 	Collection<String> getAvailableCoins();
 
 	Collection<String> getOwnedCoins();
@@ -38,6 +40,7 @@ public interface Wallet {
 	String getCoinNameForAlias(String alias);
 
 	abstract class Abst implements Wallet {
+		protected String name;
 	    protected String apiKey;
 	    protected String apiSecret;
 		protected Map<String, String> aliasesForCoinNames;
@@ -58,8 +61,13 @@ public interface Wallet {
 			this.restTemplate = Optional.ofNullable(restTemplate).orElseGet(RestTemplateSupplier.getSharedInstance()::get);
 			this.executorService = executorService != null ? executorService : ForkJoinPool.commonPool();
 			this.timeOffset = -1000L;
+			this.name = getClass().getSimpleName();
 		}
 
+		@Override
+		public String getName() {
+			return name;
+		}
 
 		@Override
 		public Double getValueForCoin(String coinName) {

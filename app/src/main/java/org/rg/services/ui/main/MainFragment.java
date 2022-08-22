@@ -700,7 +700,7 @@ public class MainFragment extends Fragment {
                             },
                             fragment.getExecutorService()
                         ).exceptionally(exc -> {
-                            String exceptionMessage = wallet.getClass().getSimpleName() + " exception occurred: " + exc.getMessage();
+                            String exceptionMessage = wallet.getName() + " exception occurred: " + exc.getMessage();
                             LoggerChain.getInstance().logError(exceptionMessage);
                             return exceptionMessage;
                         })
@@ -735,7 +735,7 @@ public class MainFragment extends Fragment {
                 while (true) {
                     try {
                         Collection<String> coinsToBeScanned = getCoinsToBeScanned(wallet);
-                        LoggerChain.getInstance().logInfo("Retrieved coins to be scanned for wallet " + wallet.getClass().getSimpleName());
+                        LoggerChain.getInstance().logInfo("Retrieved coins to be scanned for " + wallet.getName());
                         return coinsToBeScanned;
                     } catch (Throwable exc) {
                         LoggerChain.getInstance().logError(exc.getMessage());
