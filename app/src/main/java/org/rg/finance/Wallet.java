@@ -83,7 +83,7 @@ public interface Wallet {
 			} catch (Throwable exc) {
 				if (checkExceptionForGetValueForCoin(exc)) {
 					String coinNameAndAlias = coinName.equals(coinAlias)? coinName : coinName + "/" + coinAlias;
-					LoggerChain.getInstance().logError("No collateral for coin " + coinNameAndAlias + " on " + this.getClass().getSimpleName());
+					LoggerChain.getInstance().logError("No collateral for coin " + coinNameAndAlias + " on " + getName());
 					synchronized (coinCollaterals) {
 						Map<String, String> coinCollateralsTemp = new LinkedHashMap<>();
 						Map<String, String> oldCoinCollaterals = coinCollaterals;
