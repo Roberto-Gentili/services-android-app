@@ -48,9 +48,11 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Set;
 import java.util.TreeMap;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
@@ -673,10 +675,10 @@ public class MainFragment extends Fragment {
         private TableRow getCoinRow(String coinName) {
             TableLayout coinsTable = (TableLayout) fragment.getActivity().findViewById(R.id.coinsTableView);
             int childCount = coinsTable.getChildCount();
-            if (childCount > 0) {
-                for (int i = 0; i < childCount; i++) {
+            if (childCount > 1) {
+                for (int i = 1; i < childCount; i++) {
                     TableRow coinRow = (TableRow) coinsTable.getChildAt(i);
-                    TextView coinNameTextView = (TextView) coinRow.getChildAt(0);
+                    TextView coinNameTextView = (TextView) coinRow.getChildAt(getIndexOfHeaderLabel(HeaderLabel.COIN));
                     if (coinNameTextView.getText().equals(coinName)) {
                         return coinRow;
                     }
@@ -689,7 +691,9 @@ public class MainFragment extends Fragment {
             TableLayout coinsTable = (TableLayout) fragment.getActivity().findViewById(R.id.coinsTableView);
             TableRow coinRow = getCoinRow(coinName);
             if (coinRow != null) {
-                coinsTable.removeView(coinRow);
+                fragment.runOnUIThread(() -> {
+                    coinsTable.removeView(coinRow);
+                });
             }
             return null;
         }
@@ -720,13 +724,16 @@ public class MainFragment extends Fragment {
                 launchCoinToBeScannedSuppliers(coinToBeScannedSuppliers);
             }, fragment.getExecutorService()).atTheStartOfEveryIterationWaitFor(90000L);
             return new AsyncLooper(() -> {
+                Collection<String> scannedCoins = ConcurrentHashMap.newKeySet();
                 Collection<CompletableFuture<Collection<String>>> retrievingCoinValueTasks = new CopyOnWriteArrayList<>();
                 for (Wallet wallet : fragment.wallets) {
                     retrievingCoinValueTasks.add(
                         CompletableFuture.supplyAsync(
                             () -> {
                                 Collection<CompletableFuture<String>> innerTasks = new ArrayList<>();
-                                for (String coinName : coinToBeScannedSuppliers.get(wallet).join()) {
+                                Collection<String> coinsToBeScanned = coinToBeScannedSuppliers.get(wallet).join();
+                                scannedCoins.addAll(coinsToBeScanned);
+                                for (String coinName : coinsToBeScanned) {
                                     innerTasks.add(
                                         CompletableFuture.supplyAsync(
                                             () -> {
@@ -756,6 +763,7 @@ public class MainFragment extends Fragment {
                 }
                 this.retrievingCoinValueTasks = retrievingCoinValueTasks;
                 retrievingCoinValueTasks.stream().forEach(CompletableFuture::join);
+                currentCoinValues.keySet().stream().filter(coinName -> !scannedCoins.contains(coinName)).forEach(currentCoinValues::remove);
             }, fragment.getExecutorService())
             .whenStarted(coinsToBeScannedRetriever::activate)
             .whenKilled(coinsToBeScannedRetriever::kill)
@@ -800,6 +808,16 @@ public class MainFragment extends Fragment {
             return coinsForWallet;
         }
 
+        private Collection<String> getShowedCoins() {
+            TableLayout coinsTable = (TableLayout) fragment.getActivity().findViewById(R.id.coinsTableView);
+            Collection<String> showedCoins = new HashSet<>();
+            for (int i = 1; i < coinsTable.getChildCount(); i++) {
+                TableRow row = (TableRow)coinsTable.getChildAt(i);
+                showedCoins.add(String.valueOf(((TextView)row.getChildAt(getIndexOfHeaderLabel(HeaderLabel.COIN))).getText()));
+            }
+            return showedCoins;
+        }
+
         public boolean refresh () {
             if (retrievingCoinValueTasks == null) {
                 return false;
@@ -835,6 +853,7 @@ public class MainFragment extends Fragment {
             }
             Double amount = 0D;
             Map<String, Map<String, Double>> allCoinsValues = new TreeMap<>();
+            Collection<String> coinsToBeRemoved = new HashSet<>();
             for (Map.Entry<String, Map<Wallet, Map<String, Double>>> allCoinValues : currentCoinValuesSnapshot.entrySet()) {
                 Map<String, Double> values = valuesRetriever.apply(allCoinValues);
                 Double coinQuantity = values.get("coinQuantity");
@@ -848,12 +867,19 @@ public class MainFragment extends Fragment {
                     setUnitPriceForCoinInDollar(allCoinValues.getKey(), unitPrice);
                     allCoinsValues.put(allCoinValues.getKey(), values);
                 } else if (coinAmount.isNaN()) {
-                    removeCoinRow(allCoinValues.getKey());
+                    coinsToBeRemoved.add(allCoinValues.getKey());
                 }
             }
             setAmount(amount);
+            if (canBeRefreshed) {
+                Collection<String> showedCoins = getShowedCoins();
+                allCoinsValues.keySet().stream().filter(coinName -> !showedCoins.contains(coinName)).forEach(coinsToBeRemoved::add);
+            }
+            for (String coinName : coinsToBeRemoved) {
+                allCoinsValues.remove(coinName);
+                removeCoinRow(coinName);
+            }
             if (totalInvestment != null) {
-                Double pureAmount = getPureAmountInDollar();
                 Double currencyValue = isCurrencyInEuro() ? euroValue : 1D;
                 for (Map.Entry<String, Map<String, Double>> allCoinValues : allCoinsValues.entrySet()) {
                     Map<String, Double> values = allCoinValues.getValue();
