@@ -535,8 +535,8 @@ public class MainFragment extends Fragment {
             private final static String RUPEI_IN_USDT = "RUPEI ($)";
             private final static String DIFFERENCE_BETWEEN_UP_AND_RUPEI_UP_IN_USDT = "UP-RUPEI ($)";
             private final static String QUANTITY = "Quantity";
-            private final static String AMOUNT_IN_USDT = "Amount ($)";
-            private final static String AMOUNT_IN_EURO = "Amount (€)";
+            private final static String AMOUNT_IN_USDT = "Am ($)";
+            private final static String AMOUNT_IN_EURO = "Am (€)";
         }
 
         private final MainFragment fragment;
