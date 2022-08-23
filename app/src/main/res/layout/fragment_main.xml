@@ -109,7 +109,7 @@
     <ScrollView
         android:id="@+id/coinsView"
         android:layout_width="match_parent"
-        android:layout_height="375dp"
+        android:layout_height="400dp"
         android:layout_marginTop="15dp"
         android:layout_marginLeft="15dp"
         android:layout_marginRight="15dp"
@@ -153,8 +153,8 @@
         android:backgroundTint="#E91E63"
         android:text="@string/updateReportText"
         android:visibility="invisible"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/linkToReport"
+        app:layout_constraintStart_toEndOf="@id/linkToReport"
+        app:layout_constraintTop_toBottomOf="@id/coinsView"
         android:layout_marginLeft="15dp"/>
 
     <ProgressBar
@@ -167,7 +167,7 @@
         android:layout_marginTop="8dp"
         android:layout_marginLeft="4dp"
         app:layout_constraintStart_toEndOf="@id/updateReportButton"
-        app:layout_constraintTop_toBottomOf="@id/linkToReport"/>
+        app:layout_constraintTop_toTopOf="@id/updateReportButton"/>
 
     <TextView
         android:id="@+id/loadingDataAdvisor"

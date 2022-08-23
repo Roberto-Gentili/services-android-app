@@ -19,6 +19,7 @@ import android.widget.TableLayout;
 import android.widget.TableRow;
 import android.widget.TextView;
 
+import androidx.annotation.ColorRes;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.core.content.res.ResourcesCompat;
@@ -90,18 +91,6 @@ public class MainFragment extends Fragment {
         }
     }
 
-    private boolean isStringNotEmpty(String value){
-        return value != null && !value.trim().isEmpty();
-    }
-
-    private ExecutorService getExecutorService() {
-        return ((MainActivity)getActivity()).getExecutorService();
-    }
-
-    private boolean isUseAlwaysTheDollarCurrencyForBalancesDisabled() {
-        return !appPreferences.getBoolean("useAlwaysTheDollarCurrencyForBalances", false);
-    }
-
     private synchronized void init() {
         stop();
         ((TextView) getView().findViewById(R.id.balanceLabel)).setVisibility(View.INVISIBLE);
@@ -165,6 +154,23 @@ public class MainFragment extends Fragment {
             LoggerChain.getInstance().logError("Unable to retrieve GitHub username: " + exc.getMessage());
             return null;
         });
+    }
+
+
+    private boolean isStringNotEmpty(String value){
+        return value != null && !value.trim().isEmpty();
+    }
+
+    private ExecutorService getExecutorService() {
+        return ((MainActivity)getActivity()).getExecutorService();
+    }
+
+    private boolean isUseAlwaysTheDollarCurrencyForBalancesDisabled() {
+        return !appPreferences.getBoolean("useAlwaysTheDollarCurrencyForBalances", false);
+    }
+
+    private int getColorFromResources(@ColorRes int id) {
+        return ResourcesCompat.getColor(getResources(), id, null);
     }
 
     public boolean canRun() {
@@ -392,14 +398,16 @@ public class MainFragment extends Fragment {
                         textView.setTextColor(Color.RED);
                     }
                 } catch (ParseException e) {}
-                textView.setText(currentValueAsString);
+
             } else {
                 if (currentValueAsString.equals("NaN")) {
+                    textView.setTextColor(Color.GRAY);
                     textView.setTypeface(textView.getTypeface(), Typeface.ITALIC);
+                } else {
+                    textView.setTextColor(Color.WHITE);
                 }
-                textView.setText(currentValueAsString);
-                textView.setTextColor(Color.WHITE);
             }
+            textView.setText(currentValueAsString);
         }
     }
 
@@ -487,6 +495,7 @@ public class MainFragment extends Fragment {
                                                 fragment.gitHubUsernameSupplier.join()
                                         );
                                         linkToReport.setText(Html.fromHtml(String.valueOf(linkToReport.getText()).replace("&reportUrl;", reportUrl), Html.FROM_HTML_MODE_LEGACY));
+                                        linkToReport.setLinkTextColor(fragment.getColorFromResources(R.color.yellow));
                                         updateReportButton.setOnClickListener(new View.OnClickListener() {
                                             @Override
                                             public void onClick(View view) {
@@ -627,7 +636,7 @@ public class MainFragment extends Fragment {
                 );
                 textView.setTextSize(20F);
                 textView.setPadding(20,0,0,0);
-                textView.setTextColor(ResourcesCompat.getColor(fragment.getResources(), R.color.yellow, null));
+                textView.setTextColor(fragment.getColorFromResources(R.color.yellow));
                 textView.setGravity(Gravity.CENTER);
                 textView.setTypeface(null, Typeface.BOLD);
                 header.addView(textView);
