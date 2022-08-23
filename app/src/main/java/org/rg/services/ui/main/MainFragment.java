@@ -550,7 +550,7 @@ public class MainFragment extends Fragment {
             headerLabelsForSpaces.put(HeaderLabel.COIN, 1);
             headerLabelsForSpaces.put(HeaderLabel.UP_IN_USDT, 1);
             if (totalInvestment != null) {
-                headerLabelsForSpaces.put(HeaderLabel.PPR_IN_USDT, 1);
+                headerLabelsForSpaces.put(HeaderLabel.PPR_IN_USDT, 4);
             }
             headerLabelsForSpaces.put(HeaderLabel.QUANTITY, 4);
             if (isCurrencyInEuro()) {
@@ -886,7 +886,7 @@ public class MainFragment extends Fragment {
 
         private Map<String, Map<Wallet, Map<String, Double>>> getCurrentCoinValuesSnapshot() {
             Map<String, Map<Wallet, Map<String, Double>>> currentCoinValuesSnapshot =
-                currentCoinValues instanceof TreeMap ?
+                !canBeRefreshed ?
                     new TreeMap<>() :
                     new ConcurrentHashMap<>();
             for (Map.Entry<String, Map<Wallet, Map<String, Double>>> allCoinValues : currentCoinValues.entrySet()) {
