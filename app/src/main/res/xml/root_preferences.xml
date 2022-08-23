@@ -6,7 +6,7 @@
             app:title="@string/apiKeyLabelText"
             app:useSimpleSummaryProvider="true" />
         <EditTextPreference
-            app:key="binanceApiSecrets"
+            app:key="binanceApiSecret"
             app:title="@string/apiSecretsLabelText"
             app:useSimpleSummaryProvider="false" />
     </PreferenceCategory>
@@ -17,7 +17,7 @@
             app:title="@string/apiKeyLabelText"
             app:useSimpleSummaryProvider="true" />
         <EditTextPreference
-            app:key="cryptoComApiSecrets"
+            app:key="cryptoComApiSecret"
             app:title="@string/apiSecretsLabelText"
             app:useSimpleSummaryProvider="false" />
         <EditTextPreference
