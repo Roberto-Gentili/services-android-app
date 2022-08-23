@@ -77,9 +77,14 @@ public interface Wallet {
 			}
 			String coinAlias = getCoinNameForAlias(coinName);
 			try {
-				return coinName.equals(collateral) ?
+				Double valueForCoin = coinName.equals(collateral) ?
 					1D :
 					getValueForCoin(coinAlias, collateral);
+				if (collateral.equals(coinCollaterals.get("DEFAULT"))) {
+					return valueForCoin;
+				} else {
+					return valueForCoin * getValueForCoin(collateral);
+				}
 			} catch (Throwable exc) {
 				if (checkExceptionForGetValueForCoin(exc)) {
 					String coinNameAndAlias = coinName.equals(coinAlias)? coinName : coinName + "/" + coinAlias;

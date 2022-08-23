@@ -542,7 +542,7 @@ public class MainFragment extends Fragment {
             headerLabelsForSpaces = new LinkedHashMap<>();
             String totalInvestmentAsString = fragment.appPreferences.getString("totalInvestment", "0");
             if (!totalInvestmentAsString.isEmpty()) {
-                totalInvestment = Double.valueOf(totalInvestment);
+                totalInvestment = Double.valueOf(totalInvestmentAsString);
             }
         }
 

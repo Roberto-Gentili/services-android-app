@@ -43,6 +43,7 @@ public class BinanceWallet extends Wallet.Abst {
                 valueMap.put("DEFAULT", "USDT");
                 valueMap.put("LUNC", "BUSD");
                 valueMap.put("BUSD", "USDT");
+                valueMap.put("BETH", "ETH");
                 return valueMap;
             })
         );
