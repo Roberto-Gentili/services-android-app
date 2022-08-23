@@ -532,11 +532,11 @@ public class MainFragment extends Fragment {
     private static class CoinViewManager {
         private static class HeaderLabel {
             private final static String COIN = "Coin";
-            private final static String UP_IN_USDT = "U.P. in $";
-            private final static String PPR_IN_USDT = "PPR in $";
+            private final static String UP_IN_USDT = "U.P. ($)";
+            private final static String PPR_IN_USDT = "Δ[U.P.][R.U.P.B.I] ($)";
             private final static String QUANTITY = "Quant.";
-            private final static String AMOUNT_IN_USDT = "Am. in $";
-            private final static String AMOUNT_IN_EURO = "Am. in €";
+            private final static String AMOUNT_IN_USDT = "Am. in ($)";
+            private final static String AMOUNT_IN_EURO = "Am. in (€)";
         }
 
         private final MainFragment fragment;
@@ -611,7 +611,7 @@ public class MainFragment extends Fragment {
         }
 
         private void setPPRForCoin(String coinName, Double value) {
-            setValueForCoin(coinName, value, getIndexOfHeaderLabel(HeaderLabel.PPR_IN_USDT), fragment.numberFormatterWithFiveVariableDecimals, true);
+            setValueForCoin(coinName, value, getIndexOfHeaderLabel(HeaderLabel.PPR_IN_USDT), fragment.numberFormatterWithFiveVariableDecimals, false);
         }
 
         private void setValueForCoin(String coinName, Double value, int columnIndex, DecimalFormat numberFormatter) {
@@ -895,7 +895,7 @@ public class MainFragment extends Fragment {
                     Double coinQuantity = values.get("coinQuantity");
                     Double coinAmount = values.get("coinAmount");
                     setPPRForCoin(allCoinValues.getKey(), coinAmount.isNaN() || coinAmount == 0D? Double.NaN :
-                        (((((((totalInvestment + 1D) * 100D) / 99.9D) + 1D) * 100D) / 99.6) - ((amount - coinAmount) / currencyValue)) / coinQuantity
+                        values.get("unitPrice") - (((((((totalInvestment + 1D) * 100D) / 99.9D) + 1D) * 100D) / 99.6) - ((amount - coinAmount) / currencyValue)) / coinQuantity
                     );
                 }
             }
