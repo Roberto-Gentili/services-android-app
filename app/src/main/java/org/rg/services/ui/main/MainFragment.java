@@ -97,7 +97,7 @@ public class MainFragment extends Fragment {
         return ((MainActivity)getActivity()).getExecutorService();
     }
 
-    private boolean isCurrencyInEuro() {
+    private boolean isUseAlwaysTheDollarCurrencyForBalancesDisabled() {
         return !appPreferences.getBoolean("useAlwaysTheDollarCurrencyForBalances", false);
     }
 
@@ -784,7 +784,7 @@ public class MainFragment extends Fragment {
         private Collection<String> getCoinsToBeScanned(Wallet wallet) {
             Collection<String> coinsForWallet = wallet.getOwnedCoins();
             coinsForWallet.addAll(coinsToBeAlwaysDisplayed);
-            if (fragment.isCurrencyInEuro()) {
+            if (fragment.isUseAlwaysTheDollarCurrencyForBalancesDisabled()) {
                 coinsForWallet.add("EUR");
             }
             return coinsForWallet;
@@ -815,9 +815,9 @@ public class MainFragment extends Fragment {
                 valuesRetriever = allCoinValues -> retrieveValuesWithAvgUnitPrice(allCoinValues.getValue().values());
             }
             Double euroValue = null;
-            if (fragment.isCurrencyInEuro() && currentCoinValuesSnapshot.get("EUR") != null) {
+            if (fragment.isUseAlwaysTheDollarCurrencyForBalancesDisabled() && currentCoinValuesSnapshot.get("EUR") != null) {
                 setEuroValue(euroValue = euroValueSupplier.get());
-            } else if (!fragment.isCurrencyInEuro()) {
+            } else if (!fragment.isUseAlwaysTheDollarCurrencyForBalancesDisabled()) {
                 setEuroValue(euroValue);
             }
             if (headerLabelsForSpaces.isEmpty()) {
@@ -980,7 +980,7 @@ public class MainFragment extends Fragment {
 
         public boolean isCurrencyInEuro() {
             Double eurValue = getEuroValue();
-            return fragment.isCurrencyInEuro() && eurValue != null && !eurValue.isNaN();
+            return fragment.isUseAlwaysTheDollarCurrencyForBalancesDisabled() && eurValue != null && !eurValue.isNaN();
         }
 
         private void setEuroValue(Double value) {
