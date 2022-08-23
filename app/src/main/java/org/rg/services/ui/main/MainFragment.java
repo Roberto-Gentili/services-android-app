@@ -388,7 +388,6 @@ public class MainFragment extends Fragment {
                 } catch (ParseException e) {}
                 textView.setText(currentValueAsString);
             } else {
-                textView.setText(currentValueAsString);
                 if (currentValueAsString.equals("NaN")) {
                     textView.setTypeface(textView.getTypeface(), Typeface.ITALIC);
                 }
@@ -547,16 +546,16 @@ public class MainFragment extends Fragment {
         }
 
         private void setUpHeaderLabelsForSpaces() {
-            headerLabelsForSpaces.put(HeaderLabel.COIN, 1);
-            headerLabelsForSpaces.put(HeaderLabel.UP_IN_USDT, 1);
+            headerLabelsForSpaces.put(HeaderLabel.COIN, 2);
+            headerLabelsForSpaces.put(HeaderLabel.UP_IN_USDT, 2);
             if (totalInvestment != null) {
-                headerLabelsForSpaces.put(HeaderLabel.PPR_IN_USDT, 4);
+                headerLabelsForSpaces.put(HeaderLabel.PPR_IN_USDT, 2);
             }
-            headerLabelsForSpaces.put(HeaderLabel.QUANTITY, 4);
+            headerLabelsForSpaces.put(HeaderLabel.QUANTITY, 2);
             if (isCurrencyInEuro()) {
-                headerLabelsForSpaces.put(HeaderLabel.AMOUNT_IN_EURO, 1);
+                headerLabelsForSpaces.put(HeaderLabel.AMOUNT_IN_EURO, 2);
             } else {
-                headerLabelsForSpaces.put(HeaderLabel.AMOUNT_IN_USDT, 1);
+                headerLabelsForSpaces.put(HeaderLabel.AMOUNT_IN_USDT, 2);
             }
         }
 
@@ -617,12 +616,12 @@ public class MainFragment extends Fragment {
                 }
                 TextView textView = new TextView(fragment.getActivity());
                 textView.setText(
-                        CharBuffer.allocate(emptySpaceCharCount).toString().replace( '\0', ' ' ) +
-                                text +
-                                CharBuffer.allocate( emptySpaceCharCount).toString().replace( '\0', ' ' )
+                    text
                 );
                 textView.setTextSize(20F);
+                textView.setPadding(20,0,0,0);
                 textView.setTextColor(ResourcesCompat.getColor(fragment.getResources(), R.color.yellow, null));
+                textView.setGravity(Gravity.CENTER);
                 textView.setTypeface(null, Typeface.BOLD);
                 header.addView(textView);
             });
@@ -640,23 +639,27 @@ public class MainFragment extends Fragment {
                     row = new TableRow(fragment.getActivity());
                     TextView coinNameTextView = new TextView(fragment.getActivity());
                     coinNameTextView.setText(coinName);
-                    coinNameTextView.setTextSize(15F);
+                    coinNameTextView.setTextSize(16F);
                     coinNameTextView.setTextColor(Color.WHITE);
                     coinNameTextView.setGravity(Gravity.LEFT);
                     coinNameTextView.setTypeface(null, Typeface.BOLD);
                     row.addView(coinNameTextView);
                     coinsTable.addView(row);
                 }
-                TextView valueTextView = (TextView) row.getChildAt(columnIndex);
+                TextView valueTextView = (TextView)row.getChildAt(columnIndex);
                 if (valueTextView == null) {
                     for (int i = 1; i <= columnIndex; i++) {
-                        valueTextView = new TextView(fragment.getActivity());
-                        valueTextView.setTextSize(15F);
-                        valueTextView.setGravity(Gravity.RIGHT);
-                        valueTextView.setTextColor(Color.WHITE);
-                        row.addView(valueTextView);
+                        valueTextView = (TextView)row.getChildAt(i);
+                        if (valueTextView == null) {
+                            valueTextView = new TextView(fragment.getActivity());
+                            valueTextView.setTextSize(15F);
+                            valueTextView.setGravity(Gravity.RIGHT);
+                            valueTextView.setTextColor(Color.WHITE);
+                            valueTextView.setPadding(20,0,0,0);
+                            //((TextView)row.getChildAt(i-1)).setPadding(0,0,30,0);
+                            row.addView(valueTextView);
+                        }
                     }
-                    valueTextView = (TextView) row.getChildAt(columnIndex);
                 }
                 fragment.setHighlightedValue(valueTextView, numberFormatter, value, inverted);
             });
@@ -851,7 +854,7 @@ public class MainFragment extends Fragment {
                     Map<String, Double> values = allCoinValues.getValue();
                     Double coinQuantity = values.get("coinQuantity");
                     Double coinAmount = values.get("coinAmount");
-                    setPPRForCoin(allCoinValues.getKey(), coinAmount.isNaN() || coinAmount < (amount / 100)? Double.NaN :
+                    setPPRForCoin(allCoinValues.getKey(), coinAmount.isNaN() || coinAmount == 0D? Double.NaN :
                         (((((((totalInvestment + 1D) * 100D) / 99.9D) + 1D) * 100D) / 99.6) - ((amount - coinAmount) / currencyValue)) / coinQuantity
                     );
                 }
