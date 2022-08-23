@@ -385,8 +385,7 @@ public class MainFragment extends Fragment {
                     } else {
                         textView.setTextColor(Color.RED);
                     }
-                } catch (ParseException e) {
-                }
+                } catch (ParseException e) {}
                 textView.setText(currentValueAsString);
             } else {
                 textView.setText(currentValueAsString);
