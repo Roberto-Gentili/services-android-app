@@ -429,7 +429,7 @@ public class MainFragment extends Fragment {
         }
 
         private synchronized void activate() {
-            if (updateTask != null) {
+            if (updateTask != null && updateTask.isAlive()) {
                 return;
             }
             System.out.println("Wallet updater " + this + " activated");

@@ -83,4 +83,8 @@ public class AsyncLooper {
     public synchronized void kill() {
         isAlive = false;
     }
+
+    public boolean isAlive() {
+        return isAlive != null && isAlive;
+    }
 }
