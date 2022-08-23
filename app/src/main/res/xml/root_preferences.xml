@@ -9,6 +9,10 @@
             app:key="binanceApiSecret"
             app:title="@string/apiSecretsLabelText"
             app:useSimpleSummaryProvider="false" />
+        <CheckBoxPreference
+            app:key="binanceWalletEnabled"
+            app:title="@string/enabledLabelText"
+            app:defaultValue="true" />
     </PreferenceCategory>
 
     <PreferenceCategory app:title="Crypto.com">
@@ -20,6 +24,10 @@
             app:key="cryptoComApiSecret"
             app:title="@string/apiSecretsLabelText"
             app:useSimpleSummaryProvider="false" />
+        <CheckBoxPreference
+            app:key="cryptoComWalletEnabled"
+            app:title="@string/enabledLabelText"
+            app:defaultValue="true" />
         <EditTextPreference
             app:key="cryptoComTimeOffset"
             app:title="@string/timeOffsetLabelText"

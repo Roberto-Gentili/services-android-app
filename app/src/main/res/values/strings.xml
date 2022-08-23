@@ -8,6 +8,7 @@
     <string name="backLabelText">Back</string>
     <string name="balanceText">Balance:</string>
     <string name="cryptoInfoLabelText">Crypto info</string>
+    <string name="enabledLabelText">Enabled</string>
     <string name="intervalBetweenRequestGroupsTextLabel">Interval between request groups (in milliseconds)</string>
     <string name="lastUpdateLabelText">Last update:</string>
     <string name="linkToReport"><![CDATA[<a href="&reportUrl;">Download latest report</a>]]></string>

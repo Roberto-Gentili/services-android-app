@@ -41,7 +41,6 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.util.UriComponents;
 import org.springframework.web.util.UriComponentsBuilder;
 
-import java.nio.CharBuffer;
 import java.text.DecimalFormat;
 import java.text.DecimalFormatSymbols;
 import java.text.ParseException;
@@ -118,10 +117,12 @@ public class MainFragment extends Fragment {
         ((ProgressBar) getView().findViewById(R.id.progressBar)).setVisibility(View.VISIBLE);
         String binanceApiKey = appPreferences.getString("binanceApiKey", null);
         String binanceApiSecret = appPreferences.getString("binanceApiSecret", null);
+        boolean binanceWalletEnabled = appPreferences.getBoolean("binanceWalletEnabled", true);
         String cryptoComApiKey = appPreferences.getString("cryptoComApiKey", null);
         String cryptoComApiSecret = appPreferences.getString("cryptoComApiSecret", null);
+        boolean cryptoComWalletEnabled = appPreferences.getBoolean("cryptoComWalletEnabled", true);
         wallets.clear();
-        if (isStringNotEmpty(cryptoComApiKey) && isStringNotEmpty(cryptoComApiSecret)) {
+        if (isStringNotEmpty(cryptoComApiKey) && isStringNotEmpty(cryptoComApiSecret) && cryptoComWalletEnabled) {
             CryptoComWallet wallet = new CryptoComWallet(
                     RestTemplateSupplier.getSharedInstance().get(),
                     getExecutorService(),
@@ -133,7 +134,7 @@ public class MainFragment extends Fragment {
             ));
             wallets.add(wallet);
         }
-        if (isStringNotEmpty(binanceApiKey) && isStringNotEmpty(binanceApiSecret)) {
+        if (isStringNotEmpty(binanceApiKey) && isStringNotEmpty(binanceApiSecret) && binanceWalletEnabled) {
             BinanceWallet wallet = new BinanceWallet(
                     RestTemplateSupplier.getSharedInstance().get(),
                     getExecutorService(),
@@ -167,9 +168,12 @@ public class MainFragment extends Fragment {
     public boolean canRun() {
         String binanceApiKey = appPreferences.getString("binanceApiKey", null);
         String binanceApiSecret = appPreferences.getString("binanceApiSecret", null);
+        boolean binanceWalletEnabled = appPreferences.getBoolean("binanceWalletEnabled", true);
         String cryptoComApiKey = appPreferences.getString("cryptoComApiKey", null);
         String cryptoComApiSecret = appPreferences.getString("cryptoComApiSecret", null);
-        return (isStringNotEmpty(cryptoComApiKey) && isStringNotEmpty(cryptoComApiSecret) || (isStringNotEmpty(binanceApiKey) && isStringNotEmpty(binanceApiSecret)));
+        boolean cryptoComWalletEnabled = appPreferences.getBoolean("cryptoComWalletEnabled", true);
+        return (isStringNotEmpty(binanceApiKey) && isStringNotEmpty(binanceApiSecret) && binanceWalletEnabled) ||
+                (isStringNotEmpty(cryptoComApiKey) && isStringNotEmpty(cryptoComApiSecret) && cryptoComWalletEnabled);
     }
 
     @Nullable
