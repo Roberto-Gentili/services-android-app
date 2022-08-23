@@ -200,11 +200,7 @@ public class MainFragment extends Fragment {
                                 try {
                                     if (alreadyRunningChecker.get()) {
                                         synchronized (alreadyRunningChecker) {
-                                            try {
-                                                alreadyRunningChecker.wait(5000);
-                                            } catch (InterruptedException exc) {
-
-                                            }
+                                            alreadyRunningChecker.wait(5000);
                                         }
                                     } else {
                                         break;
