@@ -155,6 +155,7 @@
         android:visibility="invisible"
         app:layout_constraintStart_toEndOf="@id/linkToReport"
         app:layout_constraintTop_toBottomOf="@id/coinsView"
+        android:layout_marginTop="15dp"
         android:layout_marginLeft="15dp"/>
 
     <ProgressBar
