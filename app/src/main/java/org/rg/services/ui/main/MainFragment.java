@@ -532,6 +532,7 @@ public class MainFragment extends Fragment {
         private AsyncLooper retrievingCoinValuesTask;
         private Map<String, Integer> headerLabelsForSpaces;
         private boolean canBeRefreshed;
+        private Double totalInvestment;
 
         private CoinViewManager(MainFragment fragment) {
             this.fragment = fragment;
@@ -539,6 +540,10 @@ public class MainFragment extends Fragment {
             this.currentCoinValues = new ConcurrentHashMap<>();
             this.coinsToBeAlwaysDisplayed = Arrays.asList(fragment.appPreferences.getString("coinsToBeAlwaysDisplayed", "BTC, ETH").toUpperCase().replace(" ", "").split(","));
             headerLabelsForSpaces = new LinkedHashMap<>();
+            String totalInvestmentAsString = fragment.appPreferences.getString("totalInvestment", "0");
+            if (!totalInvestmentAsString.isEmpty()) {
+                totalInvestment = Double.valueOf(totalInvestment);
+            }
         }
 
         private void setUpHeaderLabelsForSpaces() {
@@ -837,7 +842,6 @@ public class MainFragment extends Fragment {
                 }
             }
             setAmount(amount);
-            Double totalInvestment = Double.valueOf(fragment.appPreferences.getString("totalInvestment", "0"));
             if (totalInvestment > 0) {
                 Double pureAmount = getPureAmountInDollar();
                 Double currencyValue = isCurrencyInEuro() ? euroValue : 1D;
