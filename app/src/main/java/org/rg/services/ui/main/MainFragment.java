@@ -616,7 +616,7 @@ public class MainFragment extends Fragment {
         }
 
         private void setRUPEIForCoin(String coinName, Double value) {
-            setValueForCoin(coinName, value, getIndexOfHeaderLabel(HeaderLabel.RUPEI_IN_USDT), fragment.numberFormatterWithFiveVariableDecimals, false);
+            setValueForCoin(coinName, value, getIndexOfHeaderLabel(HeaderLabel.RUPEI_IN_USDT), fragment.numberFormatterWithFiveVariableDecimals, true);
         }
 
         private void setDifferenceBetweenUPAndRUPEIForCoin(String coinName, Double value) {
