@@ -53,7 +53,6 @@ import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Objects;
-import java.util.Set;
 import java.util.TreeMap;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
@@ -532,11 +531,12 @@ public class MainFragment extends Fragment {
     private static class CoinViewManager {
         private static class HeaderLabel {
             private final static String COIN = "Coin";
-            private final static String UP_IN_USDT = "U.P. ($)";
-            private final static String PPR_IN_USDT = "Δ[U.P.][R.U.P.B.I] ($)";
-            private final static String QUANTITY = "Quant.";
-            private final static String AMOUNT_IN_USDT = "Am. in ($)";
-            private final static String AMOUNT_IN_EURO = "Am. in (€)";
+            private final static String UP_IN_USDT = "UP ($)";
+            private final static String RUPEI_IN_USDT = "RUPEI ($)";
+            private final static String DIFFERENCE_BETWEEN_UP_AND_RUPEI_UP_IN_USDT = "UP-RUPEI ($)";
+            private final static String QUANTITY = "Quantity";
+            private final static String AMOUNT_IN_USDT = "Amount ($)";
+            private final static String AMOUNT_IN_EURO = "Amount (€)";
         }
 
         private final MainFragment fragment;
@@ -562,16 +562,21 @@ public class MainFragment extends Fragment {
         }
 
         private void setUpHeaderLabelsForSpaces() {
-            headerLabelsForSpaces.put(HeaderLabel.COIN, 2);
-            headerLabelsForSpaces.put(HeaderLabel.UP_IN_USDT, 2);
+            headerLabelsForSpaces.put(HeaderLabel.COIN, 0);
+            headerLabelsForSpaces.put(HeaderLabel.UP_IN_USDT, 0);
             if (totalInvestment != null) {
-                headerLabelsForSpaces.put(HeaderLabel.PPR_IN_USDT, 2);
+                if (fragment.appPreferences.getBoolean("showRUPEI", true)) {
+                    headerLabelsForSpaces.put(HeaderLabel.RUPEI_IN_USDT, 0);
+                }
+                if (fragment.appPreferences.getBoolean("showDifferenceBetweenUPAndRUPEI", false)) {
+                    headerLabelsForSpaces.put(HeaderLabel.DIFFERENCE_BETWEEN_UP_AND_RUPEI_UP_IN_USDT, 0);
+                }
             }
-            headerLabelsForSpaces.put(HeaderLabel.QUANTITY, 2);
+            headerLabelsForSpaces.put(HeaderLabel.QUANTITY, 0);
             if (isCurrencyInEuro()) {
-                headerLabelsForSpaces.put(HeaderLabel.AMOUNT_IN_EURO, 2);
+                headerLabelsForSpaces.put(HeaderLabel.AMOUNT_IN_EURO, 0);
             } else {
-                headerLabelsForSpaces.put(HeaderLabel.AMOUNT_IN_USDT, 2);
+                headerLabelsForSpaces.put(HeaderLabel.AMOUNT_IN_USDT, 0);
             }
         }
 
@@ -610,8 +615,12 @@ public class MainFragment extends Fragment {
             setValueForCoin(coinName, isCurrencyInEuro() ? value / getEuroValue() : value, index, fragment.numberFormatterWithTwoVariableDecimals);
         }
 
-        private void setPPRForCoin(String coinName, Double value) {
-            setValueForCoin(coinName, value, getIndexOfHeaderLabel(HeaderLabel.PPR_IN_USDT), fragment.numberFormatterWithFiveVariableDecimals, false);
+        private void setRUPEIForCoin(String coinName, Double value) {
+            setValueForCoin(coinName, value, getIndexOfHeaderLabel(HeaderLabel.RUPEI_IN_USDT), fragment.numberFormatterWithFiveVariableDecimals, false);
+        }
+
+        private void setDifferenceBetweenUPAndRUPEIForCoin(String coinName, Double value) {
+            setValueForCoin(coinName, value, getIndexOfHeaderLabel(HeaderLabel.DIFFERENCE_BETWEEN_UP_AND_RUPEI_UP_IN_USDT), fragment.numberFormatterWithFiveVariableDecimals, false);
         }
 
         private void setValueForCoin(String coinName, Double value, int columnIndex, DecimalFormat numberFormatter) {
@@ -888,15 +897,25 @@ public class MainFragment extends Fragment {
                 allCoinsValues.remove(coinName);
                 removeCoinRow(coinName);
             }
-            if (totalInvestment != null) {
+            boolean showRUPEI = fragment.appPreferences.getBoolean("showRUPEI", true);
+            boolean showDifferenceBetweenUPAndRUPEI = fragment.appPreferences.getBoolean("showDifferenceBetweenUPAndRUPEI", true);
+            if (totalInvestment != null && (showRUPEI || showDifferenceBetweenUPAndRUPEI)) {
                 Double currencyValue = isCurrencyInEuro() ? euroValue : 1D;
                 for (Map.Entry<String, Map<String, Double>> allCoinValues : allCoinsValues.entrySet()) {
                     Map<String, Double> values = allCoinValues.getValue();
                     Double coinQuantity = values.get("coinQuantity");
                     Double coinAmount = values.get("coinAmount");
-                    setPPRForCoin(allCoinValues.getKey(), coinAmount.isNaN() || coinAmount == 0D? Double.NaN :
-                        values.get("unitPrice") - (((((((totalInvestment + 1D) * 100D) / 99.9D) + 1D) * 100D) / 99.6) - ((amount - coinAmount) / currencyValue)) / coinQuantity
-                    );
+                    Double RUPEI = coinAmount.isNaN() || coinAmount == 0D? Double.NaN :
+                        (((((((totalInvestment + 1D) * 100D) / 99.9D) + 1D) * 100D) / 99.6) - ((amount - coinAmount) / currencyValue)) / coinQuantity;
+                    if (showRUPEI) {
+                        setRUPEIForCoin(allCoinValues.getKey(), RUPEI);
+                    }
+                    if (showDifferenceBetweenUPAndRUPEI) {
+                        setDifferenceBetweenUPAndRUPEIForCoin(allCoinValues.getKey(), RUPEI.isNaN()? Double.NaN :
+                            values.get("unitPrice") - RUPEI
+                        );
+                    }
+
                 }
             }
             return canBeRefreshed = true;
