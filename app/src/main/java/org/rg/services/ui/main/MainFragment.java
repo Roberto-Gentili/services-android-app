@@ -549,7 +549,9 @@ public class MainFragment extends Fragment {
         private void setUpHeaderLabelsForSpaces() {
             headerLabelsForSpaces.put(HeaderLabel.COIN, 1);
             headerLabelsForSpaces.put(HeaderLabel.UP_IN_USDT, 1);
-            headerLabelsForSpaces.put(HeaderLabel.PPR_IN_USDT, 1);
+            if (totalInvestment != null) {
+                headerLabelsForSpaces.put(HeaderLabel.PPR_IN_USDT, 1);
+            }
             headerLabelsForSpaces.put(HeaderLabel.QUANTITY, 4);
             if (isCurrencyInEuro()) {
                 headerLabelsForSpaces.put(HeaderLabel.AMOUNT_IN_EURO, 1);
@@ -842,7 +844,7 @@ public class MainFragment extends Fragment {
                 }
             }
             setAmount(amount);
-            if (totalInvestment > 0) {
+            if (totalInvestment != null) {
                 Double pureAmount = getPureAmountInDollar();
                 Double currencyValue = isCurrencyInEuro() ? euroValue : 1D;
                 for (Map.Entry<String, Map<String, Double>> allCoinValues : allCoinsValues.entrySet()) {
