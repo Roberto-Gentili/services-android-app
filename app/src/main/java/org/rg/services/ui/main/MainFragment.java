@@ -391,6 +391,7 @@ public class MainFragment extends Fragment {
                 if (currentValueAsString.equals("NaN")) {
                     textView.setTypeface(textView.getTypeface(), Typeface.ITALIC);
                 }
+                textView.setText(currentValueAsString);
                 textView.setTextColor(Color.WHITE);
             }
         }
