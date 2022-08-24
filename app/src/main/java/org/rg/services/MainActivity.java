@@ -42,9 +42,11 @@ public class MainActivity extends AppCompatActivity {
         //executorService = ForkJoinPool.commonPool();
         executorService = Executors.newFixedThreadPool(12);
         Consumer<String> logger = message -> {
-            runOnUiThread(()-> {
-                Toast.makeText(this, message, Toast.LENGTH_LONG).show();
-            });
+            if (!message.toLowerCase().contains("invalid symbol")) {
+                runOnUiThread(() -> {
+                    Toast.makeText(this, message, Toast.LENGTH_LONG).show();
+                });
+            }
         };
         LoggerChain.getInstance().appendExceptionLogger(logger);
         LoggerChain.getInstance().appendInfoLogger(logger);
