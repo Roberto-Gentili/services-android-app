@@ -447,7 +447,7 @@ public class MainFragment extends Fragment {
                 return;
             }
             System.out.println("Wallet updater " + this + " activated");
-            LinearLayout mainLinearLayout = (LinearLayout)fragment.getView().findViewById(R.id.mainLinearLayout);
+            LinearLayout mainLayout = (LinearLayout)fragment.getView().findViewById(R.id.balancesTable);
             TextView balanceLabel = (TextView) fragment.getView().findViewById(R.id.balanceLabel);
             TextView pureBalanceLabel = (TextView) fragment.getView().findViewById(R.id.pureBalanceLabel);
             TextView balance = (TextView) fragment.getView().findViewById(R.id.balance);
@@ -506,7 +506,7 @@ public class MainFragment extends Fragment {
                                         });
                                         reportBar.setVisibility(View.VISIBLE);
                                     } else {
-                                        mainLinearLayout.removeView(reportBar);
+                                        mainLayout.removeView(reportBar);
                                     }
                                 }
                             });
@@ -557,7 +557,7 @@ public class MainFragment extends Fragment {
             this.fragment = fragment;
             this.currentValues = new ConcurrentHashMap<>();
             this.currentCoinValues = new ConcurrentHashMap<>();
-            this.coinsToBeAlwaysDisplayed = Arrays.asList(fragment.appPreferences.getString("coinsToBeAlwaysDisplayed", "BTC, ETH").toUpperCase().replace(" ", "").split(","));
+            this.coinsToBeAlwaysDisplayed = Arrays.asList(fragment.appPreferences.getString("coinsToBeAlwaysDisplayed", "BTC, ETH").toUpperCase().replace(" ", "").split(",")).stream().filter(fragment::isStringNotEmpty).collect(Collectors.toList());
             headerLabels = new ArrayList<>();
             String totalInvestmentAsString = fragment.appPreferences.getString("totalInvestment", "0");
             if (!totalInvestmentAsString.isEmpty()) {
@@ -585,7 +585,7 @@ public class MainFragment extends Fragment {
         }
 
         private synchronized void buildHeader() {
-            TableLayout coinsTable = (TableLayout) fragment.getActivity().findViewById(R.id.coinsTableView);
+            TableLayout coinsTable = (TableLayout) fragment.getActivity().findViewById(R.id.coinsTable);
             if (coinsTable.getChildAt(0) != null) {
                 return;
             }
@@ -633,7 +633,7 @@ public class MainFragment extends Fragment {
 
         private void addHeaderColumn(String text) {
             fragment.runOnUIThread(() -> {
-                TableLayout coinsTable = (TableLayout) fragment.getActivity().findViewById(R.id.coinsTableView);
+                TableLayout coinsTable = (TableLayout) fragment.getActivity().findViewById(R.id.coinsTable);
                 TableRow header = (TableRow) coinsTable.getChildAt(0);
                 if (header == null) {
                     header = new TableRow(fragment.getActivity());
@@ -654,7 +654,7 @@ public class MainFragment extends Fragment {
 
         private void setValueForCoin(String coinName, Double value, int columnIndex, DecimalFormat numberFormatter, boolean inverted) {
             fragment.runOnUIThread(() -> {
-                TableLayout coinsTable = (TableLayout) fragment.getActivity().findViewById(R.id.coinsTableView);
+                TableLayout coinsTable = (TableLayout) fragment.getActivity().findViewById(R.id.coinsTable);
                 int childCount = coinsTable.getChildCount();
                 TableRow row = getCoinRow(coinName);
                 if (row == null) {
@@ -691,7 +691,7 @@ public class MainFragment extends Fragment {
         }
 
         private TableRow getCoinRow(String coinName) {
-            TableLayout coinsTable = (TableLayout) fragment.getActivity().findViewById(R.id.coinsTableView);
+            TableLayout coinsTable = (TableLayout) fragment.getActivity().findViewById(R.id.coinsTable);
             int childCount = coinsTable.getChildCount();
             if (childCount > 1) {
                 for (int i = 1; i < childCount; i++) {
@@ -706,7 +706,7 @@ public class MainFragment extends Fragment {
         }
 
         private TableRow removeCoinRow(String coinName) {
-            TableLayout coinsTable = (TableLayout) fragment.getActivity().findViewById(R.id.coinsTableView);
+            TableLayout coinsTable = (TableLayout) fragment.getActivity().findViewById(R.id.coinsTable);
             TableRow coinRow = getCoinRow(coinName);
             if (coinRow != null) {
                 fragment.runOnUIThread(() -> {
@@ -827,7 +827,7 @@ public class MainFragment extends Fragment {
         }
 
         private Collection<String> getShowedCoins() {
-            TableLayout coinsTable = (TableLayout) fragment.getActivity().findViewById(R.id.coinsTableView);
+            TableLayout coinsTable = (TableLayout) fragment.getActivity().findViewById(R.id.coinsTable);
             Collection<String> showedCoins = new HashSet<>();
             for (int i = 1; i < coinsTable.getChildCount(); i++) {
                 TableRow row = (TableRow)coinsTable.getChildAt(i);
