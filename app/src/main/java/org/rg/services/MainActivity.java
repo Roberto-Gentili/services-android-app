@@ -23,7 +23,6 @@ import java.util.function.Consumer;
 public class MainActivity extends AppCompatActivity {
     private LocalDateTime lastUpdateTime;
     private DateTimeFormatter dateFormatter;
-    private ExecutorService executorService;
 
     public MainActivity() {
         int SDK_INT = android.os.Build.VERSION.SDK_INT;
@@ -39,8 +38,6 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        //executorService = ForkJoinPool.commonPool();
-        executorService = Executors.newFixedThreadPool(12);
         Consumer<String> logger = message -> {
             if (!message.toLowerCase().contains("invalid symbol")) {
                 runOnUiThread(() -> {
@@ -81,14 +78,14 @@ public class MainActivity extends AppCompatActivity {
 
     public void goToSettingsView() {
         getSupportFragmentManager().beginTransaction()
-            .replace(R.id.container, new SettingsFragment())
+            .replace(R.id.container, SettingsFragment.getInstance())
             .commit();
         setTitle(getResources().getString(R.string.settingsLabelText));
     }
 
     public void goToMainView() {
         getSupportFragmentManager().beginTransaction()
-            .replace(R.id.container, new MainFragment())
+            .replace(R.id.container, MainFragment.getInstance())
             .commitNow();
         setTitle(getResources().getString(R.string.cryptoInfoLabelText));
     }
@@ -102,9 +99,5 @@ public class MainActivity extends AppCompatActivity {
             return dateFormatter.format(lastUpdateTime);
         }
         return null;
-    }
-
-    public ExecutorService getExecutorService(){
-        return this.executorService;
     }
 }

@@ -69,6 +69,7 @@ import java.util.stream.Collectors;
 
 
 public class MainFragment extends Fragment {
+    private static MainFragment INSTANCE;
     private SharedPreferences appPreferences;
     private final Collection<Wallet> wallets;
     private final DecimalFormatSymbols decimalFormatSymbols;
@@ -78,8 +79,11 @@ public class MainFragment extends Fragment {
     private BalanceUpdater balanceUpdater;
     private CoinViewManager coinViewManager;
     private CompletableFuture<String> gitHubUsernameSupplier;
+    private ExecutorService executorService;
+    private int executorServiceSize;
 
-    public MainFragment() {
+
+    private MainFragment() {
         try {
             wallets = new ArrayList<>();
             decimalFormatSymbols = new DecimalFormatSymbols();
@@ -89,6 +93,17 @@ public class MainFragment extends Fragment {
             exc.printStackTrace();
             throw exc;
         }
+    }
+
+    public final static MainFragment getInstance() {
+        if (INSTANCE == null) {
+            synchronized (MainFragment.class) {
+                if (INSTANCE == null) {
+                    INSTANCE = new MainFragment();
+                }
+            }
+        }
+        return INSTANCE;
     }
 
     private synchronized void init() {
@@ -161,7 +176,19 @@ public class MainFragment extends Fragment {
     }
 
     private ExecutorService getExecutorService() {
-        return ((MainActivity)getActivity()).getExecutorService();
+        int currentExecutorServiceSize = Integer.valueOf(appPreferences.getString("threadPoolSize", "12"));
+        if (executorServiceSize != currentExecutorServiceSize) {
+            synchronized (this) {
+                if (executorServiceSize != currentExecutorServiceSize) {
+                    if (executorService != null) {
+                        executorService.shutdown();
+                    }
+                    //executorService = ForkJoinPool.commonPool();
+                    executorService = Executors.newFixedThreadPool(executorServiceSize = currentExecutorServiceSize);
+                }
+            }
+        }
+        return executorService;
     }
 
     private boolean isUseAlwaysTheDollarCurrencyForBalancesDisabled() {

@@ -22,6 +22,7 @@
     <string name="showRUPEILabelText">Show the relative unit price to equalize the investment</string>
     <string name="totalInvestmentLabelText">Total investment</string>
     <string name="timeOffsetLabelText">Time offset (in milliseconds)</string>
+    <string name="threadPoolSizeTextLabel">Thread pool size</string>
     <string name="updateReportText">Update report</string>
     <string name="useAlwaysTheDollarCurrencyForBalancesLabelText">Use always the Dollar currency for balances</string>
 

@@ -91,6 +91,12 @@
             app:title="@string/intervalBetweenRequestGroupsTextLabel"
             app:useSimpleSummaryProvider="true" />
 
+        <EditTextPreference
+            app:key="threadPoolSize"
+            app:title="@string/threadPoolSizeTextLabel"
+            app:defaultValue="6"
+            app:useSimpleSummaryProvider="true" />
+
     </PreferenceCategory>
 
 </PreferenceScreen>
