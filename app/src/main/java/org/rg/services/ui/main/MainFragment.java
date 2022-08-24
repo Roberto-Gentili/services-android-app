@@ -15,7 +15,6 @@ import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.LinearLayout;
 import android.widget.ProgressBar;
-import android.widget.ScrollView;
 import android.widget.TableLayout;
 import android.widget.TableRow;
 import android.widget.TextView;
@@ -238,10 +237,7 @@ public class MainFragment extends Fragment {
                         }, 30, TimeUnit.SECONDS);
                     } catch (Throwable exc) {
                         LoggerChain.getInstance().logError("Could not update report: " + exc.getMessage());
-                        runOnUIThread(() -> {
-                            updateButton.setEnabled(true);
-                        });
-                        return;
+                        runOnUIThread(() -> updateButton.setEnabled(true));
                     }
                 }
             }
@@ -461,7 +457,7 @@ public class MainFragment extends Fragment {
             TextView linkToReport = (TextView) fragment.getView().findViewById(R.id.linkToReport);
             Button updateReportButton = (Button) fragment.getView().findViewById(R.id.updateReportButton);
             ProgressBar progressBar = (ProgressBar) fragment.getView().findViewById(R.id.progressBar);
-            ScrollView coinsView = ((ScrollView) fragment.getView().findViewById(R.id.coinsView));
+            View coinsView = ((View) fragment.getView().findViewById(R.id.coinsView));
             updateTask = new AsyncLooper(() -> {
                 try {
                     CoinViewManager coinViewManager = fragment.coinViewManager;

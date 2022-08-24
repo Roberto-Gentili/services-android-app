@@ -157,6 +157,26 @@
                 </LinearLayout>
             </HorizontalScrollView>
 
+            <HorizontalScrollView
+                android:id="@+id/coinsView"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="15dp"
+                android:layout_marginBottom="15dp"
+                android:layout_gravity="center_horizontal"
+                android:visibility="invisible" >
+                <LinearLayout
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:backgroundTint="@color/white">
+                    <TableLayout
+                        android:id="@+id/coinsTable"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content">
+                    </TableLayout>
+                </LinearLayout>
+            </HorizontalScrollView>
+            <!-- Old table view version: DO NOT DELETE
             <ScrollView
                 android:id="@+id/coinsView"
                 android:layout_width="match_parent"
@@ -183,6 +203,7 @@
                     </LinearLayout>
                 </HorizontalScrollView>
             </ScrollView>
+            -->
         </LinearLayout>
     </ScrollView>
 
