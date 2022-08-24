@@ -8,6 +8,7 @@ import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.preference.PreferenceManager;
 
 import org.rg.services.ui.main.MainFragment;
 import org.rg.services.ui.main.SettingsFragment;
@@ -18,11 +19,15 @@ import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Consumer;
+import java.util.function.Supplier;
 
 public class MainActivity extends AppCompatActivity {
     private LocalDateTime lastUpdateTime;
     private DateTimeFormatter dateFormatter;
+    private Supplier<ExecutorService> executorServiceSupplier;
+    private int executorServiceSize;
 
     public MainActivity() {
         int SDK_INT = android.os.Build.VERSION.SDK_INT;
@@ -51,6 +56,23 @@ public class MainActivity extends AppCompatActivity {
         if (savedInstanceState == null) {
             goToMainView();
         }
+        AtomicReference<ExecutorService> executorServiceWrapper = new AtomicReference<>();
+        executorServiceSupplier = () -> {
+            int currentExecutorServiceSize = Integer.valueOf(PreferenceManager.getDefaultSharedPreferences(this).getString("threadPoolSize", "6"));
+            if (executorServiceSize != currentExecutorServiceSize) {
+                synchronized (executorServiceSupplier) {
+                    if (executorServiceSize != currentExecutorServiceSize) {
+                        //ForkJoinPool.commonPool()
+                        ExecutorService oldExecutorService = executorServiceWrapper.getAndSet(Executors.newFixedThreadPool(currentExecutorServiceSize));
+                        executorServiceSize = currentExecutorServiceSize;
+                        if (oldExecutorService != null) {
+                            oldExecutorService.shutdown();
+                        }
+                    }
+                }
+            }
+            return executorServiceWrapper.get();
+        };
     }
 
     protected MainFragment getMainFragment(){
@@ -78,14 +100,14 @@ public class MainActivity extends AppCompatActivity {
 
     public void goToSettingsView() {
         getSupportFragmentManager().beginTransaction()
-            .replace(R.id.container, SettingsFragment.getInstance())
+            .replace(R.id.container, new SettingsFragment())
             .commit();
         setTitle(getResources().getString(R.string.settingsLabelText));
     }
 
     public void goToMainView() {
         getSupportFragmentManager().beginTransaction()
-            .replace(R.id.container, MainFragment.getInstance())
+            .replace(R.id.container, new MainFragment())
             .commitNow();
         setTitle(getResources().getString(R.string.cryptoInfoLabelText));
     }
@@ -99,5 +121,9 @@ public class MainActivity extends AppCompatActivity {
             return dateFormatter.format(lastUpdateTime);
         }
         return null;
+    }
+
+    public ExecutorService getExecutorService() {
+        return executorServiceSupplier.get();
     }
 }

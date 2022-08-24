@@ -17,18 +17,7 @@ import java.util.Optional;
 public class SettingsFragment extends PreferenceFragmentCompat {
     private static SettingsFragment INSTANCE;
 
-    private SettingsFragment() {}
-
-    public final static SettingsFragment getInstance() {
-        if (INSTANCE == null) {
-            synchronized (MainFragment.class) {
-                if (INSTANCE == null) {
-                    INSTANCE = new SettingsFragment();
-                }
-            }
-        }
-        return INSTANCE;
-    }
+    public SettingsFragment() {}
 
     @Override
     public void onCreatePreferences(Bundle savedInstanceState, String rootKey) {

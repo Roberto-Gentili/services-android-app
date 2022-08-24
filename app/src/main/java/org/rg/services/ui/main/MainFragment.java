@@ -62,6 +62,7 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.BiPredicate;
 import java.util.function.Function;
 import java.util.function.Supplier;
@@ -79,11 +80,9 @@ public class MainFragment extends Fragment {
     private BalanceUpdater balanceUpdater;
     private CoinViewManager coinViewManager;
     private CompletableFuture<String> gitHubUsernameSupplier;
-    private ExecutorService executorService;
-    private int executorServiceSize;
 
 
-    private MainFragment() {
+    public MainFragment() {
         try {
             wallets = new ArrayList<>();
             decimalFormatSymbols = new DecimalFormatSymbols();
@@ -93,17 +92,6 @@ public class MainFragment extends Fragment {
             exc.printStackTrace();
             throw exc;
         }
-    }
-
-    public final static MainFragment getInstance() {
-        if (INSTANCE == null) {
-            synchronized (MainFragment.class) {
-                if (INSTANCE == null) {
-                    INSTANCE = new MainFragment();
-                }
-            }
-        }
-        return INSTANCE;
     }
 
     private synchronized void init() {
@@ -176,19 +164,7 @@ public class MainFragment extends Fragment {
     }
 
     private ExecutorService getExecutorService() {
-        int currentExecutorServiceSize = Integer.valueOf(appPreferences.getString("threadPoolSize", "6"));
-        if (executorServiceSize != currentExecutorServiceSize) {
-            synchronized (this) {
-                if (executorServiceSize != currentExecutorServiceSize) {
-                    if (executorService != null) {
-                        executorService.shutdown();
-                    }
-                    //executorService = ForkJoinPool.commonPool();
-                    executorService = Executors.newFixedThreadPool(executorServiceSize = currentExecutorServiceSize);
-                }
-            }
-        }
-        return executorService;
+        return ((MainActivity)getActivity()).getExecutorService();
     }
 
     private boolean isUseAlwaysTheDollarCurrencyForBalancesDisabled() {
