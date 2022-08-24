@@ -94,7 +94,7 @@
         <EditTextPreference
             app:key="threadPoolSize"
             app:title="@string/threadPoolSizeTextLabel"
-            app:defaultValue="6"
+            app:defaultValue="7"
             app:useSimpleSummaryProvider="true" />
 
     </PreferenceCategory>

@@ -176,7 +176,7 @@ public class MainFragment extends Fragment {
     }
 
     private ExecutorService getExecutorService() {
-        int currentExecutorServiceSize = Integer.valueOf(appPreferences.getString("threadPoolSize", "12"));
+        int currentExecutorServiceSize = Integer.valueOf(appPreferences.getString("threadPoolSize", "7"));
         if (executorServiceSize != currentExecutorServiceSize) {
             synchronized (this) {
                 if (executorServiceSize != currentExecutorServiceSize) {
