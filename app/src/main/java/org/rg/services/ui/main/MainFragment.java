@@ -13,6 +13,7 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
+import android.widget.LinearLayout;
 import android.widget.ProgressBar;
 import android.widget.ScrollView;
 import android.widget.TableLayout;
@@ -53,6 +54,7 @@ import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.TreeMap;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
@@ -100,9 +102,8 @@ public class MainFragment extends Fragment {
         ((TextView) getView().findViewById(R.id.pureBalanceCurrency)).setVisibility(View.INVISIBLE);
         ((TextView) getView().findViewById(R.id.lastUpdateLabel)).setVisibility(View.INVISIBLE);
         ((TextView) getView().findViewById(R.id.lastUpdate)).setVisibility(View.INVISIBLE);
-        ((TextView) getView().findViewById(R.id.linkToReport)).setVisibility(View.INVISIBLE);
-        ((Button) getView().findViewById(R.id.updateReportButton)).setVisibility(View.INVISIBLE);
-        ((ScrollView) getView().findViewById(R.id.coinsView)).setVisibility(View.INVISIBLE);
+        ((LinearLayout)getView().findViewById(R.id.reportBar)).setVisibility(View.INVISIBLE);
+        ((ProgressBar) getView().findViewById(R.id.updateReportProgressBar)).setVisibility(View.INVISIBLE);
         ((TextView) getView().findViewById(R.id.loadingDataAdvisor)).setVisibility(View.VISIBLE);
         ((ProgressBar) getView().findViewById(R.id.progressBar)).setVisibility(View.VISIBLE);
         String binanceApiKey = appPreferences.getString("binanceApiKey", null);
@@ -446,6 +447,7 @@ public class MainFragment extends Fragment {
                 return;
             }
             System.out.println("Wallet updater " + this + " activated");
+            LinearLayout mainLinearLayout = (LinearLayout)fragment.getView().findViewById(R.id.mainLinearLayout);
             TextView balanceLabel = (TextView) fragment.getView().findViewById(R.id.balanceLabel);
             TextView pureBalanceLabel = (TextView) fragment.getView().findViewById(R.id.pureBalanceLabel);
             TextView balance = (TextView) fragment.getView().findViewById(R.id.balance);
@@ -454,8 +456,9 @@ public class MainFragment extends Fragment {
             TextView pureBalanceCurrency = (TextView) fragment.getView().findViewById(R.id.pureBalanceCurrency);
             TextView lastUpdateLabel = (TextView) fragment.getView().findViewById(R.id.lastUpdateLabel);
             TextView lastUpdate = (TextView) fragment.getView().findViewById(R.id.lastUpdate);
-            TextView linkToReport = (TextView) fragment.getView().findViewById(R.id.linkToReport);
             TextView loadingDataAdvisor = (TextView) fragment.getView().findViewById(R.id.loadingDataAdvisor);
+            LinearLayout reportBar = (LinearLayout)fragment.getView().findViewById(R.id.reportBar);
+            TextView linkToReport = (TextView) fragment.getView().findViewById(R.id.linkToReport);
             Button updateReportButton = (Button) fragment.getView().findViewById(R.id.updateReportButton);
             ProgressBar progressBar = (ProgressBar) fragment.getView().findViewById(R.id.progressBar);
             ScrollView coinsView = ((ScrollView) fragment.getView().findViewById(R.id.coinsView));
@@ -501,8 +504,9 @@ public class MainFragment extends Fragment {
                                                 fragment.updateReport((Button) view);
                                             }
                                         });
-                                        linkToReport.setVisibility(View.VISIBLE);
-                                        updateReportButton.setVisibility(View.VISIBLE);
+                                        reportBar.setVisibility(View.VISIBLE);
+                                    } else {
+                                        mainLinearLayout.removeView(reportBar);
                                     }
                                 }
                             });
@@ -545,7 +549,7 @@ public class MainFragment extends Fragment {
         private Collection<CompletableFuture<Collection<String>>> retrievingCoinValueTasks;
         private Collection<String> coinsToBeAlwaysDisplayed;
         private AsyncLooper retrievingCoinValuesTask;
-        private Map<String, Integer> headerLabelsForSpaces;
+        private Collection<String> headerLabels;
         private boolean canBeRefreshed;
         private Double totalInvestment;
 
@@ -554,7 +558,7 @@ public class MainFragment extends Fragment {
             this.currentValues = new ConcurrentHashMap<>();
             this.currentCoinValues = new ConcurrentHashMap<>();
             this.coinsToBeAlwaysDisplayed = Arrays.asList(fragment.appPreferences.getString("coinsToBeAlwaysDisplayed", "BTC, ETH").toUpperCase().replace(" ", "").split(","));
-            headerLabelsForSpaces = new LinkedHashMap<>();
+            headerLabels = new ArrayList<>();
             String totalInvestmentAsString = fragment.appPreferences.getString("totalInvestment", "0");
             if (!totalInvestmentAsString.isEmpty()) {
                 totalInvestment = Double.valueOf(totalInvestmentAsString);
@@ -562,21 +566,21 @@ public class MainFragment extends Fragment {
         }
 
         private void setUpHeaderLabelsForSpaces() {
-            headerLabelsForSpaces.put(HeaderLabel.COIN, 0);
-            headerLabelsForSpaces.put(HeaderLabel.UP_IN_USDT, 0);
+            headerLabels.add(HeaderLabel.COIN);
+            headerLabels.add(HeaderLabel.UP_IN_USDT);
             if (totalInvestment != null) {
                 if (fragment.appPreferences.getBoolean("showRUPEI", true)) {
-                    headerLabelsForSpaces.put(HeaderLabel.RUPEI_IN_USDT, 0);
+                    headerLabels.add(HeaderLabel.RUPEI_IN_USDT);
                 }
                 if (fragment.appPreferences.getBoolean("showDifferenceBetweenUPAndRUPEI", false)) {
-                    headerLabelsForSpaces.put(HeaderLabel.DIFFERENCE_BETWEEN_UP_AND_RUPEI_UP_IN_USDT, 0);
+                    headerLabels.add(HeaderLabel.DIFFERENCE_BETWEEN_UP_AND_RUPEI_UP_IN_USDT);
                 }
             }
-            headerLabelsForSpaces.put(HeaderLabel.QUANTITY, 0);
+            headerLabels.add(HeaderLabel.QUANTITY);
             if (isCurrencyInEuro()) {
-                headerLabelsForSpaces.put(HeaderLabel.AMOUNT_IN_EURO, 0);
+                headerLabels.add(HeaderLabel.AMOUNT_IN_EURO);
             } else {
-                headerLabelsForSpaces.put(HeaderLabel.AMOUNT_IN_USDT, 0);
+                headerLabels.add(HeaderLabel.AMOUNT_IN_USDT);
             }
         }
 
@@ -585,15 +589,15 @@ public class MainFragment extends Fragment {
             if (coinsTable.getChildAt(0) != null) {
                 return;
             }
-            for (Map.Entry<String, Integer> headerValue : headerLabelsForSpaces.entrySet()) {
-                addHeaderColumn(headerValue.getKey(), headerValue.getValue());
+            for (String headerValue : headerLabels) {
+                addHeaderColumn(headerValue);
             }
         }
 
         private int getIndexOfHeaderLabel(String label) {
             int index = 0;
-            for (Map.Entry<String, Integer> headerValue : headerLabelsForSpaces.entrySet()) {
-                if (headerValue.getKey().equals(label)) {
+            for (String headerValue : headerLabels) {
+                if (headerValue.equals(label)) {
                     return index;
                 }
                 index++;
@@ -610,7 +614,7 @@ public class MainFragment extends Fragment {
         }
 
         private void setAmountForCoin(String coinName, Double value) {
-            int index = headerLabelsForSpaces.containsKey(HeaderLabel.AMOUNT_IN_EURO) ?
+            int index = headerLabels.contains(HeaderLabel.AMOUNT_IN_EURO) ?
                 getIndexOfHeaderLabel(HeaderLabel.AMOUNT_IN_EURO) : getIndexOfHeaderLabel(HeaderLabel.AMOUNT_IN_USDT);
             setValueForCoin(coinName, isCurrencyInEuro() ? value / getEuroValue() : value, index, fragment.numberFormatterWithTwoVariableDecimals);
         }
@@ -628,10 +632,6 @@ public class MainFragment extends Fragment {
         }
 
         private void addHeaderColumn(String text) {
-            addHeaderColumn(text, 0);
-        }
-
-        private void addHeaderColumn(String text, int emptySpaceCharCount) {
             fragment.runOnUIThread(() -> {
                 TableLayout coinsTable = (TableLayout) fragment.getActivity().findViewById(R.id.coinsTableView);
                 TableRow header = (TableRow) coinsTable.getChildAt(0);
@@ -760,9 +760,9 @@ public class MainFragment extends Fragment {
                                                 Map<Wallet, Map<String, Double>> allCoinValues = currentCoinValues.computeIfAbsent(coinName, key -> new ConcurrentHashMap<>());
                                                 Map<String, Double> coinValues = allCoinValues.computeIfAbsent(wallet, key -> new ConcurrentHashMap<>());
                                                 coinValues.put("unitPrice", unitPriceInDollar);
-                                                ((MainActivity)fragment.getActivity()).setLastUpdateTime();
+                                                Optional.ofNullable(((MainActivity)fragment.getActivity())).ifPresent(MainActivity::setLastUpdateTime);
                                                 coinValues.put("quantity", quantity);
-                                                ((MainActivity)fragment.getActivity()).setLastUpdateTime();
+                                                Optional.ofNullable(((MainActivity)fragment.getActivity())).ifPresent(MainActivity::setLastUpdateTime);
                                                 return (String)null;
                                             },
                                             fragment.getExecutorService()
@@ -866,7 +866,7 @@ public class MainFragment extends Fragment {
             } else if (!fragment.isUseAlwaysTheDollarCurrencyForBalancesDisabled()) {
                 setEuroValue(euroValue);
             }
-            if (headerLabelsForSpaces.isEmpty()) {
+            if (headerLabels.isEmpty()) {
                 setUpHeaderLabelsForSpaces();
             }
             Double amount = 0D;

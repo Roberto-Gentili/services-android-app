@@ -8,167 +8,187 @@
     android:background="#051360"
     tools:context=".ui.main.MainFragment">
 
-    <TextView
-        android:id="@+id/balanceLabel"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginLeft="15dp"
-        android:layout_marginTop="30dp"
-        android:text="@string/balanceText"
-        android:textAlignment="viewStart"
-        android:textColor="@color/yellow"
-        android:textSize="30sp"
-        android:visibility="invisible"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent" />
-
-    <TextView
-        android:id="@+id/balance"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:textAlignment="viewEnd"
-        android:textStyle="bold"
-        android:textColor="#FFFFFF"
-        android:textSize="30sp"
-        app:layout_constraintEnd_toStartOf="@+id/balanceCurrency"
-        app:layout_constraintTop_toTopOf="parent"
-        android:layout_marginTop="30dp"
-        android:layout_marginRight="5dp" />
-
-    <TextView
-        android:id="@+id/balanceCurrency"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:textAlignment="viewEnd"
-        android:textColor="@color/yellow"
-        android:textSize="30sp"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintTop_toTopOf="parent"
-        android:layout_marginRight="15dp"
-        android:layout_marginTop="30dp" />
-
-    <TextView
-        android:id="@+id/pureBalanceLabel"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="@string/pureBalanceText"
-        android:textAlignment="viewStart"
-        android:textColor="@color/yellow"
-        android:textSize="30sp"
-        android:visibility="invisible"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/balanceLabel"
-        android:layout_marginLeft="15dp" />
-
-    <TextView
-        android:id="@+id/pureBalance"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:textAlignment="viewEnd"
-        android:textStyle="bold"
-        android:textColor="#FFFFFF"
-        android:textSize="30sp"
-        app:layout_constraintEnd_toStartOf="@+id/balanceCurrency"
-        app:layout_constraintTop_toBottomOf="@id/balance"
-        android:layout_marginRight="5dp" />
-
-    <TextView
-        android:id="@+id/pureBalanceCurrency"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:textAlignment="viewEnd"
-        android:textColor="@color/yellow"
-        android:textSize="30sp"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/balanceCurrency"
-        android:layout_marginRight="15dp" />
-
-    <TextView
-        android:id="@+id/lastUpdateLabel"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:textColor="@color/yellow"
-        android:text="@string/lastUpdateLabelText"
-        android:textSize="20sp"
-        android:visibility="invisible"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/pureBalanceLabel"
-        android:layout_marginLeft="15dp" />
-
-    <TextView
-        android:id="@+id/lastUpdate"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:textAlignment="viewEnd"
-        android:textColor="#FFFFFF"
-        android:textSize="20sp"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/pureBalanceCurrency"
-        android:layout_marginRight="15dp" />
-
     <ScrollView
-        android:id="@+id/coinsView"
         android:layout_width="match_parent"
-        android:layout_height="400dp"
-        android:layout_marginTop="15dp"
-        android:layout_marginLeft="15dp"
-        android:layout_marginRight="15dp"
-        android:visibility="invisible"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/lastUpdateLabel">
-        <HorizontalScrollView
+        android:layout_height="match_parent"
+        android:scrollbars="none"
+        android:layout_weight="1">
+        <LinearLayout
+            android:id="@+id/mainLinearLayout"
             android:layout_width="match_parent"
-            android:layout_height="match_parent">
-            <LinearLayout
+            android:layout_height="match_parent"
+            android:orientation="vertical"
+            android:layout_marginTop="15dp"
+            android:layout_marginLeft="15dp"
+            android:layout_marginRight="15dp"
+            android:layout_marginBottom="15dp" >
+            <HorizontalScrollView
+                android:id="@+id/balancesView"
                 android:layout_width="wrap_content"
-                android:layout_height="wrap_content">
+                android:layout_height="wrap_content"
+                android:layout_gravity="center_horizontal">
                 <TableLayout
-                    android:id="@+id/coinsTableView"
+                    android:id="@+id/balancesTableView"
                     android:layout_width="wrap_content"
-                    android:layout_height="wrap_content">
+                    android:layout_height="wrap_content"
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintTop_toTopOf="parent">
+                    <TableRow
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content" >
+                        <TextView
+                            android:id="@+id/balanceLabel"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:text="@string/balanceText"
+                            android:textAlignment="viewStart"
+                            android:textColor="@color/yellow"
+                            android:textSize="30sp"
+                            android:visibility="invisible" />
+                        <TextView
+                            android:id="@+id/balance"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:textAlignment="viewEnd"
+                            android:textStyle="bold"
+                            android:textColor="#FFFFFF"
+                            android:textSize="30sp"
+                            android:layout_marginStart="10dp"
+                            android:layout_marginEnd="5dp"
+                            android:layout_weight="1" />
+                        <TextView
+                            android:id="@+id/balanceCurrency"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:textAlignment="viewEnd"
+                            android:textColor="@color/yellow"
+                            android:textSize="30sp" />
+                    </TableRow>
+                    <TableRow
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content" >
+                        <TextView
+                            android:id="@+id/pureBalanceLabel"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="@string/pureBalanceText"
+                            android:textAlignment="viewStart"
+                            android:textColor="@color/yellow"
+                            android:textSize="30sp"
+                            android:visibility="invisible" />
+                        <TextView
+                            android:id="@+id/pureBalance"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:textAlignment="viewEnd"
+                            android:textStyle="bold"
+                            android:textColor="#FFFFFF"
+                            android:textSize="30sp"
+                            android:layout_marginStart="10dp"
+                            android:layout_marginEnd="5dp"
+                            android:layout_weight="1" />
+                        <TextView
+                            android:id="@+id/pureBalanceCurrency"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:textAlignment="viewEnd"
+                            android:textColor="@color/yellow"
+                            android:textSize="30sp" />
+                    </TableRow>
+                    <TableRow
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content" >
+                        <LinearLayout
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:orientation="horizontal"
+                            android:layout_span="3"
+                            android:layout_weight="1">
+                            <TextView
+                                android:id="@+id/lastUpdateLabel"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:textColor="@color/yellow"
+                                android:text="@string/lastUpdateLabelText"
+                                android:textSize="20sp"
+                                android:visibility="invisible" />
+                            <TextView
+                                android:id="@+id/lastUpdate"
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:textAlignment="viewEnd"
+                                android:textColor="#FFFFFF"
+                                android:textSize="20sp"
+                                android:layout_marginStart="10dp" />
+                        </LinearLayout>
+                    </TableRow>
                 </TableLayout>
+            </HorizontalScrollView>
+
+            <LinearLayout
+                android:id="@+id/reportBar"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:visibility="invisible"
+                android:layout_marginTop="7dp"
+                android:layout_gravity="center_horizontal" >
+                <TextView
+                    android:id="@+id/linkToReport"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/linkToReport"
+                    android:textAlignment="viewStart"
+                    android:textColor="#FFFFFF"
+                    android:textSize="24sp" />
+                <Button
+                    android:id="@+id/updateReportButton"
+                    android:layout_width="wrap_content"
+                    android:layout_height="50dp"
+                    android:backgroundTint="#E91E63"
+                    android:text="@string/updateReportText"
+                    app:layout_constraintStart_toEndOf="@id/linkToReport"
+                    android:layout_marginLeft="15dp" />
+                <ProgressBar
+                    android:id="@+id/updateReportProgressBar"
+                    style="@style/Widget.AppCompat.ProgressBar"
+                    android:layout_width="30dp"
+                    android:layout_height="30dp"
+                    android:indeterminateTint="#E91E63"
+                    android:layout_marginTop="8dp"
+                    android:layout_marginLeft="4dp"
+                    app:layout_constraintStart_toEndOf="@id/updateReportButton"
+                    app:layout_constraintTop_toTopOf="@id/updateReportButton"/>
             </LinearLayout>
-        </HorizontalScrollView>
+
+            <ScrollView
+                android:id="@+id/coinsView"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:visibility="invisible"
+                android:layout_marginTop="15dp"
+                android:layout_marginBottom="15dp"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintTop_toBottomOf="@id/reportBar">
+                <HorizontalScrollView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="center_horizontal">
+                    <LinearLayout
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:backgroundTint="@color/white">
+                        <TableLayout
+                            android:id="@+id/coinsTableView"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content">
+                        </TableLayout>
+                    </LinearLayout>
+                </HorizontalScrollView>
+            </ScrollView>
+        </LinearLayout>
     </ScrollView>
-
-    <TextView
-        android:id="@+id/linkToReport"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="@string/linkToReport"
-        android:textAlignment="viewStart"
-        android:textColor="#FFFFFF"
-        android:textSize="26sp"
-        android:visibility="invisible"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/coinsView"
-        android:layout_marginTop="15dp"
-        android:layout_marginLeft="15dp" />
-
-    <Button
-        android:id="@+id/updateReportButton"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:backgroundTint="#E91E63"
-        android:text="@string/updateReportText"
-        android:visibility="invisible"
-        app:layout_constraintStart_toEndOf="@id/linkToReport"
-        app:layout_constraintTop_toBottomOf="@id/coinsView"
-        android:layout_marginTop="7dp"
-        android:layout_marginLeft="15dp"/>
-
-    <ProgressBar
-        android:id="@+id/updateReportProgressBar"
-        style="@style/Widget.AppCompat.ProgressBar"
-        android:layout_width="30dp"
-        android:layout_height="30dp"
-        android:indeterminateTint="#E91E63"
-        android:visibility="invisible"
-        android:layout_marginTop="8dp"
-        android:layout_marginLeft="4dp"
-        app:layout_constraintStart_toEndOf="@id/updateReportButton"
-        app:layout_constraintTop_toTopOf="@id/updateReportButton"/>
 
     <TextView
         android:id="@+id/loadingDataAdvisor"
@@ -198,3 +218,225 @@
         app:layout_constraintTop_toBottomOf="@id/loadingDataAdvisor"/>
 
 </androidx.constraintlayout.widget.ConstraintLayout>
+
+<!--
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/main"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="#051360"
+    tools:context=".ui.main.MainFragment">
+
+    <ScrollView
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:scrollbars="none"
+        android:layout_weight="1">
+        <LinearLayout
+            android:id="@+id/mainLinearLayout"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:orientation="vertical"
+            android:layout_marginTop="15dp"
+            android:layout_marginLeft="15dp"
+            android:layout_marginRight="15dp"
+            android:layout_marginBottom="15dp" >
+            <HorizontalScrollView
+                android:id="@+id/balancesView"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center_horizontal">
+                <TableLayout
+                    android:id="@+id/balancesTableView"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintTop_toTopOf="parent">
+                    <TableRow
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content" >
+                        <TextView
+                            android:id="@+id/balanceLabel"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:text="@string/balanceText"
+                            android:textAlignment="viewStart"
+                            android:textColor="@color/yellow"
+                            android:textSize="30sp"
+                            android:visibility="invisible" />
+                        <TextView
+                            android:id="@+id/balance"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:textAlignment="viewEnd"
+                            android:textStyle="bold"
+                            android:textColor="#FFFFFF"
+                            android:textSize="30sp"
+                            android:layout_marginStart="10dp"
+                            android:layout_marginEnd="5dp"
+                            android:layout_weight="1" />
+                        <TextView
+                            android:id="@+id/balanceCurrency"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:textAlignment="viewEnd"
+                            android:textColor="@color/yellow"
+                            android:textSize="30sp" />
+                    </TableRow>
+                    <TableRow
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content" >
+                        <TextView
+                            android:id="@+id/pureBalanceLabel"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="@string/pureBalanceText"
+                            android:textAlignment="viewStart"
+                            android:textColor="@color/yellow"
+                            android:textSize="30sp"
+                            android:visibility="invisible" />
+                        <TextView
+                            android:id="@+id/pureBalance"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:textAlignment="viewEnd"
+                            android:textStyle="bold"
+                            android:textColor="#FFFFFF"
+                            android:textSize="30sp"
+                            android:layout_marginStart="10dp"
+                            android:layout_marginEnd="5dp"
+                            android:layout_weight="1" />
+                        <TextView
+                            android:id="@+id/pureBalanceCurrency"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:textAlignment="viewEnd"
+                            android:textColor="@color/yellow"
+                            android:textSize="30sp" />
+                    </TableRow>
+                    <TableRow
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content" >
+                        <LinearLayout
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:orientation="horizontal"
+                            android:layout_span="3"
+                            android:layout_weight="1">
+                            <TextView
+                                android:id="@+id/lastUpdateLabel"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:textColor="@color/yellow"
+                                android:text="@string/lastUpdateLabelText"
+                                android:textSize="20sp"
+                                android:visibility="invisible" />
+                            <TextView
+                                android:id="@+id/lastUpdate"
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:textAlignment="viewEnd"
+                                android:textColor="#FFFFFF"
+                                android:textSize="20sp"
+                                android:layout_marginStart="10dp" />
+                        </LinearLayout>
+                    </TableRow>
+                </TableLayout>
+            </HorizontalScrollView>
+
+            <LinearLayout
+                android:id="@+id/reportBar"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:visibility="invisible"
+                android:layout_marginTop="7dp"
+                android:layout_gravity="center_horizontal" >
+                <TextView
+                    android:id="@+id/linkToReport"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/linkToReport"
+                    android:textAlignment="viewStart"
+                    android:textColor="#FFFFFF"
+                    android:textSize="24sp" />
+                <Button
+                    android:id="@+id/updateReportButton"
+                    android:layout_width="wrap_content"
+                    android:layout_height="50dp"
+                    android:backgroundTint="#E91E63"
+                    android:text="@string/updateReportText"
+                    app:layout_constraintStart_toEndOf="@id/linkToReport"
+                    android:layout_marginLeft="15dp" />
+                <ProgressBar
+                    android:id="@+id/updateReportProgressBar"
+                    style="@style/Widget.AppCompat.ProgressBar"
+                    android:layout_width="30dp"
+                    android:layout_height="30dp"
+                    android:indeterminateTint="#E91E63"
+                    android:layout_marginTop="8dp"
+                    android:layout_marginLeft="4dp"
+                    app:layout_constraintStart_toEndOf="@id/updateReportButton"
+                    app:layout_constraintTop_toTopOf="@id/updateReportButton"/>
+            </LinearLayout>
+
+            <ScrollView
+                android:id="@+id/coinsView"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:visibility="invisible"
+                android:layout_marginTop="15dp"
+                android:layout_marginBottom="15dp"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintTop_toBottomOf="@id/reportBar">
+                <HorizontalScrollView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="center_horizontal">
+                    <LinearLayout
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:backgroundTint="@color/white">
+                        <TableLayout
+                            android:id="@+id/coinsTableView"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content">
+                        </TableLayout>
+                    </LinearLayout>
+                </HorizontalScrollView>
+            </ScrollView>
+        </LinearLayout>
+    </ScrollView>
+
+    <TextView
+        android:id="@+id/loadingDataAdvisor"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="@string/loadingDataText"
+        android:textAlignment="viewEnd"
+        android:textColor="#FFFFFF"
+        android:textSize="34sp"
+        android:visibility="invisible"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.497"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintVertical_bias="0.358" />
+
+    <ProgressBar
+        android:id="@+id/progressBar"
+        style="@style/Widget.AppCompat.ProgressBar"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:indeterminateTint="#E91E63"
+        android:visibility="invisible"
+        app:layout_constraintEnd_toEndOf="@id/loadingDataAdvisor"
+        app:layout_constraintStart_toStartOf="@id/loadingDataAdvisor"
+        app:layout_constraintTop_toBottomOf="@id/loadingDataAdvisor"/>
+
+</androidx.constraintlayout.widget.ConstraintLayout>
+-->
