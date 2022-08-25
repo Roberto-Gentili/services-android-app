@@ -101,14 +101,20 @@ public class MainFragment extends Fragment {
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container,
                              @Nullable Bundle savedInstanceState) {
-        getActivity().setTitle(getResources().getString(R.string.app_name));
+        getMainActivity().setTitle(getResources().getString(R.string.app_name));
         return inflater.inflate(R.layout.fragment_main, container, false);
     }
 
     @Override
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
-        appPreferences = PreferenceManager.getDefaultSharedPreferences(this.getActivity());
+        appPreferences = PreferenceManager.getDefaultSharedPreferences(getMainActivity());
         init();
+    }
+
+    @Override
+    public void onDestroyView() {
+        stop();
+        super.onDestroyView();
     }
 
     private synchronized void init() {
@@ -152,7 +158,7 @@ public class MainFragment extends Fragment {
         if (!wallets.isEmpty()) {
             activate();
         } else {
-            ((MainActivity) getActivity()).goToSettingsView();
+            getMainActivity().goToSettingsView();
         }
         gitHubUsernameSupplier = CompletableFuture.supplyAsync(
             () -> {
@@ -174,7 +180,7 @@ public class MainFragment extends Fragment {
     }
 
     private ExecutorService getExecutorService() {
-        return ((MainActivity)getActivity()).getExecutorService();
+        return getMainActivity().getExecutorService();
     }
 
     private boolean isUseAlwaysTheDollarCurrencyForBalancesDisabled() {
@@ -428,10 +434,18 @@ public class MainFragment extends Fragment {
         }
     }
 
-    private void runOnUIThread(Runnable action) {
-        MainActivity mainActivity = (MainActivity) getActivity();
+    private MainActivity getMainActivity(){
+        MainActivity mainActivity = (MainActivity)getActivity();
         if (mainActivity == null) {
             stop();
+        }
+        return mainActivity;
+    }
+
+    private void runOnUIThread(Runnable action) {
+        MainActivity mainActivity = getMainActivity();
+        if (mainActivity == null) {
+            return;
         }
         mainActivity.runOnUiThread(() -> {
             try {
@@ -485,7 +499,7 @@ public class MainFragment extends Fragment {
                             if (totalInvestment != null) {
                                 fragment.setFixedHighlightedValue(clearedBalance, fragment.numberFormatterWithSignAndTwoDecimals, clearedAmount - totalInvestment);
                             }
-                            fragment.setHighlightedValue(lastUpdate, ((MainActivity)fragment.getActivity()).getLastUpdateTimeAsString());
+                            fragment.setHighlightedValue(lastUpdate, fragment.getMainActivity().getLastUpdateTimeAsString());
                             if (loadingDataAdvisor.getVisibility() != View.INVISIBLE) {
                                 if (coinViewManager.isCurrencyInEuro()) {
                                     cryptoAmountCurrency.setText("€");
@@ -530,7 +544,7 @@ public class MainFragment extends Fragment {
                     }
                 }
             }, fragment.getExecutorService()).atTheEndOfEveryIterationWaitFor(750L).whenAnExceptionIsThrown((looper, exc) -> {
-                boolean isActivityNotNull = fragment.getActivity() != null;
+                boolean isActivityNotNull = fragment.getMainActivity() != null;
                 if (isActivityNotNull) {
                     exc.printStackTrace();
                     LoggerChain.getInstance().logError("Exception occurred: " + exc.getMessage());
@@ -605,7 +619,7 @@ public class MainFragment extends Fragment {
         }
 
         private synchronized void buildHeader() {
-            TableLayout coinsTable = (TableLayout) fragment.getActivity().findViewById(R.id.coinsTable);
+            TableLayout coinsTable = (TableLayout) fragment.getMainActivity().findViewById(R.id.coinsTable);
             if (coinsTable.getChildAt(0) != null) {
                 return;
             }
@@ -653,13 +667,13 @@ public class MainFragment extends Fragment {
 
         private void addHeaderColumn(String text) {
             fragment.runOnUIThread(() -> {
-                TableLayout coinsTable = (TableLayout) fragment.getActivity().findViewById(R.id.coinsTable);
+                TableLayout coinsTable = (TableLayout) fragment.getMainActivity().findViewById(R.id.coinsTable);
                 TableRow header = (TableRow) coinsTable.getChildAt(0);
                 if (header == null) {
-                    header = new TableRow(fragment.getActivity());
+                    header = new TableRow(fragment.getMainActivity());
                     coinsTable.addView(header);
                 }
-                TextView textView = new TextView(fragment.getActivity());
+                TextView textView = new TextView(fragment.getMainActivity());
                 textView.setText(
                     text
                 );
@@ -676,15 +690,16 @@ public class MainFragment extends Fragment {
 
         private void setValueForCoin(String coinName, Double value, int columnIndex, DecimalFormat numberFormatter, boolean inverted) {
             fragment.runOnUIThread(() -> {
-                TableLayout coinsTable = (TableLayout) fragment.getActivity().findViewById(R.id.coinsTable);
+                MainActivity mainActivity = fragment.getMainActivity();
+                TableLayout coinsTable = (TableLayout)mainActivity.findViewById(R.id.coinsTable);
                 int childCount = coinsTable.getChildCount();
                 TableRow row = getCoinRow(coinName);
                 if (row == null) {
                     buildHeader();
                 }
                 if (row == null) {
-                    row = new TableRow(fragment.getActivity());
-                    TextView coinNameTextView = new TextView(fragment.getActivity());
+                    row = new TableRow(fragment.getMainActivity());
+                    TextView coinNameTextView = new TextView(mainActivity);
                     coinNameTextView.setText(coinName);
                     Float dimension = fragment.getResources().getDimension(R.dimen.text_size_five)/ fragment.getResources().getDisplayMetrics().density;
                     coinNameTextView.setTextSize(dimension);
@@ -699,7 +714,7 @@ public class MainFragment extends Fragment {
                     for (int i = 1; i <= columnIndex; i++) {
                         valueTextView = (TextView)row.getChildAt(i);
                         if (valueTextView == null) {
-                            valueTextView = new TextView(fragment.getActivity());
+                            valueTextView = new TextView(mainActivity);
                             Float dimension = fragment.getResources().getDimension(R.dimen.text_size_six)/ fragment.getResources().getDisplayMetrics().density;
                             valueTextView.setTextSize(dimension);
                             valueTextView.setGravity(Gravity.RIGHT);
@@ -715,7 +730,7 @@ public class MainFragment extends Fragment {
         }
 
         private TableRow getCoinRow(String coinName) {
-            TableLayout coinsTable = (TableLayout) fragment.getActivity().findViewById(R.id.coinsTable);
+            TableLayout coinsTable = (TableLayout) fragment.getMainActivity().findViewById(R.id.coinsTable);
             int childCount = coinsTable.getChildCount();
             if (childCount > 1) {
                 for (int i = 1; i < childCount; i++) {
@@ -730,7 +745,7 @@ public class MainFragment extends Fragment {
         }
 
         private TableRow removeCoinRow(String coinName) {
-            TableLayout coinsTable = (TableLayout) fragment.getActivity().findViewById(R.id.coinsTable);
+            TableLayout coinsTable = (TableLayout)fragment.getMainActivity().findViewById(R.id.coinsTable);
             TableRow coinRow = getCoinRow(coinName);
             if (coinRow != null) {
                 fragment.runOnUIThread(() -> {
@@ -784,9 +799,10 @@ public class MainFragment extends Fragment {
                                                 Map<Wallet, Map<String, Double>> allCoinValues = currentCoinValues.computeIfAbsent(coinName, key -> new ConcurrentHashMap<>());
                                                 Map<String, Double> coinValues = allCoinValues.computeIfAbsent(wallet, key -> new ConcurrentHashMap<>());
                                                 coinValues.put("unitPrice", unitPriceInDollar);
-                                                Optional.ofNullable(((MainActivity)fragment.getActivity())).ifPresent(MainActivity::setLastUpdateTime);
+                                                MainActivity mainActivity = fragment.getMainActivity();
+                                                Optional.ofNullable(mainActivity).ifPresent(MainActivity::setLastUpdateTime);
                                                 coinValues.put("quantity", quantity);
-                                                Optional.ofNullable(((MainActivity)fragment.getActivity())).ifPresent(MainActivity::setLastUpdateTime);
+                                                Optional.ofNullable(mainActivity).ifPresent(MainActivity::setLastUpdateTime);
                                                 return (String)null;
                                             },
                                             fragment.getExecutorService()
@@ -851,7 +867,7 @@ public class MainFragment extends Fragment {
         }
 
         private Collection<String> getShowedCoins() {
-            TableLayout coinsTable = (TableLayout) fragment.getActivity().findViewById(R.id.coinsTable);
+            TableLayout coinsTable = (TableLayout)fragment.getMainActivity().findViewById(R.id.coinsTable);
             Collection<String> showedCoins = new HashSet<>();
             for (int i = 1; i < coinsTable.getChildCount(); i++) {
                 TableRow row = (TableRow)coinsTable.getChildAt(i);
