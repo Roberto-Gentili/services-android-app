@@ -36,7 +36,7 @@ public class SettingsFragment extends PreferenceFragmentCompat {
         setEditTextPreferenceType("intervalBetweenRequestGroups", InputType.TYPE_CLASS_NUMBER);
         Optional.ofNullable(setEditTextPreferenceType("threadPoolSize", InputType.TYPE_CLASS_NUMBER)).ifPresent(pref -> setMinMaxFilter(pref, 6, 48));
         setEditTextPreferenceType("totalInvestment", InputType.TYPE_CLASS_NUMBER | InputType.TYPE_NUMBER_FLAG_DECIMAL);
-        disableAllDependentFieldsIfEmpty("totalInvestment", "showRUPEI", "showDifferenceBetweenUPAndRUPEI");
+        disableAllDependentFieldsIfEmpty("totalInvestment", "showClearedBalance", "showRUPEI", "showDifferenceBetweenUPAndRUPEI");
     }
 
     private void disableAllDependentFieldsIfEmpty(String id, String... ids) {

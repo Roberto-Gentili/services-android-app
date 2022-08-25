@@ -494,7 +494,7 @@ public class MainFragment extends Fragment {
                                     progressBar.setVisibility(View.INVISIBLE);
                                     cryptoAmountBar.setVisibility(View.VISIBLE);
                                     clearedCryptoAmountBar.setVisibility(View.VISIBLE);
-                                    if (coinViewManager.getTotalInvestment() != null) {
+                                    if (coinViewManager.getTotalInvestment() != null && fragment.appPreferences.getBoolean("showClearedBalance", true)) {
                                         balanceBar.setVisibility(View.VISIBLE);
                                     } else {
                                         mainLayout.removeView(balanceBar);

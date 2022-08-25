@@ -44,11 +44,16 @@
             app:useSimpleSummaryProvider="false" />
     </PreferenceCategory>
 
-    <PreferenceCategory app:title="General settings">
+    <PreferenceCategory app:title="Financial settings">
         <EditTextPreference
             app:key="totalInvestment"
             app:title="@string/totalInvestmentLabelText"
             app:useSimpleSummaryProvider="true" />
+
+        <CheckBoxPreference
+            app:key="showClearedBalance"
+            app:title="@string/showClearedBalanceLabelText"
+            app:defaultValue="true" />
 
         <CheckBoxPreference
             app:key="showRUPEI"
@@ -86,6 +91,9 @@
             app:useSimpleSummaryProvider="true"
             app:defaultValue="BTC, ETH"/>
 
+    </PreferenceCategory>
+
+    <PreferenceCategory app:title="Technical settings">
         <EditTextPreference
             app:key="intervalBetweenRequestGroups"
             app:title="@string/intervalBetweenRequestGroupsTextLabel"
@@ -96,7 +104,6 @@
             app:title="@string/threadPoolSizeTextLabel"
             app:defaultValue="6"
             app:useSimpleSummaryProvider="true" />
-
     </PreferenceCategory>
 
 </PreferenceScreen>
