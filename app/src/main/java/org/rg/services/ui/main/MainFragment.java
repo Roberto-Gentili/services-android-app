@@ -108,12 +108,12 @@ public class MainFragment extends Fragment {
 
     private synchronized void init() {
         stop();
-        ((TextView) getView().findViewById(R.id.balanceLabel)).setVisibility(View.INVISIBLE);
-        ((TextView) getView().findViewById(R.id.pureBalanceLabel)).setVisibility(View.INVISIBLE);
-        ((TextView) getView().findViewById(R.id.balance)).setVisibility(View.INVISIBLE);
-        ((TextView) getView().findViewById(R.id.pureBalance)).setVisibility(View.INVISIBLE);
-        ((TextView) getView().findViewById(R.id.balanceCurrency)).setVisibility(View.INVISIBLE);
-        ((TextView) getView().findViewById(R.id.pureBalanceCurrency)).setVisibility(View.INVISIBLE);
+        ((TextView) getView().findViewById(R.id.cryptoBalanceLabel)).setVisibility(View.INVISIBLE);
+        ((TextView) getView().findViewById(R.id.pureCryptoBalanceLabel)).setVisibility(View.INVISIBLE);
+        ((TextView) getView().findViewById(R.id.cryptoBalance)).setVisibility(View.INVISIBLE);
+        ((TextView) getView().findViewById(R.id.pureCryptoBalance)).setVisibility(View.INVISIBLE);
+        ((TextView) getView().findViewById(R.id.cryptoBalanceCurrency)).setVisibility(View.INVISIBLE);
+        ((TextView) getView().findViewById(R.id.pureCryptoBalanceCurrency)).setVisibility(View.INVISIBLE);
         ((TextView) getView().findViewById(R.id.lastUpdateLabel)).setVisibility(View.INVISIBLE);
         ((TextView) getView().findViewById(R.id.lastUpdate)).setVisibility(View.INVISIBLE);
         ((LinearLayout)getView().findViewById(R.id.reportBar)).setVisibility(View.INVISIBLE);
@@ -447,12 +447,12 @@ public class MainFragment extends Fragment {
             }
             System.out.println("Wallet updater " + this + " activated");
             LinearLayout mainLayout = (LinearLayout)fragment.getView().findViewById(R.id.balancesTable);
-            TextView balanceLabel = (TextView) fragment.getView().findViewById(R.id.balanceLabel);
-            TextView pureBalanceLabel = (TextView) fragment.getView().findViewById(R.id.pureBalanceLabel);
-            TextView balance = (TextView) fragment.getView().findViewById(R.id.balance);
-            TextView pureBalance = (TextView) fragment.getView().findViewById(R.id.pureBalance);
-            TextView balanceCurrency = (TextView) fragment.getView().findViewById(R.id.balanceCurrency);
-            TextView pureBalanceCurrency = (TextView) fragment.getView().findViewById(R.id.pureBalanceCurrency);
+            TextView balanceLabel = (TextView) fragment.getView().findViewById(R.id.cryptoBalanceLabel);
+            TextView pureBalanceLabel = (TextView) fragment.getView().findViewById(R.id.pureCryptoBalanceLabel);
+            TextView balance = (TextView) fragment.getView().findViewById(R.id.cryptoBalance);
+            TextView pureBalance = (TextView) fragment.getView().findViewById(R.id.pureCryptoBalance);
+            TextView balanceCurrency = (TextView) fragment.getView().findViewById(R.id.cryptoBalanceCurrency);
+            TextView pureBalanceCurrency = (TextView) fragment.getView().findViewById(R.id.pureCryptoBalanceCurrency);
             TextView lastUpdateLabel = (TextView) fragment.getView().findViewById(R.id.lastUpdateLabel);
             TextView lastUpdate = (TextView) fragment.getView().findViewById(R.id.lastUpdate);
             TextView loadingDataAdvisor = (TextView) fragment.getView().findViewById(R.id.loadingDataAdvisor);

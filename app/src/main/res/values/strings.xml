@@ -6,13 +6,14 @@
     <string name="apiSecretsLabelText">API secret</string>
     <string name="authorizationTokenLabelText">Authorization token</string>
     <string name="backLabelText">Back</string>
-    <string name="balanceText">Balance:</string>
+    <string name="clearedBalanceText">Cleared balance:</string>
+    <string name="cryptoBalanceLabelText">Crypto balance:</string>
     <string name="enabledLabelText">Enabled</string>
     <string name="intervalBetweenRequestGroupsTextLabel">Interval between request groups (in milliseconds)</string>
     <string name="lastUpdateLabelText">Last update:</string>
     <string name="linkToReport"><![CDATA[<a href="&reportUrl;">Download report</a>]]></string>
     <string name="loadingDataText">Loading data</string>
-    <string name="pureBalanceText">Pure balance:</string>
+    <string name="pureCryptoBalanceText">Cleared cr. bal.:</string>
     <string name="reportUrl">&reportUrl;</string>
     <string name="settingsLabelText">Settings</string>
     <string name="coinsToBeAlwaysDisplayedLabelText">Always show these coins</string>
