@@ -36,13 +36,13 @@ public class SettingsFragment extends PreferenceFragmentCompat {
         setEditTextPreferenceType("intervalBetweenRequestGroups", InputType.TYPE_CLASS_NUMBER);
         Optional.ofNullable(setEditTextPreferenceType("threadPoolSize", InputType.TYPE_CLASS_NUMBER)).ifPresent(pref -> setMinMaxFilter(pref, 6, 48));
         setEditTextPreferenceType("totalInvestment", InputType.TYPE_CLASS_NUMBER | InputType.TYPE_NUMBER_FLAG_DECIMAL);
-        disableAllDependentFieldsIfEmpty("totalInvestment");
+        disableAllDependentFieldsIfEmpty("totalInvestment", "showRUPEI", "showDifferenceBetweenUPAndRUPEI");
     }
 
     private void disableAllDependentFieldsIfEmpty(String id, String... ids) {
         BiPredicate<EditTextPreference, Object> valuePredicateAndAction = (pref, value) -> {
             String textValue = (String)value;
-            setEnabledFlag(textValue != null && !textValue.replace(" ", "").isEmpty(),"showRUPEI", "showDifferenceBetweenUPAndRUPEI");
+            setEnabledFlag(textValue != null && !textValue.replace(" ", "").isEmpty(),ids);
             return true;
         };
         final EditTextPreference preference = findPreference("totalInvestment");
