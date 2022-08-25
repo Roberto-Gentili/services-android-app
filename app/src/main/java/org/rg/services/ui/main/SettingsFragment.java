@@ -17,7 +17,6 @@ import org.rg.util.LoggerChain;
 import java.util.Optional;
 
 public class SettingsFragment extends PreferenceFragmentCompat {
-    private static SettingsFragment INSTANCE;
 
     public SettingsFragment() {}
 
@@ -39,7 +38,7 @@ public class SettingsFragment extends PreferenceFragmentCompat {
 
     @Override
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
-        Float dimension = (getResources().getDimension(R.dimen.margin_size_four) + getResources().getDimension(R.dimen.margin_size_one)) / getResources().getDisplayMetrics().density;
+        Float dimension = (getResources().getDimension(R.dimen.margin_size_four) + (getResources().getDimension(R.dimen.margin_size_one) * 5F)) / getResources().getDisplayMetrics().density;
         view.setPadding(0, dimension.intValue(), 0, 0);
         super.onViewCreated(view, savedInstanceState);
     }

@@ -69,7 +69,6 @@ import java.util.stream.Collectors;
 
 
 public class MainFragment extends Fragment {
-    private static MainFragment INSTANCE;
     private SharedPreferences appPreferences;
     private final Collection<Wallet> wallets;
     private final DecimalFormatSymbols decimalFormatSymbols;
