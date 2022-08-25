@@ -88,7 +88,7 @@ public class MainFragment extends Fragment {
             decimalFormatSymbols.setGroupingSeparator('.');
             decimalFormatSymbols.setDecimalSeparator(',');
             numberFormatterWithTwoDecimals = new DecimalFormat("#,##0.00", decimalFormatSymbols);
-            numberFormatterWithSignAndTwoDecimals = new DecimalFormat("+#,##0.##;-#", decimalFormatSymbols);
+            numberFormatterWithSignAndTwoDecimals = new DecimalFormat("+#,##0.00;-#", decimalFormatSymbols);
             numberFormatterWithTwoVariableDecimals = new DecimalFormat("#,##0.##", decimalFormatSymbols);
             numberFormatterWithFiveVariableDecimals = new DecimalFormat("#,##0.#####", decimalFormatSymbols);
         } catch (Throwable exc) {
@@ -378,14 +378,21 @@ public class MainFragment extends Fragment {
     }
 
     private void setHighlightedValue(TextView textView, DecimalFormat numberFormatter, Double newValue) {
-        setHighlightedValue(textView, numberFormatter, newValue, false);
+        setHighlightedValue(textView, numberFormatter, newValue, false, false);
     }
 
-    private void setHighlightedValue(TextView textView, DecimalFormat numberFormatter, Double newValue, boolean inverted) {
+    private void setFixedHighlightedValue(TextView textView, DecimalFormat numberFormatter, Double newValue) {
+        setHighlightedValue(textView, numberFormatter, newValue, true, false);
+    }
+
+    private void setHighlightedValue(TextView textView, DecimalFormat numberFormatter, Double newValue, boolean fixed, boolean inverted) {
         synchronized (textView) {
-            String previousValueAsString = String.valueOf(textView.getText());
+            String zeroAsString= null;
+            String previousValueAsString = !fixed ? String.valueOf(textView.getText()) : (zeroAsString = numberFormatter.format(0D));
             String currentValueAsString = numberFormatter.format(newValue);
-            if (!previousValueAsString.isEmpty() && !previousValueAsString.equals(currentValueAsString)) {
+            if (fixed && currentValueAsString.equals(zeroAsString)) {
+                textView.setTextColor(Color.WHITE);
+            } else if (!previousValueAsString.isEmpty() && !previousValueAsString.equals(currentValueAsString)) {
                 try {
                     Double previousValue = numberFormatter.parse(previousValueAsString).doubleValue();
                     if ((!inverted && newValue > previousValue) || (inverted && newValue < previousValue)) {
@@ -394,14 +401,11 @@ public class MainFragment extends Fragment {
                         textView.setTextColor(Color.RED);
                     }
                 } catch (ParseException e) {}
-
-            } else {
-                if (currentValueAsString.equals("NaN")) {
-                    textView.setTextColor(Color.GRAY);
-                    textView.setTypeface(textView.getTypeface(), Typeface.ITALIC);
-                } else {
-                    textView.setTextColor(Color.WHITE);
-                }
+            } else if (currentValueAsString.equals("NaN")) {
+                textView.setTextColor(Color.GRAY);
+                textView.setTypeface(textView.getTypeface(), Typeface.ITALIC);
+            } else if (!fixed) {
+                textView.setTextColor(Color.WHITE);
             }
             textView.setText(currentValueAsString);
         }
@@ -473,7 +477,7 @@ public class MainFragment extends Fragment {
                                 fragment.setHighlightedValue(clearedCryptoBalance, fragment.numberFormatterWithTwoDecimals, clearedAmount);
                                 Double totalInvestment = coinViewManager.getTotalInvestment();
                                 if (totalInvestment != null) {
-                                    fragment.setHighlightedValue(clearedBalance, fragment.numberFormatterWithSignAndTwoDecimals, clearedAmount - totalInvestment);
+                                    fragment.setFixedHighlightedValue(clearedBalance, fragment.numberFormatterWithSignAndTwoDecimals, clearedAmount - totalInvestment);
                                 }
                                 fragment.setHighlightedValue(lastUpdate, ((MainActivity)fragment.getActivity()).getLastUpdateTimeAsString());
                                 if (loadingDataAdvisor.getVisibility() != View.INVISIBLE) {
@@ -696,7 +700,7 @@ public class MainFragment extends Fragment {
                         }
                     }
                 }
-                fragment.setHighlightedValue(valueTextView, numberFormatter, value, inverted);
+                fragment.setHighlightedValue(valueTextView, numberFormatter, value, false, inverted);
             });
         }
 
