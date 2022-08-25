@@ -93,6 +93,20 @@ public class MainFragment extends Fragment {
         }
     }
 
+    @Nullable
+    @Override
+    public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container,
+                             @Nullable Bundle savedInstanceState) {
+        getActivity().setTitle(getResources().getString(R.string.app_name));
+        return inflater.inflate(R.layout.fragment_main, container, false);
+    }
+
+    @Override
+    public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
+        appPreferences = PreferenceManager.getDefaultSharedPreferences(this.getActivity());
+        init();
+    }
+
     private synchronized void init() {
         stop();
         ((TextView) getView().findViewById(R.id.balanceLabel)).setVisibility(View.INVISIBLE);
@@ -183,19 +197,6 @@ public class MainFragment extends Fragment {
         boolean cryptoComWalletEnabled = appPreferences.getBoolean("cryptoComWalletEnabled", true);
         return (isStringNotEmpty(binanceApiKey) && isStringNotEmpty(binanceApiSecret) && binanceWalletEnabled) ||
                 (isStringNotEmpty(cryptoComApiKey) && isStringNotEmpty(cryptoComApiSecret) && cryptoComWalletEnabled);
-    }
-
-    @Nullable
-    @Override
-    public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container,
-                             @Nullable Bundle savedInstanceState) {
-        return inflater.inflate(R.layout.fragment_main, container, false);
-    }
-
-    @Override
-    public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
-        appPreferences = PreferenceManager.getDefaultSharedPreferences(this.getActivity());
-        init();
     }
 
     public void updateReport(Button updateButton) {
@@ -427,6 +428,7 @@ public class MainFragment extends Fragment {
           try {
               action.run();
           } catch (Throwable exc) {
+              exc.printStackTrace();
               LoggerChain.getInstance().logError(exc.getMessage());
           }
         });
@@ -641,8 +643,10 @@ public class MainFragment extends Fragment {
                 textView.setText(
                     text
                 );
-                textView.setTextSize(20F);
-                textView.setPadding(20,0,0,0);
+                Float dimension = fragment.getResources().getDimension(R.dimen.text_size_four) / fragment.getResources().getDisplayMetrics().density;
+                textView.setTextSize(dimension);
+                dimension = fragment.getResources().getDimension(R.dimen.padding_size_one) / fragment.getResources().getDisplayMetrics().density;
+                textView.setPadding(dimension.intValue(),0,0,0);
                 textView.setTextColor(fragment.getColorFromResources(R.color.yellow));
                 textView.setGravity(Gravity.CENTER);
                 textView.setTypeface(null, Typeface.BOLD);
@@ -662,7 +666,8 @@ public class MainFragment extends Fragment {
                     row = new TableRow(fragment.getActivity());
                     TextView coinNameTextView = new TextView(fragment.getActivity());
                     coinNameTextView.setText(coinName);
-                    coinNameTextView.setTextSize(16F);
+                    Float dimension = fragment.getResources().getDimension(R.dimen.text_size_five)/ fragment.getResources().getDisplayMetrics().density;
+                    coinNameTextView.setTextSize(dimension);
                     coinNameTextView.setTextColor(Color.WHITE);
                     coinNameTextView.setGravity(Gravity.LEFT);
                     coinNameTextView.setTypeface(null, Typeface.BOLD);
@@ -675,11 +680,12 @@ public class MainFragment extends Fragment {
                         valueTextView = (TextView)row.getChildAt(i);
                         if (valueTextView == null) {
                             valueTextView = new TextView(fragment.getActivity());
-                            valueTextView.setTextSize(15F);
+                            Float dimension = fragment.getResources().getDimension(R.dimen.text_size_six)/ fragment.getResources().getDisplayMetrics().density;
+                            valueTextView.setTextSize(dimension);
                             valueTextView.setGravity(Gravity.RIGHT);
                             valueTextView.setTextColor(Color.WHITE);
-                            valueTextView.setPadding(20,0,0,0);
-                            //((TextView)row.getChildAt(i-1)).setPadding(0,0,30,0);
+                            dimension = fragment.getResources().getDimension(R.dimen.padding_size_one) / fragment.getResources().getDisplayMetrics().density;
+                            valueTextView.setPadding(dimension.intValue(),0,0,0);
                             row.addView(valueTextView);
                         }
                     }

@@ -21,6 +21,7 @@ public class SettingsFragment extends PreferenceFragmentCompat {
 
     @Override
     public void onCreatePreferences(Bundle savedInstanceState, String rootKey) {
+        getActivity().setTitle("Settings");
         setPreferencesFromResource(R.xml.root_preferences, rootKey);
         setEditTextPreferenceType("binanceApiKey", InputType.TYPE_CLASS_TEXT);
         setEditTextPreferenceType("binanceApiSecret", InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_VARIATION_PASSWORD);

@@ -102,14 +102,12 @@ public class MainActivity extends AppCompatActivity {
         getSupportFragmentManager().beginTransaction()
             .replace(R.id.container, new SettingsFragment())
             .commit();
-        setTitle(getResources().getString(R.string.settingsLabelText));
     }
 
     public void goToMainView() {
         getSupportFragmentManager().beginTransaction()
             .replace(R.id.container, new MainFragment())
             .commitNow();
-        setTitle(getResources().getString(R.string.cryptoInfoLabelText));
     }
 
     public void setLastUpdateTime() {

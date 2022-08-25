@@ -18,10 +18,10 @@
             android:layout_width="match_parent"
             android:layout_height="match_parent"
             android:orientation="vertical"
-            android:layout_marginTop="15dp"
-            android:layout_marginLeft="15dp"
-            android:layout_marginRight="15dp"
-            android:layout_marginBottom="15dp" >
+            android:layout_marginTop="@dimen/margin_size_one"
+            android:layout_marginLeft="@dimen/margin_size_one"
+            android:layout_marginRight="@dimen/margin_size_one"
+            android:layout_marginBottom="@dimen/margin_size_one" >
             <HorizontalScrollView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
@@ -42,18 +42,18 @@
                             android:text="@string/balanceText"
                             android:textAlignment="viewStart"
                             android:textColor="@color/yellow"
-                            android:textSize="30sp"
+                            android:textSize="@dimen/text_size_one"
                             android:visibility="invisible" />
                         <TextView
                             android:id="@+id/balance"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:layout_marginStart="10dp"
+                            android:layout_marginStart="@dimen/margin_size_two"
                             android:layout_marginEnd="5dp"
                             android:layout_weight="1"
                             android:textAlignment="viewEnd"
                             android:textColor="#FFFFFF"
-                            android:textSize="30sp"
+                            android:textSize="@dimen/text_size_one"
                             android:textStyle="bold" />
                         <TextView
                             android:id="@+id/balanceCurrency"
@@ -61,7 +61,7 @@
                             android:layout_height="wrap_content"
                             android:textAlignment="viewEnd"
                             android:textColor="@color/yellow"
-                            android:textSize="30sp"
+                            android:textSize="@dimen/text_size_one"
                             app:layout_constraintEnd_toEndOf="parent" />
                     </LinearLayout>
                     <LinearLayout
@@ -75,18 +75,18 @@
                             android:text="@string/pureBalanceText"
                             android:textAlignment="viewStart"
                             android:textColor="@color/yellow"
-                            android:textSize="30sp"
+                            android:textSize="@dimen/text_size_one"
                             android:visibility="invisible" />
                         <TextView
                             android:id="@+id/pureBalance"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:layout_marginStart="10dp"
+                            android:layout_marginStart="@dimen/margin_size_two"
                             android:layout_marginEnd="5dp"
                             android:layout_weight="1"
                             android:textAlignment="viewEnd"
                             android:textColor="#FFFFFF"
-                            android:textSize="30sp"
+                            android:textSize="@dimen/text_size_one"
                             android:textStyle="bold" />
                         <TextView
                             android:id="@+id/pureBalanceCurrency"
@@ -94,7 +94,7 @@
                             android:layout_height="wrap_content"
                             android:textAlignment="viewEnd"
                             android:textColor="@color/yellow"
-                            android:textSize="30sp"
+                            android:textSize="@dimen/text_size_one"
                             app:layout_constraintEnd_toEndOf="parent" />
                     </LinearLayout>
                     <LinearLayout
@@ -107,16 +107,16 @@
                             android:layout_height="wrap_content"
                             android:text="@string/lastUpdateLabelText"
                             android:textColor="@color/yellow"
-                            android:textSize="20sp"
+                            android:textSize="@dimen/text_size_two"
                             android:visibility="invisible" />
                         <TextView
                             android:id="@+id/lastUpdate"
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
-                            android:layout_marginStart="10dp"
+                            android:layout_marginStart="@dimen/margin_size_two"
                             android:textAlignment="viewEnd"
                             android:textColor="#FFFFFF"
-                            android:textSize="20sp"
+                            android:textSize="@dimen/text_size_two"
                             app:layout_constraintEnd_toEndOf="parent" />
                     </LinearLayout>
                     <LinearLayout
@@ -134,12 +134,12 @@
                             android:text="@string/linkToReport"
                             android:textAlignment="viewStart"
                             android:textColor="#FFFFFF"
-                            android:textSize="24sp" />
+                            android:textSize="@dimen/text_size_three" />
                         <Button
                             android:id="@+id/updateReportButton"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:layout_marginStart="15dp"
+                            android:layout_marginStart="@dimen/margin_size_one"
                             android:backgroundTint="#E91E63"
                             android:text="@string/updateReportText"
                             app:layout_constraintStart_toEndOf="@id/linkToReport" />
@@ -161,8 +161,8 @@
                 android:id="@+id/coinsView"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="15dp"
-                android:layout_marginBottom="15dp"
+                android:layout_marginTop="@dimen/margin_size_one"
+                android:layout_marginBottom="@dimen/margin_size_one"
                 android:layout_gravity="center_horizontal"
                 android:visibility="invisible" >
                 <LinearLayout
@@ -182,8 +182,8 @@
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
                 android:visibility="invisible"
-                android:layout_marginTop="15dp"
-                android:layout_marginBottom="15dp"
+                android:layout_marginTop="@dimen/margin_size_one"
+                android:layout_marginBottom="@dimen/margin_size_one"
                 app:layout_constraintStart_toStartOf="parent"
                 app:layout_constraintEnd_toEndOf="parent"
                 app:layout_constraintTop_toBottomOf="@id/reportBar">
