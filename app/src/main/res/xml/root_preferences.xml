@@ -45,17 +45,14 @@
     </PreferenceCategory>
 
     <PreferenceCategory app:title="Financial settings">
-
         <CheckBoxPreference
             app:key="useAlwaysTheDollarCurrencyForBalances"
             app:title="@string/useAlwaysTheDollarCurrencyForBalancesLabelText"
             app:defaultValue="false" />
-
         <CheckBoxPreference
             app:key="showNaNAmounts"
             app:title="@string/showNaNAmountsLabelText"
             app:defaultValue="true" />
-
         <ListPreference
             app:key="unitPriceRetrievingMode"
             app:title="Unit price retrieving mode"
@@ -63,35 +60,29 @@
             app:entries="@array/unitPriceRetrievingModeLabels"
             app:entryValues="@array/unitPriceRetrievingModeIds"
             app:useSimpleSummaryProvider="true" />
-
         <EditTextPreference
             app:key="coinsToBeAlwaysDisplayed"
             app:title="@string/coinsToBeAlwaysDisplayedLabelText"
             app:useSimpleSummaryProvider="true"
             app:defaultValue="BTC, ETH"/>
-
         <EditTextPreference
             app:key="totalInvestment"
             app:title="@string/totalInvestmentLabelText"
             app:useSimpleSummaryProvider="true" />
-
         <CheckBoxPreference
             app:key="showClearedBalance"
             app:title="@string/showClearedBalanceLabelText"
             app:defaultValue="true" />
-
         <CheckBoxPreference
             app:key="showRUPEI"
             app:title="@string/showRUPEILabelText"
             app:defaultValue="true"
             app:singleLineTitle="false" />
-
         <CheckBoxPreference
             app:key="showDifferenceBetweenUPAndRUPEI"
             app:title="@string/showDifferenceBetweenUPAndRUPEILabelText"
             app:defaultValue="false"
             app:singleLineTitle="false" />
-
     </PreferenceCategory>
 
     <PreferenceCategory app:title="Technical settings">
@@ -99,7 +90,6 @@
             app:key="intervalBetweenRequestGroups"
             app:title="@string/intervalBetweenRequestGroupsTextLabel"
             app:useSimpleSummaryProvider="true" />
-
         <EditTextPreference
             app:key="threadPoolSize"
             app:title="@string/threadPoolSizeTextLabel"
