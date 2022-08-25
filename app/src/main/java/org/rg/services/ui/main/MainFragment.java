@@ -343,13 +343,17 @@ public class MainFragment extends Fragment {
 
     @Override
     public void onResume() {
-        activate();
+        if (!appPreferences.getBoolean("alwaysActiveWhenInBackground", false)) {
+            activate();
+        }
         super.onResume();
     }
 
     @Override
     public void onPause() {
-        stop();
+        if (!appPreferences.getBoolean("alwaysActiveWhenInBackground", false)) {
+            stop();
+        }
         super.onPause();
     }
 
@@ -425,13 +429,16 @@ public class MainFragment extends Fragment {
     }
 
     private void runOnUIThread(Runnable action) {
-        getActivity().runOnUiThread(() -> {
-          try {
-              action.run();
-          } catch (Throwable exc) {
-              exc.printStackTrace();
-              LoggerChain.getInstance().logError(exc.getMessage());
-          }
+        MainActivity mainActivity = (MainActivity) getActivity();
+        if (mainActivity == null) {
+            stop();
+        }
+        mainActivity.runOnUiThread(() -> {
+            try {
+                action.run();
+            } catch (Throwable exc) {
+                LoggerChain.getInstance().logError(exc.getMessage());
+            }
         });
     }
 
@@ -467,66 +474,69 @@ public class MainFragment extends Fragment {
             ProgressBar progressBar = (ProgressBar) fragment.getView().findViewById(R.id.progressBar);
             View coinsView = ((View) fragment.getView().findViewById(R.id.coinsView));
             updateTask = new AsyncLooper(() -> {
-                try {
-                    CoinViewManager coinViewManager = fragment.coinViewManager;
-                    if (coinViewManager != null) {
-                        if (coinViewManager.refresh()) {
-                            this.fragment.runOnUIThread(() -> {
-                                fragment.setHighlightedValue(cryptoAmount, fragment.numberFormatterWithTwoDecimals, fragment.coinViewManager.getAmount());
-                                Double clearedAmount = fragment.coinViewManager.getClearedAmount();
-                                fragment.setHighlightedValue(clearedCryptoAmount, fragment.numberFormatterWithTwoDecimals, clearedAmount);
-                                Double totalInvestment = coinViewManager.getTotalInvestment();
-                                if (totalInvestment != null) {
-                                    fragment.setFixedHighlightedValue(clearedBalance, fragment.numberFormatterWithSignAndTwoDecimals, clearedAmount - totalInvestment);
+                CoinViewManager coinViewManager = fragment.coinViewManager;
+                if (coinViewManager != null) {
+                    if (coinViewManager.refresh()) {
+                        this.fragment.runOnUIThread(() -> {
+                            fragment.setHighlightedValue(cryptoAmount, fragment.numberFormatterWithTwoDecimals, fragment.coinViewManager.getAmount());
+                            Double clearedAmount = fragment.coinViewManager.getClearedAmount();
+                            fragment.setHighlightedValue(clearedCryptoAmount, fragment.numberFormatterWithTwoDecimals, clearedAmount);
+                            Double totalInvestment = coinViewManager.getTotalInvestment();
+                            if (totalInvestment != null) {
+                                fragment.setFixedHighlightedValue(clearedBalance, fragment.numberFormatterWithSignAndTwoDecimals, clearedAmount - totalInvestment);
+                            }
+                            fragment.setHighlightedValue(lastUpdate, ((MainActivity)fragment.getActivity()).getLastUpdateTimeAsString());
+                            if (loadingDataAdvisor.getVisibility() != View.INVISIBLE) {
+                                if (coinViewManager.isCurrencyInEuro()) {
+                                    cryptoAmountCurrency.setText("€");
+                                    clearedCryptoBalanceCurrency.setText("€");
+                                    clearedBalanceCurrency.setText("€");
+                                } else {
+                                    cryptoAmountCurrency.setText("$");
+                                    clearedCryptoBalanceCurrency.setText("$");
+                                    clearedBalanceCurrency.setText("$");
                                 }
-                                fragment.setHighlightedValue(lastUpdate, ((MainActivity)fragment.getActivity()).getLastUpdateTimeAsString());
-                                if (loadingDataAdvisor.getVisibility() != View.INVISIBLE) {
-                                    if (coinViewManager.isCurrencyInEuro()) {
-                                        cryptoAmountCurrency.setText("€");
-                                        clearedCryptoBalanceCurrency.setText("€");
-                                        clearedBalanceCurrency.setText("€");
-                                    } else {
-                                        cryptoAmountCurrency.setText("$");
-                                        clearedCryptoBalanceCurrency.setText("$");
-                                        clearedBalanceCurrency.setText("$");
-                                    }
-                                    loadingDataAdvisor.setVisibility(View.INVISIBLE);
-                                    progressBar.setVisibility(View.INVISIBLE);
-                                    cryptoAmountBar.setVisibility(View.VISIBLE);
-                                    clearedCryptoAmountBar.setVisibility(View.VISIBLE);
-                                    if (coinViewManager.getTotalInvestment() != null && fragment.appPreferences.getBoolean("showClearedBalance", true)) {
-                                        balanceBar.setVisibility(View.VISIBLE);
-                                    } else {
-                                        mainLayout.removeView(balanceBar);
-                                    }
-                                    lastUpdateBar.setVisibility(View.VISIBLE);
-                                    coinsView.setVisibility(View.VISIBLE);
-                                    if (fragment.gitHubUsernameSupplier.join() != null) {
-                                        linkToReport.setMovementMethod(LinkMovementMethod.getInstance());
-                                        String reportUrl = fragment.getResources().getString(R.string.reportUrl).replace(
-                                                "${username}",
-                                                fragment.gitHubUsernameSupplier.join()
-                                        );
-                                        linkToReport.setText(Html.fromHtml(String.valueOf(linkToReport.getText()).replace("&reportUrl;", reportUrl), Html.FROM_HTML_MODE_LEGACY));
-                                        linkToReport.setLinkTextColor(fragment.getColorFromResources(R.color.yellow));
-                                        updateReportButton.setOnClickListener(new View.OnClickListener() {
-                                            @Override
-                                            public void onClick(View view) {
-                                                fragment.updateReport((Button) view);
-                                            }
-                                        });
-                                        reportBar.setVisibility(View.VISIBLE);
-                                    } else {
-                                        mainLayout.removeView(reportBar);
-                                    }
+                                loadingDataAdvisor.setVisibility(View.INVISIBLE);
+                                progressBar.setVisibility(View.INVISIBLE);
+                                cryptoAmountBar.setVisibility(View.VISIBLE);
+                                clearedCryptoAmountBar.setVisibility(View.VISIBLE);
+                                if (coinViewManager.getTotalInvestment() != null && fragment.appPreferences.getBoolean("showClearedBalance", true)) {
+                                    balanceBar.setVisibility(View.VISIBLE);
+                                } else {
+                                    mainLayout.removeView(balanceBar);
                                 }
-                            });
-                        }
+                                lastUpdateBar.setVisibility(View.VISIBLE);
+                                coinsView.setVisibility(View.VISIBLE);
+                                if (fragment.gitHubUsernameSupplier.join() != null) {
+                                    linkToReport.setMovementMethod(LinkMovementMethod.getInstance());
+                                    String reportUrl = fragment.getResources().getString(R.string.reportUrl).replace(
+                                            "${username}",
+                                            fragment.gitHubUsernameSupplier.join()
+                                    );
+                                    linkToReport.setText(Html.fromHtml(String.valueOf(linkToReport.getText()).replace("&reportUrl;", reportUrl), Html.FROM_HTML_MODE_LEGACY));
+                                    linkToReport.setLinkTextColor(fragment.getColorFromResources(R.color.yellow));
+                                    updateReportButton.setOnClickListener(new View.OnClickListener() {
+                                        @Override
+                                        public void onClick(View view) {
+                                            fragment.updateReport((Button) view);
+                                        }
+                                    });
+                                    reportBar.setVisibility(View.VISIBLE);
+                                } else {
+                                    mainLayout.removeView(reportBar);
+                                }
+                            }
+                        });
                     }
-                } catch (Throwable exc) {
+                }
+            }, fragment.getExecutorService()).atTheEndOfEveryIterationWaitFor(750L).whenAnExceptionIsThrown((looper, exc) -> {
+                boolean isActivityNotNull = fragment.getActivity() != null;
+                if (isActivityNotNull) {
+                    exc.printStackTrace();
                     LoggerChain.getInstance().logError("Exception occurred: " + exc.getMessage());
                 }
-            }, fragment.getExecutorService()).atTheEndOfEveryIterationWaitFor(750L).activate();
+                return isActivityNotNull;
+            }).activate();
         }
 
         private void stop() {

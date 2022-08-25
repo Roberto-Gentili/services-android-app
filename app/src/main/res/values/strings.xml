@@ -2,6 +2,7 @@
 <resources>
     <string name="app_name">Crypto info</string>
 
+    <string name="alwaysActiveWhenInBackgroundLabelText">Always active when in background</string>
     <string name="apiKeyLabelText">API key</string>
     <string name="apiSecretsLabelText">API secret</string>
     <string name="authorizationTokenLabelText">Authorization token</string>

@@ -95,6 +95,10 @@
             app:title="@string/threadPoolSizeTextLabel"
             app:defaultValue="6"
             app:useSimpleSummaryProvider="true" />
+        <CheckBoxPreference
+            app:key="alwaysActiveWhenInBackground"
+            app:title="@string/alwaysActiveWhenInBackgroundLabelText"
+            app:defaultValue="false" />
     </PreferenceCategory>
 
 </PreferenceScreen>
