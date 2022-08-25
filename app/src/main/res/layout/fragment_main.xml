@@ -232,7 +232,7 @@
                     android:backgroundTint="@color/white">
 
                     <TableLayout
-                        android:id="@+id/coinsTable"
+                        android:id="@+id/coinTable"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content" />
                 </LinearLayout>

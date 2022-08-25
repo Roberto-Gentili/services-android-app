@@ -619,7 +619,7 @@ public class MainFragment extends Fragment {
         }
 
         private synchronized void buildHeader() {
-            TableLayout coinsTable = (TableLayout) fragment.getMainActivity().findViewById(R.id.coinsTable);
+            TableLayout coinsTable = (TableLayout) fragment.getMainActivity().findViewById(R.id.coinTable);
             if (coinsTable.getChildAt(0) != null) {
                 return;
             }
@@ -667,7 +667,7 @@ public class MainFragment extends Fragment {
 
         private void addHeaderColumn(String text) {
             fragment.runOnUIThread(() -> {
-                TableLayout coinsTable = (TableLayout) fragment.getMainActivity().findViewById(R.id.coinsTable);
+                TableLayout coinsTable = (TableLayout) fragment.getMainActivity().findViewById(R.id.coinTable);
                 TableRow header = (TableRow) coinsTable.getChildAt(0);
                 if (header == null) {
                     header = new TableRow(fragment.getMainActivity());
@@ -679,7 +679,7 @@ public class MainFragment extends Fragment {
                 );
                 Float dimension = fragment.getResources().getDimension(R.dimen.text_size_four) / fragment.getResources().getDisplayMetrics().density;
                 textView.setTextSize(dimension);
-                dimension = fragment.getResources().getDimension(R.dimen.padding_size_one) / fragment.getResources().getDisplayMetrics().density;
+                dimension = fragment.getResources().getDimension(R.dimen.coin_table_cell_padding_left_size) / fragment.getResources().getDisplayMetrics().density;
                 textView.setPadding(dimension.intValue(),0,0,0);
                 textView.setTextColor(fragment.getColorFromResources(R.color.yellow));
                 textView.setGravity(Gravity.CENTER);
@@ -691,7 +691,7 @@ public class MainFragment extends Fragment {
         private void setValueForCoin(String coinName, Double value, int columnIndex, DecimalFormat numberFormatter, boolean inverted) {
             fragment.runOnUIThread(() -> {
                 MainActivity mainActivity = fragment.getMainActivity();
-                TableLayout coinsTable = (TableLayout)mainActivity.findViewById(R.id.coinsTable);
+                TableLayout coinsTable = (TableLayout)mainActivity.findViewById(R.id.coinTable);
                 int childCount = coinsTable.getChildCount();
                 TableRow row = getCoinRow(coinName);
                 if (row == null) {
@@ -719,7 +719,7 @@ public class MainFragment extends Fragment {
                             valueTextView.setTextSize(dimension);
                             valueTextView.setGravity(Gravity.RIGHT);
                             valueTextView.setTextColor(Color.WHITE);
-                            dimension = fragment.getResources().getDimension(R.dimen.padding_size_one) / fragment.getResources().getDisplayMetrics().density;
+                            dimension = fragment.getResources().getDimension(R.dimen.coin_table_cell_padding_left_size) / fragment.getResources().getDisplayMetrics().density;
                             valueTextView.setPadding(dimension.intValue(),0,0,0);
                             row.addView(valueTextView);
                         }
@@ -730,7 +730,7 @@ public class MainFragment extends Fragment {
         }
 
         private TableRow getCoinRow(String coinName) {
-            TableLayout coinsTable = (TableLayout) fragment.getMainActivity().findViewById(R.id.coinsTable);
+            TableLayout coinsTable = (TableLayout) fragment.getMainActivity().findViewById(R.id.coinTable);
             int childCount = coinsTable.getChildCount();
             if (childCount > 1) {
                 for (int i = 1; i < childCount; i++) {
@@ -745,7 +745,7 @@ public class MainFragment extends Fragment {
         }
 
         private TableRow removeCoinRow(String coinName) {
-            TableLayout coinsTable = (TableLayout)fragment.getMainActivity().findViewById(R.id.coinsTable);
+            TableLayout coinsTable = (TableLayout)fragment.getMainActivity().findViewById(R.id.coinTable);
             TableRow coinRow = getCoinRow(coinName);
             if (coinRow != null) {
                 fragment.runOnUIThread(() -> {
@@ -867,7 +867,7 @@ public class MainFragment extends Fragment {
         }
 
         private Collection<String> getShowedCoins() {
-            TableLayout coinsTable = (TableLayout)fragment.getMainActivity().findViewById(R.id.coinsTable);
+            TableLayout coinsTable = (TableLayout)fragment.getMainActivity().findViewById(R.id.coinTable);
             Collection<String> showedCoins = new HashSet<>();
             for (int i = 1; i < coinsTable.getChildCount(); i++) {
                 TableRow row = (TableRow)coinsTable.getChildAt(i);
