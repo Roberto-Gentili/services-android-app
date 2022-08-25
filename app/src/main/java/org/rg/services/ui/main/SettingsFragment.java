@@ -38,7 +38,7 @@ public class SettingsFragment extends PreferenceFragmentCompat {
 
     @Override
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
-        Float dimension = (getResources().getDimension(R.dimen.margin_size_four) + (getResources().getDimension(R.dimen.margin_size_one) * 5F)) / getResources().getDisplayMetrics().density;
+        Float dimension = getResources().getDimension(R.dimen.margin_size_three) / getResources().getDisplayMetrics().density;
         view.setPadding(0, dimension.intValue(), 0, 0);
         super.onViewCreated(view, savedInstanceState);
     }

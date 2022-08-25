@@ -3,6 +3,7 @@
 
     <dimen name="margin_size_one">15dp</dimen>
     <dimen name="margin_size_two">10dp</dimen>
+    <dimen name="margin_size_three">90dp</dimen>
     <dimen name="margin_size_four">36dp</dimen>
     <dimen name="text_size_one">30sp</dimen>
     <dimen name="text_size_two">20sp</dimen>
