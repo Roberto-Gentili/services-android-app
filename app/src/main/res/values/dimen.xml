@@ -3,7 +3,7 @@
 
     <dimen name="mainContainer_margin_top_size">10dp</dimen>
     <dimen name="mainContainer_margin_lateral_margins_size">15dp</dimen>
-    <dimen name="mainContainer_padding_bottom_size">15dp</dimen>
+    <dimen name="mainContainer_padding_bottom_size">@dimen/mainContainer_margin_lateral_margins_size</dimen>
     <dimen name="update_report_button_margin_start_size">15dp</dimen>
     <dimen name="balances_table_values_margin_start_size">10dp</dimen>
     <dimen name="settings_fragment_padding_top_size">90dp</dimen>
