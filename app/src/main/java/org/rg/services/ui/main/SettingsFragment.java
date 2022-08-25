@@ -15,6 +15,8 @@ import org.rg.services.R;
 import org.rg.util.LoggerChain;
 
 import java.util.Optional;
+import java.util.function.BiPredicate;
+import java.util.function.Predicate;
 
 public class SettingsFragment extends PreferenceFragmentCompat {
 
@@ -32,8 +34,38 @@ public class SettingsFragment extends PreferenceFragmentCompat {
         setEditTextPreferenceType("gitHubAuthorizationToken", InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_VARIATION_PASSWORD);
         setEditTextPreferenceType("coinsToBeAlwaysDisplayed", InputType.TYPE_TEXT_FLAG_CAP_CHARACTERS);
         setEditTextPreferenceType("intervalBetweenRequestGroups", InputType.TYPE_CLASS_NUMBER);
-        setEditTextPreferenceType("totalInvestment", InputType.TYPE_CLASS_NUMBER | InputType.TYPE_NUMBER_FLAG_DECIMAL);
         Optional.ofNullable(setEditTextPreferenceType("threadPoolSize", InputType.TYPE_CLASS_NUMBER)).ifPresent(pref -> setMinMaxFilter(pref, 6, 48));
+        setEditTextPreferenceType("totalInvestment", InputType.TYPE_CLASS_NUMBER | InputType.TYPE_NUMBER_FLAG_DECIMAL);
+        disableAllDependentFieldsIfEmpty("totalInvestment");
+    }
+
+    private void disableAllDependentFieldsIfEmpty(String id, String... ids) {
+        BiPredicate<EditTextPreference, Object> valuePredicateAndAction = (pref, value) -> {
+            String textValue = (String)value;
+            setEnabledFlag(textValue != null && !textValue.replace(" ", "").isEmpty(),"showRUPEI", "showDifferenceBetweenUPAndRUPEI");
+            return true;
+        };
+        final EditTextPreference preference = findPreference("totalInvestment");
+        valuePredicateAndAction.test(preference, preference.getText());
+        setOnPreferenceChangeListener(preference, valuePredicateAndAction);
+    }
+
+    private void setEnabledFlag(boolean flag, String... ids) {
+        for (String id : ids) {
+            Preference preference = findPreference(id);
+            getActivity().runOnUiThread(() -> {
+                preference.setEnabled(flag);
+            });
+        }
+    }
+
+    private <T extends Preference> void setOnPreferenceChangeListener(T pref, BiPredicate<T, Object> valuePredicateAndAction) {
+        pref.setOnPreferenceChangeListener(new Preference.OnPreferenceChangeListener() {
+            @Override
+            public boolean onPreferenceChange(Preference preference, Object newValue) {
+                return valuePredicateAndAction.test((T)preference, newValue);
+            }
+        });
     }
 
     @Override
