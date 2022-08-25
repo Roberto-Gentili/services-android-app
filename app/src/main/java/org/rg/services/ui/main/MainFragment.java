@@ -569,8 +569,8 @@ public class MainFragment extends Fragment {
             this.currentCoinValues = new ConcurrentHashMap<>();
             this.coinsToBeAlwaysDisplayed = Arrays.asList(fragment.appPreferences.getString("coinsToBeAlwaysDisplayed", "BTC, ETH").toUpperCase().replace(" ", "").split(",")).stream().filter(fragment::isStringNotEmpty).collect(Collectors.toList());
             headerLabels = new ArrayList<>();
-            String totalInvestmentAsString = fragment.appPreferences.getString("totalInvestment", "0");
-            if (!totalInvestmentAsString.isEmpty()) {
+            String totalInvestmentAsString = fragment.appPreferences.getString("totalInvestment", null);
+            if (totalInvestmentAsString != null && !totalInvestmentAsString.isEmpty()) {
                 currentValues.put("totalInvestment", Double.valueOf(totalInvestmentAsString));
             }
         }
