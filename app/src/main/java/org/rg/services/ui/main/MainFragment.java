@@ -113,8 +113,8 @@ public class MainFragment extends Fragment {
 
     private synchronized void init() {
         stop();
-        ((LinearLayout)getView().findViewById(R.id.cryptoBalanceBar)).setVisibility(View.INVISIBLE);
-        ((LinearLayout)getView().findViewById(R.id.pureCryptoBalanceBar)).setVisibility(View.INVISIBLE);
+        ((LinearLayout)getView().findViewById(R.id.cryptoAmountBar)).setVisibility(View.INVISIBLE);
+        ((LinearLayout)getView().findViewById(R.id.clearedCryptoAmountBar)).setVisibility(View.INVISIBLE);
         ((LinearLayout)getView().findViewById(R.id.balanceBar)).setVisibility(View.INVISIBLE);
         ((LinearLayout)getView().findViewById(R.id.lastUpdateBar)).setVisibility(View.INVISIBLE);
         ((LinearLayout)getView().findViewById(R.id.reportBar)).setVisibility(View.INVISIBLE);
@@ -449,12 +449,12 @@ public class MainFragment extends Fragment {
             }
             System.out.println("Wallet updater " + this + " activated");
             LinearLayout mainLayout = (LinearLayout)fragment.getView().findViewById(R.id.balancesTable);
-            LinearLayout cryptoBalanceBar = (LinearLayout)fragment.getView().findViewById(R.id.cryptoBalanceBar);
-            TextView cryptoBalance = (TextView) fragment.getView().findViewById(R.id.cryptoBalance);
-            TextView cryptoBalanceCurrency = (TextView) fragment.getView().findViewById(R.id.cryptoBalanceCurrency);
-            LinearLayout clearedCryptoBalanceBar = (LinearLayout)fragment.getView().findViewById(R.id.pureCryptoBalanceBar);
-            TextView clearedCryptoBalance = (TextView) fragment.getView().findViewById(R.id.pureCryptoBalance);
-            TextView pureCryptoBalanceCurrency = (TextView) fragment.getView().findViewById(R.id.pureCryptoBalanceCurrency);
+            LinearLayout cryptoAmountBar = (LinearLayout)fragment.getView().findViewById(R.id.cryptoAmountBar);
+            TextView cryptoAmount = (TextView) fragment.getView().findViewById(R.id.cryptoAmount);
+            TextView cryptoAmountCurrency = (TextView) fragment.getView().findViewById(R.id.cryptoAmountCurrency);
+            LinearLayout clearedCryptoAmountBar = (LinearLayout)fragment.getView().findViewById(R.id.clearedCryptoAmountBar);
+            TextView clearedCryptoAmount = (TextView) fragment.getView().findViewById(R.id.clearedCryptoAmount);
+            TextView clearedCryptoBalanceCurrency = (TextView) fragment.getView().findViewById(R.id.clearedCryptoAmountCurrency);
             LinearLayout balanceBar = (LinearLayout)fragment.getView().findViewById(R.id.balanceBar);
             TextView clearedBalance = (TextView) fragment.getView().findViewById(R.id.clearedBalance);
             TextView clearedBalanceCurrency = (TextView) fragment.getView().findViewById(R.id.clearedBalanceCurrency);
@@ -472,9 +472,9 @@ public class MainFragment extends Fragment {
                     if (coinViewManager != null) {
                         if (coinViewManager.refresh()) {
                             this.fragment.runOnUIThread(() -> {
-                                fragment.setHighlightedValue(cryptoBalance, fragment.numberFormatterWithTwoDecimals, fragment.coinViewManager.getAmount());
+                                fragment.setHighlightedValue(cryptoAmount, fragment.numberFormatterWithTwoDecimals, fragment.coinViewManager.getAmount());
                                 Double clearedAmount = fragment.coinViewManager.getClearedAmount();
-                                fragment.setHighlightedValue(clearedCryptoBalance, fragment.numberFormatterWithTwoDecimals, clearedAmount);
+                                fragment.setHighlightedValue(clearedCryptoAmount, fragment.numberFormatterWithTwoDecimals, clearedAmount);
                                 Double totalInvestment = coinViewManager.getTotalInvestment();
                                 if (totalInvestment != null) {
                                     fragment.setFixedHighlightedValue(clearedBalance, fragment.numberFormatterWithSignAndTwoDecimals, clearedAmount - totalInvestment);
@@ -482,18 +482,18 @@ public class MainFragment extends Fragment {
                                 fragment.setHighlightedValue(lastUpdate, ((MainActivity)fragment.getActivity()).getLastUpdateTimeAsString());
                                 if (loadingDataAdvisor.getVisibility() != View.INVISIBLE) {
                                     if (coinViewManager.isCurrencyInEuro()) {
-                                        cryptoBalanceCurrency.setText("€");
-                                        pureCryptoBalanceCurrency.setText("€");
+                                        cryptoAmountCurrency.setText("€");
+                                        clearedCryptoBalanceCurrency.setText("€");
                                         clearedBalanceCurrency.setText("€");
                                     } else {
-                                        cryptoBalanceCurrency.setText("$");
-                                        pureCryptoBalanceCurrency.setText("$");
+                                        cryptoAmountCurrency.setText("$");
+                                        clearedCryptoBalanceCurrency.setText("$");
                                         clearedBalanceCurrency.setText("$");
                                     }
                                     loadingDataAdvisor.setVisibility(View.INVISIBLE);
                                     progressBar.setVisibility(View.INVISIBLE);
-                                    cryptoBalanceBar.setVisibility(View.VISIBLE);
-                                    clearedCryptoBalanceBar.setVisibility(View.VISIBLE);
+                                    cryptoAmountBar.setVisibility(View.VISIBLE);
+                                    clearedCryptoAmountBar.setVisibility(View.VISIBLE);
                                     if (coinViewManager.getTotalInvestment() != null) {
                                         balanceBar.setVisibility(View.VISIBLE);
                                     } else {

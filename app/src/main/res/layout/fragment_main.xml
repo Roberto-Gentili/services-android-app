@@ -37,23 +37,23 @@
                     android:orientation="vertical">
 
                     <LinearLayout
-                        android:id="@+id/cryptoBalanceBar"
+                        android:id="@+id/cryptoAmountBar"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:orientation="horizontal"
                         android:visibility="invisible" >
 
                         <TextView
-                            android:id="@+id/cryptoBalanceLabel"
+                            android:id="@+id/cryptoAmountLabel"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:text="@string/cryptoBalanceLabelText"
+                            android:text="@string/cryptoAmountLabelText"
                             android:textAlignment="viewStart"
                             android:textColor="@color/yellow"
                             android:textSize="@dimen/text_size_one" />
 
                         <TextView
-                            android:id="@+id/cryptoBalance"
+                            android:id="@+id/cryptoAmount"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:layout_marginStart="@dimen/margin_size_two"
@@ -65,7 +65,7 @@
                             android:textStyle="bold" />
 
                         <TextView
-                            android:id="@+id/cryptoBalanceCurrency"
+                            android:id="@+id/cryptoAmountCurrency"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:textAlignment="viewEnd"
@@ -75,23 +75,23 @@
                     </LinearLayout>
 
                     <LinearLayout
-                        android:id="@+id/pureCryptoBalanceBar"
+                        android:id="@+id/clearedCryptoAmountBar"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:orientation="horizontal"
                         android:visibility="invisible" >
 
                         <TextView
-                            android:id="@+id/pureCryptoBalanceLabel"
+                            android:id="@+id/clearedCryptoAmountLabel"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:text="@string/pureCryptoBalanceText"
+                            android:text="@string/clearedCryptoAmountText"
                             android:textAlignment="viewStart"
                             android:textColor="@color/yellow"
                             android:textSize="@dimen/text_size_one" />
 
                         <TextView
-                            android:id="@+id/pureCryptoBalance"
+                            android:id="@+id/clearedCryptoAmount"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:layout_marginStart="@dimen/margin_size_two"
@@ -103,7 +103,7 @@
                             android:textStyle="bold" />
 
                         <TextView
-                            android:id="@+id/pureCryptoBalanceCurrency"
+                            android:id="@+id/clearedCryptoAmountCurrency"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:textAlignment="viewEnd"
