@@ -1,12 +1,16 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
 
+    <dimen name="mainContainer_margin_top_size">10dp</dimen>
+    <dimen name="mainContainer_margin_lateral_margins_size">15dp</dimen>
+    <dimen name="mainContainer_padding_bottom_size">15dp</dimen>
     <dimen name="margin_size_one">15dp</dimen>
     <dimen name="margin_size_two">10dp</dimen>
     <dimen name="margin_size_three">90dp</dimen>
     <dimen name="margin_size_four">36dp</dimen>
     <dimen name="margin_size_five">5dp</dimen>
     <dimen name="margin_size_six">10dp</dimen>
+    <dimen name="margin_size_seven">45dp</dimen>
     <dimen name="text_size_one">30sp</dimen>
     <dimen name="text_size_two">20sp</dimen>
     <dimen name="text_size_three">24sp</dimen>

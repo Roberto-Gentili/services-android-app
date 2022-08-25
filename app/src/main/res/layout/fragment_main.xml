@@ -13,17 +13,17 @@
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:layout_weight="1"
-        android:scrollbars="none"
-        android:layout_marginTop="@dimen/margin_size_one"
-        android:layout_marginLeft="@dimen/margin_size_one"
-        android:layout_marginRight="@dimen/margin_size_one"
-        android:layout_marginBottom="@dimen/margin_size_one">
+        android:scrollbars="none">
 
         <LinearLayout
             android:id="@+id/mainContainer"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
-            android:orientation="vertical">
+            android:orientation="vertical"
+            android:layout_marginTop="@dimen/mainContainer_margin_top_size"
+            android:layout_marginLeft="@dimen/mainContainer_margin_lateral_margins_size"
+            android:layout_marginRight="@dimen/mainContainer_margin_lateral_margins_size"
+            android:paddingBottom="@dimen/mainContainer_padding_bottom_size">
 
             <HorizontalScrollView
                 android:layout_width="wrap_content"
@@ -224,7 +224,7 @@
                 android:layout_height="wrap_content"
                 android:layout_gravity="center_horizontal"
                 android:layout_marginTop="@dimen/margin_size_six"
-                android:layout_marginBottom="@dimen/margin_size_one"
+
                 android:visibility="invisible">
 
                 <LinearLayout
