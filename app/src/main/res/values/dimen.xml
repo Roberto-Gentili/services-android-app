@@ -11,11 +11,11 @@
     <dimen name="balances_table_row_margin_top_size">5dp</dimen>
     <dimen name="coins_view_margin_top_size">10dp</dimen>
     <dimen name="coin_table_cell_padding_left_size">20dp</dimen>
-    <dimen name="text_size_one">30sp</dimen>
-    <dimen name="text_size_two">20sp</dimen>
-    <dimen name="text_size_three">24sp</dimen>
-    <dimen name="text_size_four">20dp</dimen>
-    <dimen name="text_size_five">16dp</dimen>
-    <dimen name="text_size_six">15dp</dimen>
+    <dimen name="balances_item_text_size">30sp</dimen>
+    <dimen name="last_update_bar_text_size">20sp</dimen>
+    <dimen name="link_to_report_bar_text_size">24sp</dimen>
+    <dimen name="coin_table_header_text_size">20dp</dimen>
+    <dimen name="coin_table_coin_name_column_text_size">16dp</dimen>
+    <dimen name="coin_table_item_text_size">15dp</dimen>
 
 </resources>

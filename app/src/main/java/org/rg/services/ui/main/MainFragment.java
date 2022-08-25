@@ -677,7 +677,7 @@ public class MainFragment extends Fragment {
                 textView.setText(
                     text
                 );
-                Float dimension = fragment.getResources().getDimension(R.dimen.text_size_four) / fragment.getResources().getDisplayMetrics().density;
+                Float dimension = fragment.getResources().getDimension(R.dimen.coin_table_header_text_size) / fragment.getResources().getDisplayMetrics().density;
                 textView.setTextSize(dimension);
                 dimension = fragment.getResources().getDimension(R.dimen.coin_table_cell_padding_left_size) / fragment.getResources().getDisplayMetrics().density;
                 textView.setPadding(dimension.intValue(),0,0,0);
@@ -701,7 +701,7 @@ public class MainFragment extends Fragment {
                     row = new TableRow(fragment.getMainActivity());
                     TextView coinNameTextView = new TextView(mainActivity);
                     coinNameTextView.setText(coinName);
-                    Float dimension = fragment.getResources().getDimension(R.dimen.text_size_five)/ fragment.getResources().getDisplayMetrics().density;
+                    Float dimension = fragment.getResources().getDimension(R.dimen.coin_table_coin_name_column_text_size)/ fragment.getResources().getDisplayMetrics().density;
                     coinNameTextView.setTextSize(dimension);
                     coinNameTextView.setTextColor(Color.WHITE);
                     coinNameTextView.setGravity(Gravity.LEFT);
@@ -715,7 +715,7 @@ public class MainFragment extends Fragment {
                         valueTextView = (TextView)row.getChildAt(i);
                         if (valueTextView == null) {
                             valueTextView = new TextView(mainActivity);
-                            Float dimension = fragment.getResources().getDimension(R.dimen.text_size_six)/ fragment.getResources().getDisplayMetrics().density;
+                            Float dimension = fragment.getResources().getDimension(R.dimen.coin_table_item_text_size)/ fragment.getResources().getDisplayMetrics().density;
                             valueTextView.setTextSize(dimension);
                             valueTextView.setGravity(Gravity.RIGHT);
                             valueTextView.setTextColor(Color.WHITE);
