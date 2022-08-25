@@ -2,9 +2,11 @@ package org.rg.services.ui.main;
 
 import android.os.Bundle;
 import android.text.InputType;
+import android.view.View;
 import android.widget.EditText;
 
 import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 import androidx.preference.EditTextPreference;
 import androidx.preference.Preference;
 import androidx.preference.PreferenceFragmentCompat;
@@ -33,6 +35,13 @@ public class SettingsFragment extends PreferenceFragmentCompat {
         setEditTextPreferenceType("intervalBetweenRequestGroups", InputType.TYPE_CLASS_NUMBER);
         setEditTextPreferenceType("totalInvestment", InputType.TYPE_CLASS_NUMBER | InputType.TYPE_NUMBER_FLAG_DECIMAL);
         Optional.ofNullable(setEditTextPreferenceType("threadPoolSize", InputType.TYPE_CLASS_NUMBER)).ifPresent(pref -> setMinMaxFilter(pref, 6, 48));
+    }
+
+    @Override
+    public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
+        Float dimension = (getResources().getDimension(R.dimen.margin_size_four) + getResources().getDimension(R.dimen.margin_size_one)) / getResources().getDisplayMetrics().density;
+        view.setPadding(0, dimension.intValue(), 0, 0);
+        super.onViewCreated(view, savedInstanceState);
     }
 
     private void setMinMaxFilter(EditTextPreference pref, int min, int max) {

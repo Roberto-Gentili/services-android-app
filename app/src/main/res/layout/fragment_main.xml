@@ -5,6 +5,7 @@
     android:id="@+id/main"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    android:layout_marginTop="@dimen/margin_size_four"
     android:background="#051360"
     tools:context=".ui.main.MainFragment">
 
@@ -12,16 +13,16 @@
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:scrollbars="none"
-        android:layout_weight="1">
+        android:layout_weight="1"
+        android:layout_marginTop="@dimen/margin_size_one"
+        android:layout_marginLeft="@dimen/margin_size_one"
+        android:layout_marginRight="@dimen/margin_size_one"
+        android:layout_marginBottom="@dimen/margin_size_one">
         <LinearLayout
             android:id="@+id/mainContainer"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
-            android:orientation="vertical"
-            android:layout_marginTop="@dimen/margin_size_one"
-            android:layout_marginLeft="@dimen/margin_size_one"
-            android:layout_marginRight="@dimen/margin_size_one"
-            android:layout_marginBottom="@dimen/margin_size_one" >
+            android:orientation="vertical">
             <HorizontalScrollView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
