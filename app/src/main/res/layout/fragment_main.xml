@@ -5,7 +5,7 @@
     android:id="@+id/main"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:layout_marginTop="@dimen/margin_size_four"
+    android:layout_marginTop="@dimen/main_fragment_margin_top_size"
     android:background="@drawable/main_background"
     tools:context=".ui.main.MainFragment">
 
@@ -17,7 +17,7 @@
         <LinearLayout
             android:id="@+id/mainContainer"
             android:layout_width="match_parent"
-            android:layout_height="match_parent"
+            android:layout_height="wrap_content"
             android:orientation="vertical"
             android:layout_marginTop="@dimen/mainContainer_margin_top_size"
             android:layout_marginLeft="@dimen/mainContainer_margin_lateral_margins_size"
@@ -55,7 +55,7 @@
                             android:id="@+id/cryptoAmount"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:layout_marginStart="@dimen/margin_size_two"
+                            android:layout_marginStart="@dimen/balances_table_values_margin_start_size"
                             android:layout_marginEnd="5dp"
                             android:layout_weight="1"
                             android:textAlignment="viewEnd"
@@ -93,7 +93,7 @@
                             android:id="@+id/clearedCryptoAmount"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:layout_marginStart="@dimen/margin_size_two"
+                            android:layout_marginStart="@dimen/balances_table_values_margin_start_size"
                             android:layout_marginEnd="5dp"
                             android:layout_weight="1"
                             android:textAlignment="viewEnd"
@@ -131,7 +131,7 @@
                             android:id="@+id/clearedBalance"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:layout_marginStart="@dimen/margin_size_two"
+                            android:layout_marginStart="@dimen/balances_table_values_margin_start_size"
                             android:layout_marginEnd="5dp"
                             android:layout_weight="1"
                             android:textAlignment="viewEnd"
@@ -155,7 +155,7 @@
                         android:layout_height="wrap_content"
                         android:orientation="horizontal"
                         android:visibility="invisible"
-                        android:layout_marginTop="@dimen/margin_size_five">
+                        android:layout_marginTop="@dimen/balances_table_row_margin_top_size">
 
                         <TextView
                             android:id="@+id/lastUpdateLabel"
@@ -169,7 +169,7 @@
                             android:id="@+id/lastUpdate"
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
-                            android:layout_marginStart="@dimen/margin_size_two"
+                            android:layout_marginStart="@dimen/balances_table_values_margin_start_size"
                             android:textAlignment="viewEnd"
                             android:textColor="#FFFFFF"
                             android:textSize="@dimen/text_size_two"
@@ -181,7 +181,7 @@
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:layout_gravity="center_horizontal"
-                        android:layout_marginTop="@dimen/margin_size_five"
+                        android:layout_marginTop="@dimen/balances_table_row_margin_top_size"
                         android:orientation="horizontal"
                         android:visibility="invisible">
 
@@ -198,7 +198,7 @@
                             android:id="@+id/updateReportButton"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:layout_marginStart="@dimen/margin_size_one"
+                            android:layout_marginStart="@dimen/update_report_button_margin_start_size"
                             android:backgroundTint="#E91E63"
                             android:text="@string/updateReportText"
                             app:layout_constraintStart_toEndOf="@id/linkToReport" />
@@ -222,7 +222,7 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_gravity="center_horizontal"
-                android:layout_marginTop="@dimen/margin_size_six"
+                android:layout_marginTop="@dimen/coins_view_margin_top_size"
 
                 android:visibility="invisible">
 
@@ -234,7 +234,7 @@
                     <TableLayout
                         android:id="@+id/coinsTable"
                         android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"></TableLayout>
+                        android:layout_height="wrap_content" />
                 </LinearLayout>
             </HorizontalScrollView>
             <!-- Old table view version: DO NOT DELETE
@@ -243,8 +243,8 @@
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
                 android:visibility="invisible"
-                android:layout_marginTop="@dimen/margin_size_one"
-                android:layout_marginBottom="@dimen/margin_size_one"
+                android:layout_marginTop="15dp"
+                android:layout_marginBottom="15dp"
                 app:layout_constraintStart_toStartOf="parent"
                 app:layout_constraintEnd_toEndOf="parent"
                 app:layout_constraintTop_toBottomOf="@id/reportBar">

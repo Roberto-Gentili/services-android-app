@@ -16,7 +16,6 @@ import org.rg.util.LoggerChain;
 
 import java.util.Optional;
 import java.util.function.BiPredicate;
-import java.util.function.Predicate;
 
 public class SettingsFragment extends PreferenceFragmentCompat {
 
@@ -70,7 +69,7 @@ public class SettingsFragment extends PreferenceFragmentCompat {
 
     @Override
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
-        Float dimension = getResources().getDimension(R.dimen.margin_size_three) / getResources().getDisplayMetrics().density;
+        Float dimension = getResources().getDimension(R.dimen.settings_fragment_padding_top_size) / getResources().getDisplayMetrics().density;
         view.setPadding(0, dimension.intValue(), 0, 0);
         super.onViewCreated(view, savedInstanceState);
     }
