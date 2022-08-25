@@ -182,7 +182,7 @@
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:layout_gravity="center_horizontal"
-                        android:layout_marginTop="7dp"
+                        android:layout_marginTop="@dimen/margin_size_five"
                         android:orientation="horizontal"
                         android:visibility="invisible">
 
