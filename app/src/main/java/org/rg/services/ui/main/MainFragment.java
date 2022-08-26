@@ -119,14 +119,6 @@ public class MainFragment extends Fragment {
 
     private synchronized void init() {
         stop();
-        ((LinearLayout) getView().findViewById(R.id.cryptoAmountBar)).setVisibility(View.INVISIBLE);
-        ((LinearLayout) getView().findViewById(R.id.clearedCryptoAmountBar)).setVisibility(View.INVISIBLE);
-        ((LinearLayout) getView().findViewById(R.id.balanceBar)).setVisibility(View.INVISIBLE);
-        ((LinearLayout) getView().findViewById(R.id.lastUpdateBar)).setVisibility(View.INVISIBLE);
-        ((LinearLayout) getView().findViewById(R.id.reportBar)).setVisibility(View.INVISIBLE);
-        ((ProgressBar) getView().findViewById(R.id.updateReportProgressBar)).setVisibility(View.INVISIBLE);
-        ((TextView) getView().findViewById(R.id.loadingDataAdvisor)).setVisibility(View.VISIBLE);
-        ((ProgressBar) getView().findViewById(R.id.progressBar)).setVisibility(View.VISIBLE);
         String binanceApiKey = appPreferences.getString("binanceApiKey", null);
         String binanceApiSecret = appPreferences.getString("binanceApiSecret", null);
         boolean binanceWalletEnabled = appPreferences.getBoolean("binanceWalletEnabled", true);
