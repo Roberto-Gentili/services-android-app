@@ -38,7 +38,7 @@ public class MainActivity extends AppCompatActivity {
         public final static Map<String, Object> currentValues;
         public final static Map<String, Map<String, Map<String, Double>>> currentCoinValues;
         private final static DateTimeFormatter dateFormatter;
-        public static boolean valueMapsHaveBeenFilledForFirstTime;
+        public static boolean isReadyToBeShown;
         private static LocalDateTime lastUpdateTime;
 
         static {
@@ -137,7 +137,8 @@ public class MainActivity extends AppCompatActivity {
                     .permitAll().build();
             StrictMode.setThreadPolicy(policy);
         }
-        Engine.executorServiceSupplierSizeSupplier = () -> Integer.valueOf(PreferenceManager.getDefaultSharedPreferences(this).getString("threadPoolSize", "6"));
+        Engine.executorServiceSupplierSizeSupplier = () ->
+            Integer.valueOf(PreferenceManager.getDefaultSharedPreferences(this).getString("threadPoolSize", String.valueOf(getResources().getInteger(R.integer.default_thread_pool_min_size))));
         //RestTemplateSupplier.getSharedInstance().enableRequestLogger();
     }
 

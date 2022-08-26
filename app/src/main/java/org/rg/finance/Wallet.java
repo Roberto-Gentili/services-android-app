@@ -29,9 +29,9 @@ public interface Wallet {
 
 	public String getName();
 
-	public void setApiKey(String newValue);
+	public boolean setApiKey(String newValue);
 
-	public void setApiSecret(String newValue);
+	public boolean setApiSecret(String newValue);
 
 	public Collection<String> getAvailableCoins();
 
@@ -92,13 +92,17 @@ public interface Wallet {
 		}
 
 		@Override
-		public void setApiKey(String newValue) {
+		public boolean setApiKey(String newValue) {
+			boolean changed = newValue != apiKey && apiKey == null || !newValue.equals(apiKey);
 			this.apiKey = newValue;
+			return changed;
 		}
 
 		@Override
-		public void setApiSecret(String newValue) {
+		public boolean setApiSecret(String newValue) {
+			boolean changed = newValue != apiSecret && apiSecret == null || !newValue.equals(apiSecret);
 			this.apiSecret = newValue;
+			return changed;
 		}
 
 		@Override

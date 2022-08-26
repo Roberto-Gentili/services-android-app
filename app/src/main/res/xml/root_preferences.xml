@@ -34,7 +34,7 @@
             app:key="cryptoComTimeOffset"
             app:title="@string/timeOffsetLabelText"
             app:useSimpleSummaryProvider="true"
-            app:defaultValue="-1000"/>
+            app:defaultValue="@integer/default_crypto_com_time_offset"/>
     </PreferenceCategory>
 
     <PreferenceCategory app:title="GitHub">
@@ -89,11 +89,12 @@
         <EditTextPreference
             app:key="intervalBetweenRequestGroups"
             app:title="@string/intervalBetweenRequestGroupsTextLabel"
-            app:useSimpleSummaryProvider="true" />
+            app:useSimpleSummaryProvider="true"
+            app:defaultValue="@integer/default_interval_between_request_groups_value" />
         <EditTextPreference
             app:key="threadPoolSize"
             app:title="@string/threadPoolSizeTextLabel"
-            app:defaultValue="6"
+            app:defaultValue="@integer/default_thread_pool_min_size"
             app:useSimpleSummaryProvider="true" />
         <CheckBoxPreference
             app:key="alwaysActiveWhenInBackground"

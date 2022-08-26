@@ -117,34 +117,45 @@ public class MainFragment extends Fragment {
         super.onDestroyView();
     }
 
+    @Override
+    public void onResume() {
+        activate();
+        super.onResume();
+    }
+
+    @Override
+    public void onPause() {
+        if (!appPreferences.getBoolean("alwaysActiveWhenInBackground", false)) {
+            stop();
+        }
+        super.onPause();
+    }
+
     private synchronized void init() {
-        stop();
         String binanceApiKey = appPreferences.getString("binanceApiKey", null);
         String binanceApiSecret = appPreferences.getString("binanceApiSecret", null);
         boolean binanceWalletEnabled = appPreferences.getBoolean("binanceWalletEnabled", true);
         String cryptoComApiKey = appPreferences.getString("cryptoComApiKey", null);
         String cryptoComApiSecret = appPreferences.getString("cryptoComApiSecret", null);
         boolean cryptoComWalletEnabled = appPreferences.getBoolean("cryptoComWalletEnabled", true);
-        wallets.clear();
         if (isStringNotEmpty(cryptoComApiKey) && isStringNotEmpty(cryptoComApiSecret) && cryptoComWalletEnabled) {
             CryptoComWallet wallet = MainActivity.Engine.getWallet(CryptoComWallet.class);
-            wallet.setApiKey(cryptoComApiKey);
-            wallet.setApiSecret(cryptoComApiSecret);
-            wallet.setTimeOffset(Long.valueOf(
-                appPreferences.getString("cryptoComTimeOffset", "-1000")
-            ));
+            if (wallet.setApiKey(cryptoComApiKey) | wallet.setApiSecret(cryptoComApiSecret)) {
+                MainActivity.Model.isReadyToBeShown = false;
+            }
+            wallet.setTimeOffset(getLongValueFromAppPreferencesOrDefault("cryptoComTimeOffset", R.integer.default_crypto_com_time_offset));
             wallets.add(wallet);
         }
         if (isStringNotEmpty(binanceApiKey) && isStringNotEmpty(binanceApiSecret) && binanceWalletEnabled) {
             BinanceWallet wallet = MainActivity.Engine.getWallet(BinanceWallet.class);
-            wallet.setApiKey(binanceApiKey);
-            wallet.setApiSecret(binanceApiSecret);
+            if (wallet.setApiKey(binanceApiKey) | wallet.setApiSecret(binanceApiSecret)) {
+                MainActivity.Model.isReadyToBeShown = false;
+            }
             wallets.add(wallet);
         }
-        if (!wallets.isEmpty()) {
-            activate();
-        } else {
+        if (wallets.isEmpty()) {
             getMainActivity().goToSettingsView();
+            return;
         }
         gitHubUsernameSupplier = CompletableFuture.supplyAsync(
             () -> {
@@ -158,6 +169,16 @@ public class MainFragment extends Fragment {
             LoggerChain.getInstance().logError("Unable to retrieve GitHub username: " + exc.getMessage());
             return null;
         });
+    }
+
+    private Long getLongValueFromAppPreferencesOrDefault(String valueName, int id) {
+        Integer defaultValue = getResources().getInteger(id);
+        String valueAsString = appPreferences.getString(valueName, String.valueOf(defaultValue));
+        try {
+            return Long.valueOf(valueAsString);
+        } catch (Throwable exc) {
+            return defaultValue.longValue();
+        }
     }
 
 
@@ -331,22 +352,6 @@ public class MainFragment extends Fragment {
             }
             return false;
         };
-    }
-
-    @Override
-    public void onResume() {
-        if (!appPreferences.getBoolean("alwaysActiveWhenInBackground", false)) {
-            activate();
-        }
-        super.onResume();
-    }
-
-    @Override
-    public void onPause() {
-        if (!appPreferences.getBoolean("alwaysActiveWhenInBackground", false)) {
-            stop();
-        }
-        super.onPause();
     }
 
     private synchronized void activate() {
@@ -800,7 +805,7 @@ public class MainFragment extends Fragment {
             }, fragment.getExecutorService())
             .whenStarted(coinsToBeScannedRetriever::activate)
             .whenKilled(coinsToBeScannedRetriever::kill)
-            .atTheEndOfEveryIterationWaitFor(Long.valueOf(this.fragment.appPreferences.getString("intervalBetweenRequestGroups", "0")))
+            .atTheEndOfEveryIterationWaitFor(fragment.getLongValueFromAppPreferencesOrDefault("intervalBetweenRequestGroups", R.integer.default_interval_between_request_groups_value))
             .activate();
         }
 
@@ -857,7 +862,7 @@ public class MainFragment extends Fragment {
                 return false;
             }
             MainActivity mainActivity = fragment.getMainActivity();
-            if (!MainActivity.Model.valueMapsHaveBeenFilledForFirstTime) {
+            if (!MainActivity.Model.isReadyToBeShown) {
                 if (retrievingCoinValueTasks.stream().map(CompletableFuture::join).filter(excMsgs -> !excMsgs.isEmpty()).count() > 0) {
                     setToNaNValuesIfNulls();
                     return false;
@@ -936,7 +941,7 @@ public class MainFragment extends Fragment {
 
                 }
             }
-            MainActivity.Model.valueMapsHaveBeenFilledForFirstTime = true;
+            MainActivity.Model.isReadyToBeShown = true;
             return canBeRefreshed = true;
         }
 

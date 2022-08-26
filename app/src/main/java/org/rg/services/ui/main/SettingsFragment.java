@@ -33,7 +33,7 @@ public class SettingsFragment extends PreferenceFragmentCompat {
         setEditTextPreferenceType("gitHubAuthorizationToken", InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_VARIATION_PASSWORD);
         setEditTextPreferenceType("coinsToBeAlwaysDisplayed", InputType.TYPE_TEXT_FLAG_CAP_CHARACTERS);
         setEditTextPreferenceType("intervalBetweenRequestGroups", InputType.TYPE_CLASS_NUMBER);
-        Optional.ofNullable(setEditTextPreferenceType("threadPoolSize", InputType.TYPE_CLASS_NUMBER)).ifPresent(pref -> setMinMaxFilter(pref, 6, 48));
+        Optional.ofNullable(setEditTextPreferenceType("threadPoolSize", InputType.TYPE_CLASS_NUMBER)).ifPresent(pref -> setMinMaxFilter(pref, getResources().getInteger(R.integer.default_thread_pool_min_size), getResources().getInteger(R.integer.default_thread_pool_max_size)));
         setEditTextPreferenceType("totalInvestment", InputType.TYPE_CLASS_NUMBER | InputType.TYPE_NUMBER_FLAG_DECIMAL);
         disableAllDependentFieldsIfEmpty("totalInvestment", "showClearedBalance", "showRUPEI", "showDifferenceBetweenUPAndRUPEI");
     }
@@ -78,7 +78,12 @@ public class SettingsFragment extends PreferenceFragmentCompat {
         pref.setOnPreferenceChangeListener(new Preference.OnPreferenceChangeListener() {
             @Override
             public boolean onPreferenceChange(Preference preference, Object newValueAsString) {
-                Long newValue = Long.valueOf((String)newValueAsString);
+                Integer newValue = null;
+                try {
+                    newValue = Integer.valueOf((String)newValueAsString);
+                } catch (Throwable exc) {
+                    newValue = -1;
+                }
                 if (newValue >= min && newValue <= max) {
                     return true;
                 }
