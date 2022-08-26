@@ -144,7 +144,7 @@ public class MainFragment extends Fragment {
             if (wallet.setApiKey(cryptoComApiKey) | wallet.setApiSecret(cryptoComApiSecret)) {
                 MainActivity.Model.isReadyToBeShown = false;
             }
-            wallet.setTimeOffset(getLongValueFromAppPreferencesOrDefault("cryptoComTimeOffset", R.integer.default_crypto_com_time_offset));
+            wallet.setTimeOffset(getMainActivity().getLongValueFromAppPreferencesOrDefault("cryptoComTimeOffset", R.integer.default_crypto_com_time_offset));
             wallets.add(wallet);
         }
         if (isStringNotEmpty(binanceApiKey) && isStringNotEmpty(binanceApiSecret) && binanceWalletEnabled) {
@@ -170,16 +170,6 @@ public class MainFragment extends Fragment {
             LoggerChain.getInstance().logError("Unable to retrieve GitHub username: " + exc.getMessage());
             return null;
         });
-    }
-
-    private Long getLongValueFromAppPreferencesOrDefault(String valueName, int id) {
-        Integer defaultValue = getResources().getInteger(id);
-        String valueAsString = appPreferences.getString(valueName, String.valueOf(defaultValue));
-        try {
-            return Long.valueOf(valueAsString);
-        } catch (Throwable exc) {
-            return defaultValue.longValue();
-        }
     }
 
 
@@ -822,7 +812,7 @@ public class MainFragment extends Fragment {
             }, fragment.getExecutorService())
             .whenStarted(coinsToBeScannedRetriever::activate)
             .whenKilled(coinsToBeScannedRetriever::kill)
-            .atTheEndOfEveryIterationWaitFor(fragment.getLongValueFromAppPreferencesOrDefault("intervalBetweenRequestGroups", R.integer.default_interval_between_request_groups_value))
+            .atTheEndOfEveryIterationWaitFor(fragment.getMainActivity().getLongValueFromAppPreferencesOrDefault("intervalBetweenRequestGroups", R.integer.default_interval_between_request_groups_value))
             .activate();
         }
 
