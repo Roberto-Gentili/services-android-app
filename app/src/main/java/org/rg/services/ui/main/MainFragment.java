@@ -119,11 +119,11 @@ public class MainFragment extends Fragment {
 
     private synchronized void init() {
         stop();
-        ((LinearLayout)getView().findViewById(R.id.cryptoAmountBar)).setVisibility(View.INVISIBLE);
-        ((LinearLayout)getView().findViewById(R.id.clearedCryptoAmountBar)).setVisibility(View.INVISIBLE);
-        ((LinearLayout)getView().findViewById(R.id.balanceBar)).setVisibility(View.INVISIBLE);
-        ((LinearLayout)getView().findViewById(R.id.lastUpdateBar)).setVisibility(View.INVISIBLE);
-        ((LinearLayout)getView().findViewById(R.id.reportBar)).setVisibility(View.INVISIBLE);
+        ((LinearLayout) getView().findViewById(R.id.cryptoAmountBar)).setVisibility(View.INVISIBLE);
+        ((LinearLayout) getView().findViewById(R.id.clearedCryptoAmountBar)).setVisibility(View.INVISIBLE);
+        ((LinearLayout) getView().findViewById(R.id.balanceBar)).setVisibility(View.INVISIBLE);
+        ((LinearLayout) getView().findViewById(R.id.lastUpdateBar)).setVisibility(View.INVISIBLE);
+        ((LinearLayout) getView().findViewById(R.id.reportBar)).setVisibility(View.INVISIBLE);
         ((ProgressBar) getView().findViewById(R.id.updateReportProgressBar)).setVisibility(View.INVISIBLE);
         ((TextView) getView().findViewById(R.id.loadingDataAdvisor)).setVisibility(View.VISIBLE);
         ((ProgressBar) getView().findViewById(R.id.progressBar)).setVisibility(View.VISIBLE);
@@ -499,7 +499,7 @@ public class MainFragment extends Fragment {
                             if (totalInvestment != null) {
                                 fragment.setFixedHighlightedValue(clearedBalance, fragment.numberFormatterWithSignAndTwoDecimals, clearedAmount - totalInvestment);
                             }
-                            fragment.setHighlightedValue(lastUpdate, fragment.getMainActivity().getLastUpdateTimeAsString());
+                            fragment.setHighlightedValue(lastUpdate, MainActivity.Model.getLastUpdateTimeAsString());
                             if (loadingDataAdvisor.getVisibility() != View.INVISIBLE) {
                                 if (coinViewManager.isCurrencyInEuro()) {
                                     cryptoAmountCurrency.setText("€");
@@ -579,8 +579,6 @@ public class MainFragment extends Fragment {
         }
 
         private final MainFragment fragment;
-        private Map<String, Object> currentValues;
-        private Map<String, Map<Wallet, Map<String, Double>>> currentCoinValues;
         private Collection<CompletableFuture<Collection<String>>> retrievingCoinValueTasks;
         private Collection<String> coinsToBeAlwaysDisplayed;
         private AsyncLooper retrievingCoinValuesTask;
@@ -589,13 +587,11 @@ public class MainFragment extends Fragment {
 
         private CoinViewManager(MainFragment fragment) {
             this.fragment = fragment;
-            this.currentValues = new ConcurrentHashMap<>();
-            this.currentCoinValues = new ConcurrentHashMap<>();
             this.coinsToBeAlwaysDisplayed = Arrays.asList(fragment.appPreferences.getString("coinsToBeAlwaysDisplayed", "BTC, ETH").toUpperCase().replace(" ", "").split(",")).stream().filter(fragment::isStringNotEmpty).collect(Collectors.toList());
             headerLabels = new ArrayList<>();
             String totalInvestmentAsString = fragment.appPreferences.getString("totalInvestment", null);
             if (totalInvestmentAsString != null && !totalInvestmentAsString.isEmpty()) {
-                currentValues.put("totalInvestment", Double.valueOf(totalInvestmentAsString));
+                MainActivity.Model.currentValues.put("totalInvestment", Double.valueOf(totalInvestmentAsString));
             }
         }
 
@@ -775,6 +771,7 @@ public class MainFragment extends Fragment {
         }
 
         private AsyncLooper retrieveCoinValues() {
+            Map<String, Map<String, Map<String, Double>>> currentCoinValues = MainActivity.Model.currentCoinValues;
             Map<Wallet, CompletableFuture<Collection<String>>> coinToBeScannedSuppliers = new ConcurrentHashMap<>();
             launchCoinToBeScannedSuppliers(coinToBeScannedSuppliers);
             AsyncLooper coinsToBeScannedRetriever = new AsyncLooper(() -> {
@@ -796,13 +793,13 @@ public class MainFragment extends Fragment {
                                             () -> {
                                                 Double unitPriceInDollar = wallet.getValueForCoin(coinName);
                                                 Double quantity = wallet.getQuantityForCoin(coinName);
-                                                Map<Wallet, Map<String, Double>> allCoinValues = currentCoinValues.computeIfAbsent(coinName, key -> new ConcurrentHashMap<>());
-                                                Map<String, Double> coinValues = allCoinValues.computeIfAbsent(wallet, key -> new ConcurrentHashMap<>());
+                                                Map<String, Map<String, Double>> allCoinValues = currentCoinValues.computeIfAbsent(coinName, key -> new ConcurrentHashMap<>());
+                                                Map<String, Double> coinValues = allCoinValues.computeIfAbsent(wallet.getId(), key -> new ConcurrentHashMap<>());
                                                 coinValues.put("unitPrice", unitPriceInDollar);
                                                 MainActivity mainActivity = fragment.getMainActivity();
-                                                Optional.ofNullable(mainActivity).ifPresent(MainActivity::setLastUpdateTime);
+                                                Optional.ofNullable(mainActivity).ifPresent(mA -> MainActivity.Model.setLastUpdateTime());
                                                 coinValues.put("quantity", quantity);
-                                                Optional.ofNullable(mainActivity).ifPresent(MainActivity::setLastUpdateTime);
+                                                Optional.ofNullable(mainActivity).ifPresent(mA -> MainActivity.Model.setLastUpdateTime());
                                                 return (String)null;
                                             },
                                             fragment.getExecutorService()
@@ -880,28 +877,29 @@ public class MainFragment extends Fragment {
             if (retrievingCoinValueTasks == null) {
                 return false;
             }
-            if (!canBeRefreshed) {
+            MainActivity mainActivity = fragment.getMainActivity();
+            if (!MainActivity.Model.valueMapsHaveBeenFilledForFirstTime) {
                 if (retrievingCoinValueTasks.stream().map(CompletableFuture::join).filter(excMsgs -> !excMsgs.isEmpty()).count() > 0) {
                     setToNaNValuesIfNulls();
                     return false;
                 }
             }
-            Map<String, Map<Wallet, Map<String, Double>>> currentCoinValuesSnapshot = getCurrentCoinValuesSnapshot();
+            Map<String, Map<String, Map<String, Double>>> currentCoinValuesOrderedSnapshot = getCurrentCoinValuesOrderedSnapshot();
             Integer unitPriceRetrievingMode = Integer.valueOf(fragment.appPreferences.getString("unitPriceRetrievingMode", "3"));
             Supplier<Double> euroValueSupplier = null;
-            Function<Map.Entry<String, Map<Wallet, Map<String, Double>>>, Map<String, Double>> valuesRetriever = null;
+            Function<Map.Entry<String, Map<String, Map<String, Double>>>, Map<String, Double>> valuesRetriever = null;
             if (unitPriceRetrievingMode == 1 || unitPriceRetrievingMode == 2) {
                 BiPredicate<Double, Double> unitPriceTester = unitPriceRetrievingMode == 1 ?
                     (valueOne, valueTwo) -> valueOne < valueTwo :
                     (valueOne, valueTwo) -> valueOne > valueTwo;
-                euroValueSupplier = () -> retrieveValuesWithMinMaxUnitPrice(currentCoinValuesSnapshot.get("EUR").values(), unitPriceTester).get("unitPrice");
+                euroValueSupplier = () -> retrieveValuesWithMinMaxUnitPrice(currentCoinValuesOrderedSnapshot.get("EUR").values(), unitPriceTester).get("unitPrice");
                 valuesRetriever = allCoinValues -> retrieveValuesWithMinMaxUnitPrice(allCoinValues.getValue().values(), unitPriceTester);
             } else if (unitPriceRetrievingMode == 3) {
-                euroValueSupplier = () -> retrieveValuesWithAvgUnitPrice(currentCoinValuesSnapshot.get("EUR").values()).get("unitPrice");
+                euroValueSupplier = () -> retrieveValuesWithAvgUnitPrice(currentCoinValuesOrderedSnapshot.get("EUR").values()).get("unitPrice");
                 valuesRetriever = allCoinValues -> retrieveValuesWithAvgUnitPrice(allCoinValues.getValue().values());
             }
             Double euroValue = null;
-            if (fragment.isUseAlwaysTheDollarCurrencyForBalancesDisabled() && currentCoinValuesSnapshot.get("EUR") != null) {
+            if (fragment.isUseAlwaysTheDollarCurrencyForBalancesDisabled() && currentCoinValuesOrderedSnapshot.get("EUR") != null) {
                 setEuroValue(euroValue = euroValueSupplier.get());
             } else if (!fragment.isUseAlwaysTheDollarCurrencyForBalancesDisabled()) {
                 setEuroValue(euroValue);
@@ -912,7 +910,7 @@ public class MainFragment extends Fragment {
             Double amount = 0D;
             Map<String, Map<String, Double>> allCoinsValues = new TreeMap<>();
             Collection<String> coinsToBeRemoved = new HashSet<>();
-            for (Map.Entry<String, Map<Wallet, Map<String, Double>>> allCoinValues : currentCoinValuesSnapshot.entrySet()) {
+            for (Map.Entry<String, Map<String, Map<String, Double>>> allCoinValues : currentCoinValuesOrderedSnapshot.entrySet()) {
                 Map<String, Double> values = valuesRetriever.apply(allCoinValues);
                 Double coinQuantity = values.get("coinQuantity");
                 Double coinAmount = values.get("coinAmount");
@@ -959,6 +957,7 @@ public class MainFragment extends Fragment {
 
                 }
             }
+            MainActivity.Model.valueMapsHaveBeenFilledForFirstTime = true;
             return canBeRefreshed = true;
         }
 
@@ -987,15 +986,12 @@ public class MainFragment extends Fragment {
             return values;
         }
 
-        private Map<String, Map<Wallet, Map<String, Double>>> getCurrentCoinValuesSnapshot() {
-            Map<String, Map<Wallet, Map<String, Double>>> currentCoinValuesSnapshot =
-                !canBeRefreshed ?
-                    new TreeMap<>() :
-                    new ConcurrentHashMap<>();
-            for (Map.Entry<String, Map<Wallet, Map<String, Double>>> allCoinValues : currentCoinValues.entrySet()) {
-                Map<Wallet, Map<String, Double>> coinValuesForWallets = new HashMap<>();
+        private Map<String, Map<String, Map<String, Double>>> getCurrentCoinValuesOrderedSnapshot() {
+            Map<String, Map<String, Map<String, Double>>> currentCoinValuesSnapshot = new TreeMap<>();
+            for (Map.Entry<String, Map<String, Map<String, Double>>> allCoinValues : MainActivity.Model.currentCoinValues.entrySet()) {
+                Map<String, Map<String, Double>> coinValuesForWallets = new HashMap<>();
                 currentCoinValuesSnapshot.put(allCoinValues.getKey(), coinValuesForWallets);
-                for (Map.Entry<Wallet, Map<String, Double>> coinValuesForWallet : allCoinValues.getValue().entrySet()) {
+                for (Map.Entry<String, Map<String, Double>> coinValuesForWallet : allCoinValues.getValue().entrySet()) {
                     coinValuesForWallets.put(coinValuesForWallet.getKey(), new HashMap<>(coinValuesForWallet.getValue()));
                 }
             }
@@ -1054,7 +1050,7 @@ public class MainFragment extends Fragment {
         }
 
         public Double getAmountInDollar() {
-            return (Double)currentValues.get("amount");
+            return (Double)MainActivity.Model.currentValues.get("amount");
         }
 
         public Double getAmountInEuro() {
@@ -1066,7 +1062,7 @@ public class MainFragment extends Fragment {
         }
 
         public Double getEuroValue() {
-            return (Double)currentValues.get("euroValue");
+            return (Double)MainActivity.Model.currentValues.get("euroValue");
         }
 
         public Double getPureAmountInDollar() {
@@ -1088,19 +1084,19 @@ public class MainFragment extends Fragment {
         }
 
         public Double getTotalInvestment() {
-            return (Double)currentValues.get("totalInvestment");
+            return (Double)MainActivity.Model.currentValues.get("totalInvestment");
         }
 
         private void setEuroValue(Double value) {
             if (value != null) {
-                currentValues.put("euroValue", value);
+                MainActivity.Model.currentValues.put("euroValue", value);
             } else {
-                currentValues.remove("euroValue");
+                MainActivity.Model.currentValues.remove("euroValue");
             }
         }
 
         private void setAmount(Double value) {
-            currentValues.put("amount", value);
+            MainActivity.Model.currentValues.put("amount", value);
         }
 
     }

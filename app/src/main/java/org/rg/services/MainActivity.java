@@ -17,6 +17,9 @@ import org.rg.util.LoggerChain;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
+import java.util.Map;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.atomic.AtomicReference;
@@ -24,10 +27,73 @@ import java.util.function.Consumer;
 import java.util.function.Supplier;
 
 public class MainActivity extends AppCompatActivity {
-    private LocalDateTime lastUpdateTime;
-    private DateTimeFormatter dateFormatter;
-    private Supplier<ExecutorService> executorServiceSupplier;
-    private int executorServiceSize;
+
+    public static class Model {
+        public final static Map<String, Object> currentValues;
+        public final static Map<String, Map<String, Map<String, Double>>> currentCoinValues;
+        private final static DateTimeFormatter dateFormatter;
+        public static boolean valueMapsHaveBeenFilledForFirstTime;
+        private static LocalDateTime lastUpdateTime;
+
+        static {
+            currentValues = new ConcurrentHashMap<>();
+            currentCoinValues = new ConcurrentHashMap<>();
+            dateFormatter = DateTimeFormatter.ofPattern("HH:mm:ss - dd/MM/yyyy");
+        }
+
+        public static void setLastUpdateTime() {
+            lastUpdateTime = LocalDateTime.now(ZoneId.systemDefault());
+        }
+
+        public static String getLastUpdateTimeAsString() {
+            if (lastUpdateTime != null) {
+                return dateFormatter.format(lastUpdateTime);
+            }
+            return null;
+        }
+    }
+
+    public static class Engine {
+        private static ExecutorService executorService;
+        private static Supplier<Integer> executorServiceSupplierSizeSupplier;
+        private static int currentExecutorServiceSize;
+
+        private static ExecutorService getExecutorService() {
+            if (executorService == null || Engine.currentExecutorServiceSize != executorServiceSupplierSizeSupplier.get()) {
+                synchronized (Engine.class) {
+                    int currentExecutorServiceSize = executorServiceSupplierSizeSupplier.get();
+                    if (executorService == null || Engine.currentExecutorServiceSize != currentExecutorServiceSize) {
+                        ExecutorService oldExecutorService = executorService;
+                        //ForkJoinPool.commonPool()
+                        executorService = Executors.newFixedThreadPool(currentExecutorServiceSize);
+                        Engine.currentExecutorServiceSize = currentExecutorServiceSize;
+                        shutDown(oldExecutorService, () -> executorService);
+                    }
+                }
+            }
+            return executorService;
+        }
+
+        static void resetExecutorService() {
+            ExecutorService oldExecutorService = null;
+            synchronized (Engine.class) {
+                oldExecutorService = executorService;
+                executorService = null;
+            }
+            shutDown(oldExecutorService, Engine::getExecutorService);
+        }
+
+        private static void shutDown(ExecutorService toBeShuttedDown, Supplier<ExecutorService> executorSupplier) {
+            if (toBeShuttedDown != null) {
+                CompletableFuture.runAsync(() -> {
+                    toBeShuttedDown.shutdown();
+                }, executorSupplier.get());
+            }
+        }
+    }
+
+
+
 
     public MainActivity() {
         int SDK_INT = android.os.Build.VERSION.SDK_INT;
@@ -36,7 +102,7 @@ public class MainActivity extends AppCompatActivity {
                     .permitAll().build();
             StrictMode.setThreadPolicy(policy);
         }
-        dateFormatter = DateTimeFormatter.ofPattern("HH:mm:ss - dd/MM/yyyy");
+        Engine.executorServiceSupplierSizeSupplier = () -> Integer.valueOf(PreferenceManager.getDefaultSharedPreferences(this).getString("threadPoolSize", "6"));
         //RestTemplateSupplier.getSharedInstance().enableRequestLogger();
     }
 
@@ -52,27 +118,12 @@ public class MainActivity extends AppCompatActivity {
         };
         LoggerChain.getInstance().appendExceptionLogger(logger);
         LoggerChain.getInstance().appendInfoLogger(logger);
+        Engine.resetExecutorService();
         setContentView(R.layout.activity_main);
         if (savedInstanceState == null) {
             goToMainView();
         }
-        AtomicReference<ExecutorService> executorServiceWrapper = new AtomicReference<>();
-        executorServiceSupplier = () -> {
-            int currentExecutorServiceSize = Integer.valueOf(PreferenceManager.getDefaultSharedPreferences(this).getString("threadPoolSize", "6"));
-            if (executorServiceSize != currentExecutorServiceSize) {
-                synchronized (executorServiceSupplier) {
-                    if (executorServiceSize != currentExecutorServiceSize) {
-                        //ForkJoinPool.commonPool()
-                        ExecutorService oldExecutorService = executorServiceWrapper.getAndSet(Executors.newFixedThreadPool(currentExecutorServiceSize));
-                        executorServiceSize = currentExecutorServiceSize;
-                        if (oldExecutorService != null) {
-                            oldExecutorService.shutdown();
-                        }
-                    }
-                }
-            }
-            return executorServiceWrapper.get();
-        };
+
     }
 
     protected MainFragment getMainFragment(){
@@ -110,18 +161,7 @@ public class MainActivity extends AppCompatActivity {
             .commitNow();
     }
 
-    public void setLastUpdateTime() {
-        lastUpdateTime = LocalDateTime.now(ZoneId.systemDefault());
-    }
-
-    public String getLastUpdateTimeAsString() {
-        if (lastUpdateTime != null) {
-            return dateFormatter.format(lastUpdateTime);
-        }
-        return null;
-    }
-
     public ExecutorService getExecutorService() {
-        return executorServiceSupplier.get();
+        return Engine.getExecutorService();
     }
 }

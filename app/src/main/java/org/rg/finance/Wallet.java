@@ -21,6 +21,8 @@ import org.springframework.web.client.RestTemplate;
 
 public interface Wallet {
 
+	public String getId();
+
 	public String getName();
 
 	public Collection<String> getAvailableCoins();
@@ -48,6 +50,7 @@ public interface Wallet {
 	    protected RestTemplate restTemplate;
 		protected ExecutorService executorService;
 		protected Long timeOffset;
+		private final String id;
 
 		public Abst(RestTemplate restTemplate, String apiKey, String apiSecret, Map<String, String> aliasesForCoinNames, Map<String, String> coinCollaterals) {
 			this(restTemplate, null, apiKey, apiSecret, aliasesForCoinNames, coinCollaterals);
@@ -62,6 +65,12 @@ public interface Wallet {
 			this.executorService = executorService != null ? executorService : ForkJoinPool.commonPool();
 			this.timeOffset = -1000L;
 			this.name = getClass().getSimpleName();
+			this.id = name + "-" + apiKey;
+		}
+
+		@Override
+		public String getId() {
+			return id;
 		}
 
 		@Override
