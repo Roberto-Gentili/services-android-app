@@ -50,6 +50,7 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Objects;
@@ -723,6 +724,22 @@ public class MainFragment extends Fragment {
             return null;
         }
 
+        private void clearCoinTable() {
+            TableLayout coinsTable = (TableLayout) fragment.getMainActivity().findViewById(R.id.coinTable);
+            int childCount = coinsTable.getChildCount();
+            if (childCount > 1) {
+                String coinLabelText = fragment.getResources().getString(R.string.coinLabelText);
+                for (int i = 1; i < childCount; i++) {
+                    TableRow coinRow = (TableRow)coinsTable.getChildAt(i);
+                    if (coinRow != null) {
+                        fragment.runOnUIThread(() -> {
+                            coinsTable.removeView(coinRow);
+                        });
+                    }
+                }
+            }
+        }
+
         private TableRow removeCoinRow(String coinName) {
             TableLayout coinsTable = (TableLayout)fragment.getMainActivity().findViewById(R.id.coinTable);
             TableRow coinRow = getCoinRow(coinName);
@@ -893,31 +910,44 @@ public class MainFragment extends Fragment {
             }
             Double amount = 0D;
             Map<String, Map<String, Double>> allCoinsValues = new TreeMap<>();
-            Collection<String> coinsToBeRemoved = new HashSet<>();
-            for (Map.Entry<String, Map<String, Map<String, Double>>> allCoinValues : currentCoinValuesOrderedSnapshot.entrySet()) {
-                Map<String, Double> values = valuesRetriever.apply(allCoinValues);
+            Collection<Runnable> coinTableUpdaters = new ArrayList<>();
+            for (Map.Entry<String, Map<String, Map<String, Double>>> allCoinValuesFromCurrentOrderedSnapshot : currentCoinValuesOrderedSnapshot.entrySet()) {
+                Map<String, Double> values = valuesRetriever.apply(allCoinValuesFromCurrentOrderedSnapshot);
                 Double coinQuantity = values.get("coinQuantity");
                 Double coinAmount = values.get("coinAmount");
-                Double unitPrice = values.get("unitPrice");
-                if ((!coinAmount.isNaN() && (coinAmount > 0 || coinsToBeAlwaysDisplayed.contains(allCoinValues.getKey()))) ||
+                if ((!coinAmount.isNaN() && (coinAmount > 0 || coinsToBeAlwaysDisplayed.contains(allCoinValuesFromCurrentOrderedSnapshot.getKey()))) ||
                     (fragment.appPreferences.getBoolean("showNaNAmounts", true) && coinQuantity != 0D)) {
-                    setQuantityForCoin(allCoinValues.getKey(), coinQuantity);
-                    setAmountForCoin(allCoinValues.getKey(), coinAmount);
+                    coinTableUpdaters.add(() -> {
+                        setQuantityForCoin(allCoinValuesFromCurrentOrderedSnapshot.getKey(), coinQuantity);
+                        setAmountForCoin(allCoinValuesFromCurrentOrderedSnapshot.getKey(), coinAmount);
+                        setUnitPriceForCoinInDollar(allCoinValuesFromCurrentOrderedSnapshot.getKey(), values.get("unitPrice"));
+                    });
                     amount += (!coinAmount.isNaN() ? coinAmount : 0D);
-                    setUnitPriceForCoinInDollar(allCoinValues.getKey(), unitPrice);
-                    allCoinsValues.put(allCoinValues.getKey(), values);
+                    allCoinsValues.put(allCoinValuesFromCurrentOrderedSnapshot.getKey(), values);
                 } else if (coinAmount.isNaN()) {
-                    coinsToBeRemoved.add(allCoinValues.getKey());
+                    removeCoinRow(allCoinValuesFromCurrentOrderedSnapshot.getKey());
                 }
             }
-            setAmount(amount);
             if (canBeRefreshed) {
-                getShowedCoins().stream().filter(coinName -> !allCoinsValues.keySet().contains(coinName)).forEach(coinsToBeRemoved::add);
+                Collection<String> showedCoinsBeforeUpdate = getShowedCoins();
+                if (!showedCoinsBeforeUpdate.isEmpty()) {
+                    Collection<String> allCoinNames = allCoinsValues.keySet();
+                    if (allCoinNames.stream().filter(coinName -> !showedCoinsBeforeUpdate.contains(coinName)).count() > 0) {
+                        clearCoinTable();
+                    } else {
+                        Iterator<String> showedCoinsBeforeUpdateItr = showedCoinsBeforeUpdate.iterator();
+                        while (showedCoinsBeforeUpdateItr.hasNext()) {
+                            String coinName = showedCoinsBeforeUpdateItr.next();
+                            if (!allCoinNames.contains(coinName)) {
+                                removeCoinRow(coinName);
+                                showedCoinsBeforeUpdateItr.remove();
+                            }
+                        }
+                    }
+                }
             }
-            for (String coinName : coinsToBeRemoved) {
-                allCoinsValues.remove(coinName);
-                removeCoinRow(coinName);
-            }
+            coinTableUpdaters.stream().forEach(Runnable::run);
+            setAmount(amount);
             boolean showRUPEI = fragment.appPreferences.getBoolean("showRUPEI", true);
             boolean showDifferenceBetweenUPAndRUPEI = fragment.appPreferences.getBoolean("showDifferenceBetweenUPAndRUPEI", true);
             Double totalInvestment = getTotalInvestment();
