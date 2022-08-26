@@ -1,8 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <integer name="default_thread_pool_max_size">48</integer>
-    <integer name="default_thread_pool_min_size">7</integer>
+
+    <integer name="default_thread_pool_size">12</integer>
     <integer name="default_interval_between_request_groups_value">0</integer>
     <integer name="default_crypto_com_time_offset">-1000</integer>
+    <integer name="thread_pool_max_size">48</integer>
+    <integer name="thread_pool_min_size">7</integer>
 
 </resources>

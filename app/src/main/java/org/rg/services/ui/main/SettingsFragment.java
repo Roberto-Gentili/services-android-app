@@ -33,7 +33,7 @@ public class SettingsFragment extends PreferenceFragmentCompat {
         setEditTextPreferenceType("gitHubAuthorizationToken", InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_VARIATION_PASSWORD);
         setEditTextPreferenceType("coinsToBeAlwaysDisplayed", InputType.TYPE_TEXT_FLAG_CAP_CHARACTERS);
         setEditTextPreferenceType("intervalBetweenRequestGroups", InputType.TYPE_CLASS_NUMBER);
-        Optional.ofNullable(setEditTextPreferenceType("threadPoolSize", InputType.TYPE_CLASS_NUMBER)).ifPresent(pref -> setMinMaxFilter(pref, getResources().getInteger(R.integer.default_thread_pool_min_size), getResources().getInteger(R.integer.default_thread_pool_max_size)));
+        Optional.ofNullable(setEditTextPreferenceType("threadPoolSize", InputType.TYPE_CLASS_NUMBER)).ifPresent(pref -> setMinMaxFilter(pref, getResources().getInteger(R.integer.thread_pool_min_size), getResources().getInteger(R.integer.thread_pool_max_size)));
         setEditTextPreferenceType("totalInvestment", InputType.TYPE_CLASS_NUMBER | InputType.TYPE_NUMBER_FLAG_DECIMAL);
         disableAllDependentFieldsIfEmpty("totalInvestment", "showClearedBalance", "showRUPEI", "showDifferenceBetweenUPAndRUPEI");
     }

@@ -137,7 +137,7 @@ public class MainActivity extends AppCompatActivity {
             StrictMode.setThreadPolicy(policy);
         }
         Engine.executorServiceSupplierSizeSupplier = () ->
-            Integer.valueOf(PreferenceManager.getDefaultSharedPreferences(this).getString("threadPoolSize", String.valueOf(getResources().getInteger(R.integer.default_thread_pool_min_size))));
+            Integer.valueOf(PreferenceManager.getDefaultSharedPreferences(this).getString("threadPoolSize", String.valueOf(getResources().getInteger(R.integer.default_thread_pool_size))));
         //RestTemplateSupplier.getSharedInstance().enableRequestLogger();
     }
 
