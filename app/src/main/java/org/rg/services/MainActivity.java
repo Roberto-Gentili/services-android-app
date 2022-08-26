@@ -10,13 +10,19 @@ import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.preference.PreferenceManager;
 
+import org.rg.finance.Wallet;
 import org.rg.services.ui.main.MainFragment;
 import org.rg.services.ui.main.SettingsFragment;
 import org.rg.util.LoggerChain;
+import org.rg.util.RestTemplateSupplier;
+import org.rg.util.Throwables;
+import org.springframework.web.client.RestTemplate;
 
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
@@ -57,8 +63,37 @@ public class MainActivity extends AppCompatActivity {
         private static ExecutorService executorService;
         private static Supplier<Integer> executorServiceSupplierSizeSupplier;
         private static int currentExecutorServiceSize;
+        private final static Collection<Wallet> wallets;
 
-        private static ExecutorService getExecutorService() {
+        static {
+            wallets = new ArrayList<>();
+        }
+
+        public static <W extends Wallet> W getWallet(Class<W> type) {
+            W wallet = (W)wallets.stream().filter(wlt -> wlt.getClass().equals(type)).findFirst().orElseGet(() -> null);
+            if (wallet == null) {
+                synchronized(wallets) {
+                    if ((wallet = (W)wallets.stream().filter(wlt -> wlt.getClass().equals(type)).findFirst().orElseGet(() -> null)) == null) {
+                        try {
+                            wallets.add(
+                                wallet = type.getDeclaredConstructor(RestTemplate.class, Supplier.class, String.class, String.class)
+                                .newInstance(
+                                    RestTemplateSupplier.getSharedInstance().get(),
+                                    (Supplier<ExecutorService>)Engine::getExecutorService,
+                                    null,
+                                    null
+                                )
+                            );
+                        } catch (Throwable exc) {
+                            Throwables.sneakyThrow(exc);
+                        }
+                    }
+                }
+            }
+            return wallet;
+        }
+
+        public static ExecutorService getExecutorService() {
             if (executorService == null || Engine.currentExecutorServiceSize != executorServiceSupplierSizeSupplier.get()) {
                 synchronized (Engine.class) {
                     int currentExecutorServiceSize = executorServiceSupplierSizeSupplier.get();
@@ -159,9 +194,5 @@ public class MainActivity extends AppCompatActivity {
         getSupportFragmentManager().beginTransaction()
             .replace(R.id.container, new MainFragment())
             .commitNow();
-    }
-
-    public ExecutorService getExecutorService() {
-        return Engine.getExecutorService();
     }
 }

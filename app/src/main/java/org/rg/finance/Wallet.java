@@ -10,9 +10,11 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.TreeSet;
+import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.ForkJoinPool;
+import java.util.function.Supplier;
 
 import org.rg.util.LoggerChain;
 import org.rg.util.RestTemplateSupplier;
@@ -21,9 +23,15 @@ import org.springframework.web.client.RestTemplate;
 
 public interface Wallet {
 
+	public void setExecutorServiceSupplier(Supplier<ExecutorService> executorServiceSupplier);
+
 	public String getId();
 
 	public String getName();
+
+	public void setApiKey(String newValue);
+
+	public void setApiSecret(String newValue);
 
 	public Collection<String> getAvailableCoins();
 
@@ -48,7 +56,7 @@ public interface Wallet {
 		protected Map<String, String> aliasesForCoinNames;
 	    protected Map<String, String> coinCollaterals;
 	    protected RestTemplate restTemplate;
-		protected ExecutorService executorService;
+		protected Supplier<ExecutorService> executorServiceSupplier;
 		protected Long timeOffset;
 		private final String id;
 
@@ -56,16 +64,16 @@ public interface Wallet {
 			this(restTemplate, null, apiKey, apiSecret, aliasesForCoinNames, coinCollaterals);
 		}
 
-	    public Abst(RestTemplate restTemplate, ExecutorService executorService, String apiKey, String apiSecret, Map<String, String> aliasesForCoinNames, Map<String, String> coinCollaterals) {
+	    public Abst(RestTemplate restTemplate, Supplier<ExecutorService> executorServiceSupplier, String apiKey, String apiSecret, Map<String, String> aliasesForCoinNames, Map<String, String> coinCollaterals) {
 			this.apiKey = apiKey;
 			this.apiSecret = apiSecret;
 			this.aliasesForCoinNames = aliasesForCoinNames;
 			this.coinCollaterals = coinCollaterals;
 			this.restTemplate = Optional.ofNullable(restTemplate).orElseGet(RestTemplateSupplier.getSharedInstance()::get);
-			this.executorService = executorService != null ? executorService : ForkJoinPool.commonPool();
+			setExecutorServiceSupplier(executorServiceSupplier);
 			this.timeOffset = -1000L;
 			this.name = getClass().getSimpleName();
-			this.id = name + "-" + apiKey;
+			this.id = getClass().getName() + "-" + UUID.randomUUID().toString();
 		}
 
 		@Override
@@ -76,6 +84,21 @@ public interface Wallet {
 		@Override
 		public String getName() {
 			return name;
+		}
+
+		@Override
+		public void setExecutorServiceSupplier(Supplier<ExecutorService> executorServiceSupplier) {
+			this.executorServiceSupplier = executorServiceSupplier != null ? executorServiceSupplier : () -> ForkJoinPool.commonPool();
+		}
+
+		@Override
+		public void setApiKey(String newValue) {
+			this.apiKey = newValue;
+		}
+
+		@Override
+		public void setApiSecret(String newValue) {
+			this.apiSecret = newValue;
 		}
 
 		@Override
@@ -146,7 +169,7 @@ public interface Wallet {
 			Collection<CompletableFuture<Double>> tasks = new ArrayList<>();
 			for (String coinName : getOwnedCoinsWithEffectiveNames()) {
 				tasks.add(CompletableFuture.supplyAsync(() ->
-					this.getAmountForCoin(coinName), executorService)
+					this.getAmountForCoin(coinName), executorServiceSupplier.get())
 				);
 			}
 			return tasks.stream().mapToDouble(CompletableFuture::join).sum();

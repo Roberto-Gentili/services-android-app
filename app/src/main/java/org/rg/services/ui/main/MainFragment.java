@@ -135,24 +135,18 @@ public class MainFragment extends Fragment {
         boolean cryptoComWalletEnabled = appPreferences.getBoolean("cryptoComWalletEnabled", true);
         wallets.clear();
         if (isStringNotEmpty(cryptoComApiKey) && isStringNotEmpty(cryptoComApiSecret) && cryptoComWalletEnabled) {
-            CryptoComWallet wallet = new CryptoComWallet(
-                    RestTemplateSupplier.getSharedInstance().get(),
-                    getExecutorService(),
-                    cryptoComApiKey,
-                    cryptoComApiSecret
-            );
+            CryptoComWallet wallet = MainActivity.Engine.getWallet(CryptoComWallet.class);
+            wallet.setApiKey(cryptoComApiKey);
+            wallet.setApiSecret(cryptoComApiSecret);
             wallet.setTimeOffset(Long.valueOf(
-                    appPreferences.getString("cryptoComTimeOffset", "-1000")
+                appPreferences.getString("cryptoComTimeOffset", "-1000")
             ));
             wallets.add(wallet);
         }
         if (isStringNotEmpty(binanceApiKey) && isStringNotEmpty(binanceApiSecret) && binanceWalletEnabled) {
-            BinanceWallet wallet = new BinanceWallet(
-                    RestTemplateSupplier.getSharedInstance().get(),
-                    getExecutorService(),
-                    binanceApiKey,
-                    binanceApiSecret
-            );
+            BinanceWallet wallet = MainActivity.Engine.getWallet(BinanceWallet.class);
+            wallet.setApiKey(binanceApiKey);
+            wallet.setApiSecret(binanceApiSecret);
             wallets.add(wallet);
         }
         if (!wallets.isEmpty()) {
@@ -180,7 +174,7 @@ public class MainFragment extends Fragment {
     }
 
     private ExecutorService getExecutorService() {
-        return getMainActivity().getExecutorService();
+        return MainActivity.Engine.getExecutorService();
     }
 
     private boolean isUseAlwaysTheDollarCurrencyForBalancesDisabled() {

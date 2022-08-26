@@ -9,6 +9,7 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.TreeSet;
 import java.util.concurrent.ExecutorService;
+import java.util.function.Supplier;
 
 import javax.crypto.Mac;
 import javax.crypto.spec.SecretKeySpec;
@@ -27,14 +28,14 @@ import org.springframework.web.util.UriComponentsBuilder;
 public class BinanceWallet extends Wallet.Abst {
 
     public BinanceWallet(
-            RestTemplate restTemplate,
-            ExecutorService executorService,
-            String apiKey,
-            String apiSecret,
-            Map<String, String> aliasesForCoinNames,
-            Map<String, String> coinCollaterals
+        RestTemplate restTemplate,
+        Supplier<ExecutorService> executorServiceSupplier,
+        String apiKey,
+        String apiSecret,
+        Map<String, String> aliasesForCoinNames,
+        Map<String, String> coinCollaterals
     ) {
-        super(restTemplate, executorService, apiKey, apiSecret,
+        super(restTemplate, executorServiceSupplier, apiKey, apiSecret,
             Optional.ofNullable(aliasesForCoinNames).orElseGet(()-> {
                 return new LinkedHashMap<>();
             }),
@@ -51,34 +52,35 @@ public class BinanceWallet extends Wallet.Abst {
     }
 
     public BinanceWallet(
-            RestTemplate restTemplate,
-            ExecutorService executorService,
-            String apiKey,
-            String apiSecret) {
-        this(restTemplate, executorService, apiKey, apiSecret, null, null);
+        RestTemplate restTemplate,
+        Supplier<ExecutorService> executorServiceSupplier,
+        String apiKey,
+        String apiSecret
+    ) {
+        this(restTemplate, executorServiceSupplier, apiKey, apiSecret, null, null);
     }
 
     public BinanceWallet(
-            RestTemplate restTemplate,
-            String apiKey,
-            String apiSecret,
-            Map<String, String> aliasesForCoinNames,
-            Map<String, String> coinCollaterals
+        RestTemplate restTemplate,
+        String apiKey,
+        String apiSecret,
+        Map<String, String> aliasesForCoinNames,
+        Map<String, String> coinCollaterals
     ) {
         this(restTemplate, null, apiKey, apiSecret, aliasesForCoinNames, coinCollaterals);
     }
 
     public BinanceWallet(
-            RestTemplate restTemplate,
-            String apiKey,
-            String apiSecret
+        RestTemplate restTemplate,
+        String apiKey,
+        String apiSecret
     ) {
         this(restTemplate, null, apiKey, apiSecret, null, null);
     }
 
     public BinanceWallet(
-            String apiKey,
-            String apiSecret
+        String apiKey,
+        String apiSecret
     ) {
         this(null, null, apiKey, apiSecret, null, null);
     }

@@ -14,6 +14,7 @@ import java.util.Optional;
 import java.util.TreeMap;
 import java.util.TreeSet;
 import java.util.concurrent.ExecutorService;
+import java.util.function.Supplier;
 
 import javax.crypto.Mac;
 import javax.crypto.spec.SecretKeySpec;
@@ -36,13 +37,13 @@ public class CryptoComWallet extends Wallet.Abst {
 
 	public CryptoComWallet(
 		RestTemplate restTemplate,
-		ExecutorService executorService,
+		Supplier<ExecutorService> executorServiceSupplier,
 		String apiKey,
 		String apiSecret,
 		Map<String, String> aliasesForCoinNames,
 		Map<String, String> coinCollaterals
 	) {
-		super(restTemplate, executorService, apiKey, apiSecret,
+		super(restTemplate, executorServiceSupplier, apiKey, apiSecret,
 		Optional.ofNullable(aliasesForCoinNames).orElseGet(()-> {
 			Map<String, String> valueMap = new LinkedHashMap<>();
 			valueMap.put("LUNA", "LUNA2");
@@ -61,10 +62,11 @@ public class CryptoComWallet extends Wallet.Abst {
 
 	public CryptoComWallet(
 		RestTemplate restTemplate,
-		ExecutorService executorService,
+		Supplier<ExecutorService> executorServiceSupplier,
 		String apiKey,
-		String apiSecret) {
-		this(restTemplate, executorService, apiKey, apiSecret, null, null);
+		String apiSecret
+	) {
+		this(restTemplate, executorServiceSupplier, apiKey, apiSecret, null, null);
 	}
 
 	public CryptoComWallet(
