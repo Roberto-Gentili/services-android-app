@@ -912,8 +912,7 @@ public class MainFragment extends Fragment {
             }
             setAmount(amount);
             if (canBeRefreshed) {
-                Collection<String> showedCoins = getShowedCoins();
-                showedCoins.stream().filter(coinName -> !allCoinsValues.keySet().contains(coinName)).forEach(coinsToBeRemoved::add);
+                getShowedCoins().stream().filter(coinName -> !allCoinsValues.keySet().contains(coinName)).forEach(coinsToBeRemoved::add);
             }
             for (String coinName : coinsToBeRemoved) {
                 allCoinsValues.remove(coinName);
