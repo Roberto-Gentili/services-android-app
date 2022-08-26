@@ -84,7 +84,7 @@
                             android:id="@+id/clearedCryptoAmountLabel"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:text="@string/clearedCryptoAmountText"
+                            android:text="@string/clearedCryptoAmountLabelText"
                             android:textAlignment="viewStart"
                             android:textColor="@color/yellow"
                             android:textSize="@dimen/balances_item_text_size" />
@@ -122,7 +122,7 @@
                             android:id="@+id/clearedBalanceLabel"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:text="@string/clearedBalanceText"
+                            android:text="@string/clearedBalanceLabelText"
                             android:textAlignment="viewStart"
                             android:textColor="@color/yellow"
                             android:textSize="@dimen/balances_item_text_size" />
@@ -200,7 +200,7 @@
                             android:layout_height="wrap_content"
                             android:layout_marginStart="@dimen/update_report_button_margin_start_size"
                             android:backgroundTint="#E91E63"
-                            android:text="@string/updateReportText"
+                            android:text="@string/updateReportButtonText"
                             app:layout_constraintStart_toEndOf="@id/linkToReport" />
 
                         <ProgressBar

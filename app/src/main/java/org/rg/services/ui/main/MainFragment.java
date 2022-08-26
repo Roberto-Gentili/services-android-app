@@ -554,16 +554,6 @@ public class MainFragment extends Fragment {
     }
 
     private static class CoinViewManager {
-        private static class HeaderLabel {
-            private final static String COIN = "Coin";
-            private final static String UP_IN_USDT = "UP ($)";
-            private final static String RUPEI_IN_USDT = "RUPEI ($)";
-            private final static String DIFFERENCE_BETWEEN_UP_AND_RUPEI_UP_IN_USDT = "UP-RUPEI ($)";
-            private final static String QUANTITY = "Quantity";
-            private final static String AMOUNT_IN_USDT = "Am ($)";
-            private final static String AMOUNT_IN_EURO = "Am (€)";
-        }
-
         private final MainFragment fragment;
         private Collection<CompletableFuture<Collection<String>>> retrievingCoinValueTasks;
         private Collection<String> coinsToBeAlwaysDisplayed;
@@ -582,21 +572,21 @@ public class MainFragment extends Fragment {
         }
 
         private void setUpHeaderLabelsForSpaces() {
-            headerLabels.add(HeaderLabel.COIN);
-            headerLabels.add(HeaderLabel.UP_IN_USDT);
+            headerLabels.add(fragment.getResources().getString(R.string.coinLabelText));
+            headerLabels.add(fragment.getResources().getString(R.string.unitPriceInUSDLabelText));
             if (getTotalInvestment() != null) {
                 if (fragment.appPreferences.getBoolean("showRUPEI", true)) {
-                    headerLabels.add(HeaderLabel.RUPEI_IN_USDT);
+                    headerLabels.add(fragment.getResources().getString(R.string.rUPEIInUSDLabelText));
                 }
                 if (fragment.appPreferences.getBoolean("showDifferenceBetweenUPAndRUPEI", false)) {
-                    headerLabels.add(HeaderLabel.DIFFERENCE_BETWEEN_UP_AND_RUPEI_UP_IN_USDT);
+                    headerLabels.add(fragment.getResources().getString(R.string.differenceBetweenUnitPriceAndRUPEIInUSD));
                 }
             }
-            headerLabels.add(HeaderLabel.QUANTITY);
+            headerLabels.add(fragment.getResources().getString(R.string.quantityLabelText));
             if (isCurrencyInEuro()) {
-                headerLabels.add(HeaderLabel.AMOUNT_IN_EURO);
+                headerLabels.add(fragment.getResources().getString(R.string.amountInEuroLabelText));
             } else {
-                headerLabels.add(HeaderLabel.AMOUNT_IN_USDT);
+                headerLabels.add(fragment.getResources().getString(R.string.amountInUSDLabelText));
             }
         }
 
@@ -622,25 +612,26 @@ public class MainFragment extends Fragment {
         }
 
         private void setUnitPriceForCoinInDollar(String coinName, Double value) {
-            setValueForCoin(coinName, value, getIndexOfHeaderLabel(HeaderLabel.UP_IN_USDT), fragment.numberFormatterWithFiveVariableDecimals);
+            setValueForCoin(coinName, value, getIndexOfHeaderLabel(fragment.getResources().getString(R.string.unitPriceInUSDLabelText)), fragment.numberFormatterWithFiveVariableDecimals);
         }
 
         private void setQuantityForCoin(String coinName, Double value) {
-            setValueForCoin(coinName, value, getIndexOfHeaderLabel(HeaderLabel.QUANTITY), fragment.numberFormatterWithFiveVariableDecimals);
+            setValueForCoin(coinName, value, getIndexOfHeaderLabel(fragment.getResources().getString(R.string.quantityLabelText)), fragment.numberFormatterWithFiveVariableDecimals);
         }
 
         private void setAmountForCoin(String coinName, Double value) {
-            int index = headerLabels.contains(HeaderLabel.AMOUNT_IN_EURO) ?
-                getIndexOfHeaderLabel(HeaderLabel.AMOUNT_IN_EURO) : getIndexOfHeaderLabel(HeaderLabel.AMOUNT_IN_USDT);
+            String amountInEuroLabelText = fragment.getResources().getString(R.string.amountInEuroLabelText);
+            int index = headerLabels.contains(amountInEuroLabelText) ?
+                getIndexOfHeaderLabel(amountInEuroLabelText) : getIndexOfHeaderLabel(fragment.getResources().getString(R.string.amountInUSDLabelText));
             setValueForCoin(coinName, isCurrencyInEuro() ? value / getEuroValue() : value, index, fragment.numberFormatterWithTwoVariableDecimals);
         }
 
         private void setRUPEIForCoin(String coinName, Double value) {
-            setValueForCoin(coinName, value, getIndexOfHeaderLabel(HeaderLabel.RUPEI_IN_USDT), fragment.numberFormatterWithFiveVariableDecimals, true);
+            setValueForCoin(coinName, value, getIndexOfHeaderLabel(fragment.getResources().getString(R.string.rUPEIInUSDLabelText)), fragment.numberFormatterWithFiveVariableDecimals, true);
         }
 
         private void setDifferenceBetweenUPAndRUPEIForCoin(String coinName, Double value) {
-            setValueForCoin(coinName, value, getIndexOfHeaderLabel(HeaderLabel.DIFFERENCE_BETWEEN_UP_AND_RUPEI_UP_IN_USDT), fragment.numberFormatterWithFiveVariableDecimals, false);
+            setValueForCoin(coinName, value, getIndexOfHeaderLabel(fragment.getResources().getString(R.string.differenceBetweenUnitPriceAndRUPEIInUSD)), fragment.numberFormatterWithFiveVariableDecimals, false);
         }
 
         private void setValueForCoin(String coinName, Double value, int columnIndex, DecimalFormat numberFormatter) {
@@ -715,9 +706,10 @@ public class MainFragment extends Fragment {
             TableLayout coinsTable = (TableLayout) fragment.getMainActivity().findViewById(R.id.coinTable);
             int childCount = coinsTable.getChildCount();
             if (childCount > 1) {
+                String coinLabelText = fragment.getResources().getString(R.string.coinLabelText);
                 for (int i = 1; i < childCount; i++) {
                     TableRow coinRow = (TableRow) coinsTable.getChildAt(i);
-                    TextView coinNameTextView = (TextView) coinRow.getChildAt(getIndexOfHeaderLabel(HeaderLabel.COIN));
+                    TextView coinNameTextView = (TextView) coinRow.getChildAt(getIndexOfHeaderLabel(coinLabelText));
                     if (coinNameTextView.getText().equals(coinName)) {
                         return coinRow;
                     }
@@ -852,9 +844,10 @@ public class MainFragment extends Fragment {
         private Collection<String> getShowedCoins() {
             TableLayout coinsTable = (TableLayout)fragment.getMainActivity().findViewById(R.id.coinTable);
             Collection<String> showedCoins = new HashSet<>();
+            String coinLabelText = fragment.getResources().getString(R.string.coinLabelText);
             for (int i = 1; i < coinsTable.getChildCount(); i++) {
                 TableRow row = (TableRow)coinsTable.getChildAt(i);
-                showedCoins.add(String.valueOf(((TextView)row.getChildAt(getIndexOfHeaderLabel(HeaderLabel.COIN))).getText()));
+                showedCoins.add(String.valueOf(((TextView)row.getChildAt(getIndexOfHeaderLabel(coinLabelText))).getText()));
             }
             return showedCoins;
         }
