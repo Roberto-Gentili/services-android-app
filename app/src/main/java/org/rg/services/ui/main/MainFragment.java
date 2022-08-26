@@ -759,7 +759,7 @@ public class MainFragment extends Fragment {
             launchCoinToBeScannedSuppliers(coinToBeScannedSuppliers);
             AsyncLooper coinsToBeScannedRetriever = new AsyncLooper(() -> {
                 launchCoinToBeScannedSuppliers(coinToBeScannedSuppliers);
-            }, fragment.getExecutorService()).atTheStartOfEveryIterationWaitFor(90000L);
+            }, fragment.getExecutorService()).atTheStartOfEveryIterationWaitFor(30000L);
             return new AsyncLooper(() -> {
                 Collection<String> scannedCoins = ConcurrentHashMap.newKeySet();
                 Collection<CompletableFuture<Collection<String>>> retrievingCoinValueTasks = new CopyOnWriteArrayList<>();
@@ -913,7 +913,7 @@ public class MainFragment extends Fragment {
             setAmount(amount);
             if (canBeRefreshed) {
                 Collection<String> showedCoins = getShowedCoins();
-                allCoinsValues.keySet().stream().filter(coinName -> !showedCoins.contains(coinName)).forEach(coinsToBeRemoved::add);
+                showedCoins.stream().filter(coinName -> !allCoinsValues.keySet().contains(coinName)).forEach(coinsToBeRemoved::add);
             }
             for (String coinName : coinsToBeRemoved) {
                 allCoinsValues.remove(coinName);
