@@ -58,6 +58,7 @@ public class CryptoComWallet extends Wallet.Abst {
 			return valueMap;
 		}));
 		this.name = "Crypto.com wallet";
+		this.timeOffset = -1000L;
 	}
 
 	public CryptoComWallet(

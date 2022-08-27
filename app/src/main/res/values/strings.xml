@@ -10,6 +10,8 @@
     <string name="clearedCryptoAmountLabelText">Cleared am.:</string>
     <string name="clearedBalanceLabelText">Cleared bal.:</string>
     <string name="cryptoAmountLabelText">Amount:</string>
+    <string name="currentTimeRetrievingModeLabelText">Current time retrieving mode</string>
+    <string name="default_current_time_retrieving_mode_for_binance_wallet">1</string>
     <string name="enabledLabelText">Enabled</string>
     <string name="intervalBetweenRequestGroupsTextLabel">Interval between request groups (in milliseconds)</string>
     <string name="lastUpdateLabelText">Last update:</string>
@@ -25,6 +27,7 @@
     <string name="totalInvestmentLabelText">Total investment</string>
     <string name="timeOffsetLabelText">Time offset (in milliseconds)</string>
     <string name="threadPoolSizeTextLabel">Thread pool size</string>
+    <string name="unitPriceRetrievingModeLabelText">Unit price retrieving mode</string>
     <string name="updateReportButtonText">Update report</string>
     <string name="useAlwaysTheDollarCurrencyForBalancesLabelText">Use always the Dollar currency for balances</string>
 

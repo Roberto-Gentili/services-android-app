@@ -26,6 +26,20 @@ import org.springframework.web.util.UriComponentsBuilder;
 
 @SuppressWarnings({ "rawtypes", "unchecked" })
 public class BinanceWallet extends Wallet.Abst {
+    private final Supplier<Long> currentTimeMillisFromBinanceServersRetriever = () -> {
+        UriComponents uriComponents = UriComponentsBuilder.newInstance().scheme("https").host("api.binance.com")
+                .pathSegment("api")
+                .pathSegment("v3")
+                .pathSegment("time").build();
+        HttpHeaders headers = new HttpHeaders();
+        headers.add("X-MBX-APIKEY", apiKey);
+        ResponseEntity<Map> response = restTemplate.exchange(uriComponents.toString(), HttpMethod.GET, new HttpEntity<String>(headers), Map.class);
+        return (Long)response.getBody().get("serverTime");
+    };
+
+    private final Supplier<Long> defaultCurrentTimeMillisRetriever = super::retrieveCurrentTime;
+
+    private Supplier<Long> currentTimeMillisSupplier;
 
     public BinanceWallet(
         RestTemplate restTemplate,
@@ -49,6 +63,7 @@ public class BinanceWallet extends Wallet.Abst {
             })
         );
         this.name = "Binance wallet";
+        this.currentTimeMillisSupplier = defaultCurrentTimeMillisRetriever;
     }
 
     public BinanceWallet(
@@ -83,6 +98,14 @@ public class BinanceWallet extends Wallet.Abst {
         String apiSecret
     ) {
         this(null, null, apiKey, apiSecret, null, null);
+    }
+
+    public void enableCurrentTimeMillisFromBinanceServersRetriever() {
+        this.currentTimeMillisSupplier = currentTimeMillisFromBinanceServersRetriever;
+    }
+
+    public void enableDefaultCurrentTimeMillisRetrieverRetriever() {
+        this.currentTimeMillisSupplier = defaultCurrentTimeMillisRetriever;
     }
 
     @Override
@@ -203,15 +226,8 @@ public class BinanceWallet extends Wallet.Abst {
     }
 
     @Override
-    protected Long currentTimeMillis() {
-        UriComponents uriComponents = UriComponentsBuilder.newInstance().scheme("https").host("api.binance.com")
-                .pathSegment("api")
-                .pathSegment("v3")
-                .pathSegment("time").build();
-        HttpHeaders headers = new HttpHeaders();
-        headers.add("X-MBX-APIKEY", apiKey);
-        ResponseEntity<Map> response = restTemplate.exchange(uriComponents.toString(), HttpMethod.GET, new HttpEntity<String>(headers), Map.class);
-        return (Long)response.getBody().get("serverTime");
+    protected Long retrieveCurrentTime() {
+        return currentTimeMillisSupplier.get();
     }
 
     private Map<Object, Object> getAccount() {

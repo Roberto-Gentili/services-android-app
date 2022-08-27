@@ -71,7 +71,7 @@ public interface Wallet {
 			this.coinCollaterals = coinCollaterals;
 			this.restTemplate = Optional.ofNullable(restTemplate).orElseGet(RestTemplateSupplier.getSharedInstance()::get);
 			setExecutorServiceSupplier(executorServiceSupplier);
-			this.timeOffset = -1000L;
+			this.timeOffset = 0L;
 			this.name = getClass().getSimpleName();
 			this.id = getClass().getName() + "-" + UUID.randomUUID().toString();
 		}
@@ -209,8 +209,12 @@ public interface Wallet {
 	    }
 
 	    protected Long currentTimeMillis() {
-	        return LocalDateTime.now().atZone(ZoneId.systemDefault()).toInstant().toEpochMilli() + this.timeOffset;
+	        return  retrieveCurrentTime() + this.timeOffset;
 	    }
+
+		protected Long retrieveCurrentTime() {
+			return LocalDateTime.now().atZone(ZoneId.systemDefault()).toInstant().toEpochMilli();
+		}
 
 		public void setTimeOffset(Long timeOffset) {
 			this.timeOffset = timeOffset;

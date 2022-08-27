@@ -135,6 +135,12 @@ public class MainFragment extends Fragment {
             if (wallet.setApiKey(binanceApiKey) | wallet.setApiSecret(binanceApiSecret)) {
                 MainActivity.Model.isReadyToBeShown = false;
             }
+            int currentTimeRetrievingMode = Integer.valueOf(appPreferences.getString("binanceCurrentTimeRetrievingMode", getResources().getString(R.string.default_current_time_retrieving_mode_for_binance_wallet)));
+            if (currentTimeRetrievingMode == 1) {
+                wallet.enableDefaultCurrentTimeMillisRetrieverRetriever();
+            } else if (currentTimeRetrievingMode == 2) {
+                wallet.enableCurrentTimeMillisFromBinanceServersRetriever();
+            }
             wallets.add(wallet);
         }
         if (wallets.isEmpty()) {

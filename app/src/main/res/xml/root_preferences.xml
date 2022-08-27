@@ -11,6 +11,13 @@
             app:key="binanceApiSecret"
             app:title="@string/apiSecretsLabelText"
             app:useSimpleSummaryProvider="false" />
+        <ListPreference
+            app:key="binanceCurrentTimeRetrievingMode"
+            app:title="@string/currentTimeRetrievingModeLabelText"
+            app:defaultValue="@string/default_current_time_retrieving_mode_for_binance_wallet"
+            app:entries="@array/currentTimeRetrievingModeLabels"
+            app:entryValues="@array/currentTimeRetrievingModeIds"
+            app:useSimpleSummaryProvider="true" />
         <CheckBoxPreference
             app:key="binanceWalletEnabled"
             app:title="@string/enabledLabelText"
@@ -26,15 +33,15 @@
             app:key="cryptoComApiSecret"
             app:title="@string/apiSecretsLabelText"
             app:useSimpleSummaryProvider="false" />
-        <CheckBoxPreference
-            app:key="cryptoComWalletEnabled"
-            app:title="@string/enabledLabelText"
-            app:defaultValue="true" />
         <EditTextPreference
             app:key="cryptoComTimeOffset"
             app:title="@string/timeOffsetLabelText"
             app:useSimpleSummaryProvider="true"
             app:defaultValue="@integer/default_crypto_com_time_offset"/>
+        <CheckBoxPreference
+            app:key="cryptoComWalletEnabled"
+            app:title="@string/enabledLabelText"
+            app:defaultValue="true" />
     </PreferenceCategory>
 
     <PreferenceCategory app:title="GitHub">
@@ -55,7 +62,7 @@
             app:defaultValue="true" />
         <ListPreference
             app:key="unitPriceRetrievingMode"
-            app:title="Unit price retrieving mode"
+            app:title="@string/unitPriceRetrievingModeLabelText"
             app:defaultValue="3"
             app:entries="@array/unitPriceRetrievingModeLabels"
             app:entryValues="@array/unitPriceRetrievingModeIds"
