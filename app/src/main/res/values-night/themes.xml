@@ -16,5 +16,6 @@
         <!-- Customize your theme here. -->
         <item name="actionBarSize">36dp</item>
         <item name="windowActionBarOverlay">true</item>
+        <item name="android:navigationBarColor">@color/black</item>
     </style>
 </resources>
