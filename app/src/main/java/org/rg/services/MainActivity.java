@@ -35,8 +35,9 @@ public class MainActivity extends AppCompatActivity {
 
     public static class Model {
         public final static Map<String, Object> currentValues;
-        public final static Map<String, Map<String, Map<String, Double>>> currentCoinValues;
+        public final static Map<String, Map<String, Map<String, Object>>> currentCoinValues;
         private final static DateTimeFormatter dateFormatter;
+        private final static DateTimeFormatter timeFormatter;
         public static boolean isReadyToBeShown;
         private static LocalDateTime lastUpdateTime;
 
@@ -44,17 +45,26 @@ public class MainActivity extends AppCompatActivity {
             currentValues = new ConcurrentHashMap<>();
             currentCoinValues = new ConcurrentHashMap<>();
             dateFormatter = DateTimeFormatter.ofPattern("HH:mm:ss - dd/MM/yyyy");
+            timeFormatter = DateTimeFormatter.ofPattern("HH:mm:ss");
         }
 
-        public static void setLastUpdateTime() {
-            lastUpdateTime = LocalDateTime.now(ZoneId.systemDefault());
+        public static LocalDateTime setLastUpdateTime() {
+            return lastUpdateTime = LocalDateTime.now(ZoneId.systemDefault());
         }
 
         public static String getLastUpdateTimeAsString() {
-            if (lastUpdateTime != null) {
-                return dateFormatter.format(lastUpdateTime);
+            return format(lastUpdateTime);
+        }
+
+        public static String format(LocalDateTime time) {
+            if (time != null) {
+                return dateFormatter.format(time);
             }
             return null;
+        }
+
+        public static DateTimeFormatter getTimeFormatter() {
+            return timeFormatter;
         }
     }
 
@@ -125,9 +135,6 @@ public class MainActivity extends AppCompatActivity {
             }
         }
     }
-
-
-
 
     public MainActivity() {
         int SDK_INT = android.os.Build.VERSION.SDK_INT;

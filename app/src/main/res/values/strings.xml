@@ -17,6 +17,7 @@
     <string name="enabledLabelText">Enabled</string>
     <string name="intervalBetweenRequestGroupsTextLabel">Interval between request groups (in milliseconds)</string>
     <string name="lastUpdateLabelText">Last update:</string>
+    <string name="lastUpdateForCoinLabelText">Last update</string>
     <string name="linkToReport"><![CDATA[<a href="&reportUrl;">Download report</a>]]></string>
     <string name="loadingDataText">Loading data</string>
     <string name="quantityLabelText">Quantity</string>
