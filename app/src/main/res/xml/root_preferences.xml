@@ -14,10 +14,15 @@
         <ListPreference
             app:key="binanceCurrentTimeRetrievingMode"
             app:title="@string/currentTimeRetrievingModeLabelText"
-            app:defaultValue="@string/default_current_time_retrieving_mode_for_binance_wallet"
+            app:defaultValue="@integer/default_binance_current_time_retrieving_mode"
             app:entries="@array/currentTimeRetrievingModeLabels"
             app:entryValues="@array/currentTimeRetrievingModeIds"
             app:useSimpleSummaryProvider="true" />
+        <EditTextPreference
+            app:key="binanceTimeOffset"
+            app:title="@string/timeOffsetLabelText"
+            app:useSimpleSummaryProvider="true"
+            app:defaultValue="@integer/default_binance_time_offset"/>
         <CheckBoxPreference
             app:key="binanceWalletEnabled"
             app:title="@string/enabledLabelText"

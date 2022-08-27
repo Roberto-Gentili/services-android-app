@@ -11,7 +11,6 @@
     <string name="clearedBalanceLabelText">Cleared bal.:</string>
     <string name="cryptoAmountLabelText">Amount:</string>
     <string name="currentTimeRetrievingModeLabelText">Current time retrieving mode</string>
-    <string name="default_current_time_retrieving_mode_for_binance_wallet">1</string>
     <string name="enabledLabelText">Enabled</string>
     <string name="intervalBetweenRequestGroupsTextLabel">Interval between request groups (in milliseconds)</string>
     <string name="lastUpdateLabelText">Last update:</string>
