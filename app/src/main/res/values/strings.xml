@@ -15,7 +15,6 @@
     <string name="lastUpdateLabelText">Last update:</string>
     <string name="linkToReport"><![CDATA[<a href="&reportUrl;">Download report</a>]]></string>
     <string name="loadingDataText">Loading data</string>
-    <string name="quantityLabelText">Quantity</string>
     <string name="reportUrl">&reportUrl;</string>
     <string name="settingsLabelText">Settings</string>
     <string name="coinsToBeAlwaysDisplayedLabelText">Always show these coins</string>
@@ -35,6 +34,7 @@
     <string name="coinLabelText">Coin</string>
     <string name="differenceBetweenUnitPriceAndRUPEIInUSD">UP-RUPEI ($)</string>
     <string name="lastUpdateForCoinLabelText">Last update</string>
+    <string name="quantityLabelText">Quantity</string>
     <string name="rUPEIInUSDLabelText">RUPEI ($)</string>
     <string name="unitPriceInUSDLabelText">UP ($)</string>
 
