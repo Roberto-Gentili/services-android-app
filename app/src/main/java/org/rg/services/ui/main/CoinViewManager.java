@@ -469,7 +469,7 @@ class CoinViewManager {
                 Map<String, Object> values = allCoinValues.getValue();
                 Double coinQuantity = (Double)values.get("coinQuantity");
                 Double coinAmount = (Double)values.get("coinAmount");
-                Double RUPEI = coinAmount.isNaN() || coinAmount == 0D ? Double.NaN :
+                Double RUPEI = coinAmount.isNaN() /*|| coinAmount == 0D*/ ? Double.NaN :
                         (((((((totalInvestment + 1D) * 100D) / 99.9D) + 1D) * 100D) / 99.6) - ((amount - coinAmount) / currencyValue)) / coinQuantity;
                 if (showRUPEI) {
                     setRUPEIForCoin(allCoinValues.getKey(), RUPEI);

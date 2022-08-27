@@ -70,6 +70,7 @@ public class MainFragment extends Fragment {
             decimalFormatSymbols = new DecimalFormatSymbols();
             decimalFormatSymbols.setGroupingSeparator('.');
             decimalFormatSymbols.setDecimalSeparator(',');
+            decimalFormatSymbols.setNaN("N.A.");
             numberFormatterWithTwoDecimals = new DecimalFormat("#,##0.00", decimalFormatSymbols);
             numberFormatterWithSignAndTwoDecimals = new DecimalFormat("+#,##0.00;-#", decimalFormatSymbols);
             numberFormatterWithTwoVariableDecimals = new DecimalFormat("#,##0.##", decimalFormatSymbols);
@@ -368,20 +369,23 @@ public class MainFragment extends Fragment {
             String zeroAsString= null;
             String previousValueAsString = !fixed ? String.valueOf(textView.getText()) : (zeroAsString = numberFormatter.format(0D));
             String currentValueAsString = numberFormatter.format(newValue);
-            if (fixed && currentValueAsString.equals(zeroAsString)) {
+            String naN = numberFormatter.format(Double.NaN);
+            if (currentValueAsString.equals(naN)) {
+                textView.setTextColor(Color.GRAY);
+                textView.setTypeface(textView.getTypeface(), Typeface.ITALIC);
+            } else if (fixed && currentValueAsString.equals(zeroAsString)) {
                 textView.setTextColor(defaultColor);
             } else if (!previousValueAsString.isEmpty() && !previousValueAsString.equals(currentValueAsString)) {
                 try {
-                    Double previousValue = numberFormatter.parse(previousValueAsString).doubleValue();
+                    Double previousValue = !previousValueAsString.equals(naN) ?
+                        numberFormatter.parse(previousValueAsString).doubleValue() :
+                        newValue - 1D;
                     if ((!inverted && newValue > previousValue) || (inverted && newValue < previousValue)) {
                         textView.setTextColor(Color.GREEN);
                     } else {
                         textView.setTextColor(Color.RED);
                     }
                 } catch (ParseException e) {}
-            } else if (currentValueAsString.equals("NaN")) {
-                textView.setTextColor(Color.GRAY);
-                textView.setTypeface(textView.getTypeface(), Typeface.ITALIC);
             } else if (!fixed) {
                 textView.setTextColor(defaultColor);
             }

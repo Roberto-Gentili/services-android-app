@@ -3,26 +3,20 @@
     <string name="app_name">Crypto info</string>
 
     <string name="alwaysActiveWhenInBackgroundLabelText">Always active when in background</string>
-    <string name="amountInEuroLabelText">Am (€)</string>
-    <string name="amountInUSDLabelText">Am ($)</string>
     <string name="apiKeyLabelText">API key</string>
     <string name="apiSecretsLabelText">API secret</string>
     <string name="authorizationTokenLabelText">Authorization token</string>
     <string name="backLabelText">Back</string>
     <string name="clearedCryptoAmountLabelText">Cleared am.:</string>
-    <string name="coinLabelText">Coin</string>
     <string name="clearedBalanceLabelText">Cleared bal.:</string>
     <string name="cryptoAmountLabelText">Amount:</string>
-    <string name="differenceBetweenUnitPriceAndRUPEIInUSD">UP-RUPEI ($)</string>
     <string name="enabledLabelText">Enabled</string>
     <string name="intervalBetweenRequestGroupsTextLabel">Interval between request groups (in milliseconds)</string>
     <string name="lastUpdateLabelText">Last update:</string>
-    <string name="lastUpdateForCoinLabelText">Last update</string>
     <string name="linkToReport"><![CDATA[<a href="&reportUrl;">Download report</a>]]></string>
     <string name="loadingDataText">Loading data</string>
     <string name="quantityLabelText">Quantity</string>
     <string name="reportUrl">&reportUrl;</string>
-    <string name="rUPEIInUSDLabelText">RUPEI ($)</string>
     <string name="settingsLabelText">Settings</string>
     <string name="coinsToBeAlwaysDisplayedLabelText">Always show these coins</string>
     <string name="showClearedBalanceLabelText">Show cleared balance</string>
@@ -32,8 +26,16 @@
     <string name="totalInvestmentLabelText">Total investment</string>
     <string name="timeOffsetLabelText">Time offset (in milliseconds)</string>
     <string name="threadPoolSizeTextLabel">Thread pool size</string>
-    <string name="unitPriceInUSDLabelText">UP ($)</string>
     <string name="updateReportButtonText">Update report</string>
     <string name="useAlwaysTheDollarCurrencyForBalancesLabelText">Use always the Dollar currency for balances</string>
+
+    <!-- Coin table labels -->
+    <string name="amountInEuroLabelText">Am (€)</string>
+    <string name="amountInUSDLabelText">Am ($)</string>
+    <string name="coinLabelText">Coin</string>
+    <string name="differenceBetweenUnitPriceAndRUPEIInUSD">UP-RUPEI ($)</string>
+    <string name="lastUpdateForCoinLabelText">Last update</string>
+    <string name="rUPEIInUSDLabelText">RUPEI ($)</string>
+    <string name="unitPriceInUSDLabelText">UP ($)</string>
 
 </resources>

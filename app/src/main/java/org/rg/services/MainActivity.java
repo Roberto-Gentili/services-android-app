@@ -44,7 +44,7 @@ public class MainActivity extends AppCompatActivity {
         static {
             currentValues = new ConcurrentHashMap<>();
             currentCoinValues = new ConcurrentHashMap<>();
-            dateTimeFormatter = DateTimeFormatter.ofPattern("HH:mm:ss - dd/MM/yyyy");
+            dateTimeFormatter = DateTimeFormatter.ofPattern("dd/MM/yyyy - HH:mm:ss");
             timeFormatter = DateTimeFormatter.ofPattern("HH:mm:ss");
         }
 
