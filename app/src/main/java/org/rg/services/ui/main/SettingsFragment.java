@@ -1,12 +1,18 @@
 package org.rg.services.ui.main;
 
+import android.graphics.drawable.ColorDrawable;
+import android.graphics.drawable.Drawable;
 import android.os.Bundle;
 import android.text.InputType;
+import android.view.LayoutInflater;
 import android.view.View;
+import android.view.ViewGroup;
 import android.widget.EditText;
+import android.widget.LinearLayout;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.core.content.res.ResourcesCompat;
 import androidx.preference.EditTextPreference;
 import androidx.preference.Preference;
 import androidx.preference.PreferenceFragmentCompat;
@@ -73,6 +79,14 @@ public class SettingsFragment extends PreferenceFragmentCompat {
         Float dimension = getResources().getDimension(R.dimen.settings_fragment_padding_top_size) / getResources().getDisplayMetrics().density;
         view.setPadding(0, dimension.intValue(), 0, 0);
         super.onViewCreated(view, savedInstanceState);
+    }
+
+    @NonNull
+    @Override
+    public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
+        LinearLayout view = (LinearLayout)super.onCreateView(inflater, container, savedInstanceState);
+        //view.setBackgroundColor(ResourcesCompat.getColor(getResources(), R.color.light_dark_gray, null));
+        return view;
     }
 
     private void setMinMaxFilter(EditTextPreference pref, int min, int max) {
