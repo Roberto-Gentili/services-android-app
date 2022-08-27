@@ -240,17 +240,6 @@ class CoinViewManager {
         }
     }
 
-    private TableRow removeCoinRow(String coinName) {
-        TableLayout coinsTable = (TableLayout) fragment.getMainActivity().findViewById(R.id.coinTable);
-        TableRow coinRow = getOrBuildCoinRow(coinName);
-        if (coinRow != null) {
-            fragment.runOnUIThread(() -> {
-                coinsTable.removeView(coinRow);
-            });
-        }
-        return null;
-    }
-
     public synchronized void activate() {
         if (retrievingCoinValuesTask == null) {
             System.out.println("Coin view manager " + this + " activated");
@@ -446,25 +435,14 @@ class CoinViewManager {
                 });
                 amount += (!coinAmount.isNaN() ? coinAmount : 0D);
                 allCoinsValues.put(allCoinValuesFromCurrentOrderedSnapshot.getKey(), values);
-            } else if (coinAmount.isNaN()) {
-                removeCoinRow(allCoinValuesFromCurrentOrderedSnapshot.getKey());
             }
         }
         if (canBeRefreshed) {
             Collection<String> showedCoinsBeforeUpdate = getShowedCoins();
             if (!showedCoinsBeforeUpdate.isEmpty()) {
                 Collection<String> allCoinNames = allCoinsValues.keySet();
-                if (allCoinNames.stream().filter(coinName -> !showedCoinsBeforeUpdate.contains(coinName)).count() > 0) {
+                if (!allCoinNames.equals(showedCoinsBeforeUpdate)) {
                     clearCoinTable();
-                } else {
-                    Iterator<String> showedCoinsBeforeUpdateItr = showedCoinsBeforeUpdate.iterator();
-                    while (showedCoinsBeforeUpdateItr.hasNext()) {
-                        String coinName = showedCoinsBeforeUpdateItr.next();
-                        if (!allCoinNames.contains(coinName)) {
-                            removeCoinRow(coinName);
-                            showedCoinsBeforeUpdateItr.remove();
-                        }
-                    }
                 }
             }
         }
