@@ -8,6 +8,7 @@ import android.widget.TableRow;
 import android.widget.TextView;
 
 import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 
 import org.rg.finance.Wallet;
 import org.rg.services.MainActivity;
@@ -23,7 +24,6 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.Iterator;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
@@ -176,6 +176,18 @@ class CoinViewManager {
             coinsTable.addView(row);
         }
         return row;
+    }
+
+    @Nullable
+    private TableRow removeCoinRow(String coinName) {
+        TableLayout coinsTable = (TableLayout) fragment.getMainActivity().findViewById(R.id.coinTable);
+        TableRow coinRow = getOrBuildCoinRow(coinName);
+        if (coinRow != null) {
+            fragment.runOnUIThread(() -> {
+                coinsTable.removeView(coinRow);
+            });
+        }
+        return null;
     }
 
     private void setValueForCoin(String coinName, LocalDateTime value, int columnIndex, DateTimeFormatter formatter) {
