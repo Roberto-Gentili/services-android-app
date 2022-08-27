@@ -96,7 +96,7 @@ class CoinViewManager {
     }
 
     private void setLastUpdateForCoin(String coinName, LocalDateTime time) {
-        setValueForCoin(coinName, time, getIndexOfHeaderLabel(fragment.getResources().getString(R.string.lastUpdateForCoinLabelText)), MainActivity.Model.getTimeFormatter());
+        setValueForCoin(coinName, time, getIndexOfHeaderLabel(fragment.getResources().getString(R.string.lastUpdateForCoinLabelText)), MainActivity.Model.getDateTimeFormatter());
     }
 
     private void setUnitPriceForCoinInDollar(String coinName, Double value) {
@@ -104,7 +104,7 @@ class CoinViewManager {
     }
 
     private void setQuantityForCoin(String coinName, Double value) {
-        setValueForCoin(coinName, value, getIndexOfHeaderLabel(fragment.getResources().getString(R.string.quantityLabelText)), fragment.numberFormatterWithFiveVariableDecimals);
+        setValueForCoin(coinName, value, getIndexOfHeaderLabel(fragment.getResources().getString(R.string.quantityLabelText)), fragment.numberFormatterWithFiveVariableDecimals, false, true);
     }
 
     private void setAmountForCoin(String coinName, Double value) {
@@ -150,12 +150,10 @@ class CoinViewManager {
     }
 
     @NonNull
-    private TableRow getCoinRow(MainActivity mainActivity, TableLayout coinsTable, String coinName) {
-        TableRow row = getCoinRow(coinName);
+    private TableRow getOrBuildCoinRow(MainActivity mainActivity, TableLayout coinsTable, String coinName) {
+        TableRow row = getOrBuildCoinRow(coinName);
         if (row == null) {
             buildHeader();
-        }
-        if (row == null) {
             row = new TableRow(fragment.getMainActivity());
             TextView coinNameTextView = new TextView(mainActivity);
             coinNameTextView.setText(coinName);
@@ -165,6 +163,16 @@ class CoinViewManager {
             coinNameTextView.setGravity(Gravity.LEFT);
             coinNameTextView.setTypeface(null, Typeface.BOLD);
             row.addView(coinNameTextView);
+            for (int i = 1; i <= headerLabels.size(); i++) {
+                TextView valueTextView = new TextView(mainActivity);
+                dimension = fragment.getResources().getDimension(R.dimen.coin_table_item_text_size) / fragment.getResources().getDisplayMetrics().density;
+                valueTextView.setTextSize(dimension);
+                valueTextView.setGravity(Gravity.RIGHT);
+                valueTextView.setTextColor(Color.WHITE);
+                dimension = fragment.getResources().getDimension(R.dimen.coin_table_cell_padding_left_size) / fragment.getResources().getDisplayMetrics().density;
+                valueTextView.setPadding(dimension.intValue(), 0, 0, 0);
+                row.addView(valueTextView);
+            }
             coinsTable.addView(row);
         }
         return row;
@@ -174,54 +182,33 @@ class CoinViewManager {
         fragment.runOnUIThread(() -> {
             MainActivity mainActivity = fragment.getMainActivity();
             TableLayout coinsTable = (TableLayout) mainActivity.findViewById(R.id.coinTable);
-            int childCount = coinsTable.getChildCount();
-            TableRow row = getCoinRow(mainActivity, coinsTable, coinName);
-            TextView valueTextView = (TextView) row.getChildAt(columnIndex);
-            if (valueTextView == null) {
-                for (int i = 1; i <= columnIndex; i++) {
-                    valueTextView = (TextView) row.getChildAt(i);
-                    if (valueTextView == null) {
-                        valueTextView = new TextView(mainActivity);
-                        Float dimension = fragment.getResources().getDimension(R.dimen.coin_table_item_text_size) / fragment.getResources().getDisplayMetrics().density;
-                        valueTextView.setTextSize(dimension);
-                        valueTextView.setGravity(Gravity.RIGHT);
-                        valueTextView.setTextColor(Color.WHITE);
-                        dimension = fragment.getResources().getDimension(R.dimen.coin_table_cell_padding_left_size) / fragment.getResources().getDisplayMetrics().density;
-                        valueTextView.setPadding(dimension.intValue(), 0, 0, 0);
-                        row.addView(valueTextView);
-                    }
-                }
-            }
-            fragment.setHighlightedValue(valueTextView, formatter.format(value));
+            TableRow row = getOrBuildCoinRow(mainActivity, coinsTable, coinName);
+            TextView coinNameCell = ((TextView)row.getChildAt(getIndexOfHeaderLabel(fragment.getResources().getString(R.string.coinLabelText))));
+            fragment.setHighlightedValue((TextView) row.getChildAt(columnIndex), formatter.format(value), coinNameCell.getCurrentTextColor());
         });
     }
 
     private void setValueForCoin(String coinName, Double value, int columnIndex, DecimalFormat numberFormatter, boolean inverted) {
+        setValueForCoin(coinName, value, columnIndex, numberFormatter, inverted, false);
+    }
+
+    private void setValueForCoin(String coinName, Double value, int columnIndex, DecimalFormat numberFormatter, boolean inverted, boolean toGrayRowIfNaNOrZero) {
         fragment.runOnUIThread(() -> {
             MainActivity mainActivity = fragment.getMainActivity();
             TableLayout coinsTable = (TableLayout) mainActivity.findViewById(R.id.coinTable);
-            TableRow row = getCoinRow(mainActivity, coinsTable, coinName);
-            TextView valueTextView = (TextView) row.getChildAt(columnIndex);
-            if (valueTextView == null) {
-                for (int i = 1; i <= columnIndex; i++) {
-                    valueTextView = (TextView) row.getChildAt(i);
-                    if (valueTextView == null) {
-                        valueTextView = new TextView(mainActivity);
-                        Float dimension = fragment.getResources().getDimension(R.dimen.coin_table_item_text_size) / fragment.getResources().getDisplayMetrics().density;
-                        valueTextView.setTextSize(dimension);
-                        valueTextView.setGravity(Gravity.RIGHT);
-                        valueTextView.setTextColor(Color.WHITE);
-                        dimension = fragment.getResources().getDimension(R.dimen.coin_table_cell_padding_left_size) / fragment.getResources().getDisplayMetrics().density;
-                        valueTextView.setPadding(dimension.intValue(), 0, 0, 0);
-                        row.addView(valueTextView);
-                    }
+            TableRow row = getOrBuildCoinRow(mainActivity, coinsTable, coinName);
+            TextView coinNameCell = ((TextView)row.getChildAt(getIndexOfHeaderLabel(fragment.getResources().getString(R.string.coinLabelText))));
+            if (toGrayRowIfNaNOrZero && (value == 0D || value.isNaN())) {
+                for (int i = 0; i < row.getChildCount(); i++) {
+                    TextView cell = (TextView)row.getChildAt(i);
+                    cell.setTextColor(Color.GRAY);
                 }
             }
-            fragment.setHighlightedValue(valueTextView, numberFormatter, value, false, inverted);
+            fragment.setHighlightedValue((TextView) row.getChildAt(columnIndex), numberFormatter, value, false, inverted, coinNameCell.getCurrentTextColor());
         });
     }
 
-    private TableRow getCoinRow(String coinName) {
+    private TableRow getOrBuildCoinRow(String coinName) {
         TableLayout coinsTable = (TableLayout) fragment.getMainActivity().findViewById(R.id.coinTable);
         int childCount = coinsTable.getChildCount();
         if (childCount > 1) {
@@ -255,7 +242,7 @@ class CoinViewManager {
 
     private TableRow removeCoinRow(String coinName) {
         TableLayout coinsTable = (TableLayout) fragment.getMainActivity().findViewById(R.id.coinTable);
-        TableRow coinRow = getCoinRow(coinName);
+        TableRow coinRow = getOrBuildCoinRow(coinName);
         if (coinRow != null) {
             fragment.runOnUIThread(() -> {
                 coinsTable.removeView(coinRow);
@@ -294,6 +281,7 @@ class CoinViewManager {
         return new AsyncLooper(() -> {
             Collection<String> scannedCoins = ConcurrentHashMap.newKeySet();
             Collection<CompletableFuture<Collection<String>>> retrievingCoinValueTasks = new CopyOnWriteArrayList<>();
+            Map<Supplier<String>, Function<Throwable, String>> delayedTasks = new HashMap<>();
             for (Wallet wallet : fragment.wallets) {
                 retrievingCoinValueTasks.add(
                         CompletableFuture.supplyAsync(
@@ -302,25 +290,28 @@ class CoinViewManager {
                                     Collection<String> coinsToBeScanned = coinToBeScannedSuppliers.get(wallet).join();
                                     scannedCoins.addAll(coinsToBeScanned);
                                     for (String coinName : coinsToBeScanned) {
-                                        innerTasks.add(
-                                                CompletableFuture.supplyAsync(
-                                                        () -> {
-                                                            Double unitPriceInDollar = wallet.getValueForCoin(coinName);
-                                                            Double quantity = wallet.getQuantityForCoin(coinName);
-                                                            Map<String, Map<String, Object>> allCoinValues = currentCoinValues.computeIfAbsent(coinName, key -> new ConcurrentHashMap<>());
-                                                            Map<String, Object> coinValues = allCoinValues.computeIfAbsent(wallet.getId(), key -> new ConcurrentHashMap<>());
-                                                            coinValues.put("unitPrice", unitPriceInDollar);
-                                                            Optional.ofNullable(mainActivity).map(mA -> MainActivity.Model.setLastUpdateTime()).ifPresent(lUT -> coinValues.put("lastUpdate", lUT));
-                                                            coinValues.put("quantity", quantity);
-                                                            return (String)null;
-                                                        },
-                                                        fragment.getExecutorService()
-                                                ).exceptionally(exc -> {
-                                                    String exceptionMessage = wallet.getName() + " exception occurred: " + exc.getMessage();
-                                                    LoggerChain.getInstance().logError(exceptionMessage);
-                                                    return exceptionMessage;
-                                                })
-                                        );
+                                        Supplier<String> task = () -> {
+                                            Double unitPriceInDollar = wallet.getValueForCoin(coinName);
+                                            Double quantity = wallet.getQuantityForCoin(coinName);
+                                            Map<String, Map<String, Object>> allCoinValues = currentCoinValues.computeIfAbsent(coinName, key -> new ConcurrentHashMap<>());
+                                            Map<String, Object> coinValues = allCoinValues.computeIfAbsent(wallet.getId(), key -> new ConcurrentHashMap<>());
+                                            coinValues.put("unitPrice", unitPriceInDollar);
+                                            Optional.ofNullable(mainActivity).map(mA -> MainActivity.Model.setLastUpdateTime()).ifPresent(lUT -> coinValues.put("lastUpdate", lUT));
+                                            coinValues.put("quantity", quantity);
+                                            return (String)null;
+                                        };
+                                        Function<Throwable, String> exceptionHandler = exc -> {
+                                            String exceptionMessage = wallet.getName() + " exception occurred: " + exc.getMessage();
+                                            LoggerChain.getInstance().logError(exceptionMessage);
+                                            return exceptionMessage;
+                                        };
+                                        if (!coinsToBeAlwaysDisplayed.contains(coinName) || coinName.equals("EUR")) {
+                                            innerTasks.add(
+                                                buildTask(task, exceptionHandler)
+                                            );
+                                        } else {
+                                            delayedTasks.put(task, exceptionHandler);
+                                        }
                                     }
                                     return innerTasks.stream().map(CompletableFuture::join).filter(Objects::nonNull).collect(Collectors.toList());
                                 },
@@ -330,6 +321,11 @@ class CoinViewManager {
             }
             this.retrievingCoinValueTasks = retrievingCoinValueTasks;
             retrievingCoinValueTasks.stream().forEach(CompletableFuture::join);
+            Collection<CompletableFuture<String>> tasks = new ArrayList<>();
+            for (Map.Entry<Supplier<String>, Function<Throwable, String>> task : delayedTasks.entrySet()) {
+                tasks.add(buildTask(task.getKey(), task.getValue()));
+            }
+            tasks.stream().forEach(CompletableFuture::join);
             currentCoinValues.keySet().stream().filter(coinName -> !scannedCoins.contains(coinName)).forEach(currentCoinValues::remove);
         }, fragment.getExecutorService())
                 .whenStarted(coinsToBeScannedRetriever::activate)
@@ -338,20 +334,27 @@ class CoinViewManager {
                 .activate();
     }
 
+    private CompletableFuture<String> buildTask(Supplier<String> task, Function<Throwable, String> exceptionHandler) {
+        return CompletableFuture.supplyAsync(
+            task,
+            fragment.getExecutorService()
+        ).exceptionally(exceptionHandler);
+    }
+
     private void launchCoinToBeScannedSuppliers(Map<Wallet, CompletableFuture<Collection<String>>> coinSuppliers) {
         for (Wallet wallet : fragment.wallets) {
             CompletableFuture<Collection<String>> coinSupplier = coinSuppliers.get(wallet);
             if (coinSupplier == null) {
-                coinSuppliers.put(wallet, launchCoinToBeScannedSupplier(wallet));
+                coinSuppliers.put(wallet, launchCoinToBeScannedSupplier(wallet, null));
             } else if (coinSupplier.isDone()) {
-                coinSupplier = launchCoinToBeScannedSupplier(wallet);
+                coinSupplier = launchCoinToBeScannedSupplier(wallet, coinSupplier.join());
                 coinSupplier.join();
                 coinSuppliers.put(wallet, coinSupplier);
             }
         }
     }
 
-    private CompletableFuture<Collection<String>> launchCoinToBeScannedSupplier(Wallet wallet) {
+    private CompletableFuture<Collection<String>> launchCoinToBeScannedSupplier(Wallet wallet, Collection<String> defaultValues) {
         return CompletableFuture.supplyAsync(() -> {
             while (true) {
                 try {
@@ -360,6 +363,9 @@ class CoinViewManager {
                     return coinsToBeScanned;
                 } catch (Throwable exc) {
                     LoggerChain.getInstance().logError("Unable to retrieve coins to be scanned: " + exc.getMessage());
+                    if (defaultValues != null) {
+                        return defaultValues;
+                    }
                 }
             }
         }, fragment.getExecutorService());
@@ -391,12 +397,12 @@ class CoinViewManager {
             return false;
         }
         MainActivity mainActivity = fragment.getMainActivity();
-        /*if (!MainActivity.Model.isReadyToBeShown) {
+        if (!MainActivity.Model.isReadyToBeShown) {
             if (retrievingCoinValueTasks.stream().map(CompletableFuture::join).filter(excMsgs -> !excMsgs.isEmpty()).count() > 0) {
                 setToNaNValuesIfNulls();
                 return false;
             }
-        }*/
+        }
         Map<String, Map<String, Map<String, Object>>> currentCoinValuesOrderedSnapshot = getCurrentCoinValuesOrderedSnapshot();
         if (currentCoinValuesOrderedSnapshot.isEmpty()) {
             return false;

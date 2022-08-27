@@ -360,12 +360,16 @@ public class MainFragment extends Fragment {
     }
 
     void setHighlightedValue(TextView textView, DecimalFormat numberFormatter, Double newValue, boolean fixed, boolean inverted) {
+        setHighlightedValue(textView, numberFormatter, newValue, fixed, inverted, Color.WHITE);
+    }
+
+    void setHighlightedValue(TextView textView, DecimalFormat numberFormatter, Double newValue, boolean fixed, boolean inverted, int defaultColor) {
         synchronized (textView) {
             String zeroAsString= null;
             String previousValueAsString = !fixed ? String.valueOf(textView.getText()) : (zeroAsString = numberFormatter.format(0D));
             String currentValueAsString = numberFormatter.format(newValue);
             if (fixed && currentValueAsString.equals(zeroAsString)) {
-                textView.setTextColor(Color.WHITE);
+                textView.setTextColor(defaultColor);
             } else if (!previousValueAsString.isEmpty() && !previousValueAsString.equals(currentValueAsString)) {
                 try {
                     Double previousValue = numberFormatter.parse(previousValueAsString).doubleValue();
@@ -379,13 +383,17 @@ public class MainFragment extends Fragment {
                 textView.setTextColor(Color.GRAY);
                 textView.setTypeface(textView.getTypeface(), Typeface.ITALIC);
             } else if (!fixed) {
-                textView.setTextColor(Color.WHITE);
+                textView.setTextColor(defaultColor);
             }
             textView.setText(currentValueAsString);
         }
     }
 
     void setHighlightedValue(TextView textView, String newValue) {
+        setHighlightedValue(textView, newValue, Color.WHITE);
+    }
+
+    void setHighlightedValue(TextView textView, String newValue, int defaultColor) {
         synchronized (textView) {
             String previousValueAsString = String.valueOf(textView.getText());
             if (!previousValueAsString.isEmpty() && !previousValueAsString.equals(newValue)) {
@@ -393,7 +401,7 @@ public class MainFragment extends Fragment {
                 textView.setText(newValue);
             } else {
                 textView.setText(newValue);
-                textView.setTextColor(Color.WHITE);
+                textView.setTextColor(defaultColor);
             }
         }
     }

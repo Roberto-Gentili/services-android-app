@@ -36,7 +36,7 @@ public class MainActivity extends AppCompatActivity {
     public static class Model {
         public final static Map<String, Object> currentValues;
         public final static Map<String, Map<String, Map<String, Object>>> currentCoinValues;
-        private final static DateTimeFormatter dateFormatter;
+        private final static DateTimeFormatter dateTimeFormatter;
         private final static DateTimeFormatter timeFormatter;
         public static boolean isReadyToBeShown;
         private static LocalDateTime lastUpdateTime;
@@ -44,7 +44,7 @@ public class MainActivity extends AppCompatActivity {
         static {
             currentValues = new ConcurrentHashMap<>();
             currentCoinValues = new ConcurrentHashMap<>();
-            dateFormatter = DateTimeFormatter.ofPattern("HH:mm:ss - dd/MM/yyyy");
+            dateTimeFormatter = DateTimeFormatter.ofPattern("HH:mm:ss - dd/MM/yyyy");
             timeFormatter = DateTimeFormatter.ofPattern("HH:mm:ss");
         }
 
@@ -58,13 +58,17 @@ public class MainActivity extends AppCompatActivity {
 
         public static String format(LocalDateTime time) {
             if (time != null) {
-                return dateFormatter.format(time);
+                return dateTimeFormatter.format(time);
             }
             return null;
         }
 
         public static DateTimeFormatter getTimeFormatter() {
             return timeFormatter;
+        }
+
+        public static DateTimeFormatter getDateTimeFormatter() {
+            return dateTimeFormatter;
         }
     }
 
