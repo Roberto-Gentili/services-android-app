@@ -85,13 +85,8 @@ class BalanceUpdater {
                                         fragment.gitHubUsernameSupplier.join()
                                 );
                                 linkToReport.setText(Html.fromHtml(String.valueOf(linkToReport.getText()).replace("&reportUrl;", reportUrl), Html.FROM_HTML_MODE_LEGACY));
-                                linkToReport.setLinkTextColor(fragment.getColorFromResources(R.color.yellow));
-                                updateReportButton.setOnClickListener(new View.OnClickListener() {
-                                    @Override
-                                    public void onClick(View view) {
-                                        fragment.updateReport((Button) view);
-                                    }
-                                });
+                                linkToReport.setLinkTextColor(fragment.getColorFromResources(R.color.teal_700));
+                                updateReportButton.setOnClickListener(view -> fragment.updateReport((Button)view));
                                 reportBar.setVisibility(View.VISIBLE);
                             } else {
                                 mainLayout.removeView(reportBar);
@@ -111,7 +106,7 @@ class BalanceUpdater {
     }
 
     void stop() {
-        AsyncLooper updateTask = null;
+        AsyncLooper updateTask;
         synchronized (this) {
             updateTask = this.updateTask;
             if (updateTask == null) {

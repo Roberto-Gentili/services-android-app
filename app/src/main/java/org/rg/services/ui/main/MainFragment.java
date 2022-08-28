@@ -16,6 +16,7 @@ import android.widget.TextView;
 import androidx.annotation.ColorRes;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.appcompat.widget.Toolbar;
 import androidx.core.content.res.ResourcesCompat;
 import androidx.fragment.app.Fragment;
 import androidx.preference.PreferenceManager;
@@ -91,6 +92,8 @@ public class MainFragment extends Fragment {
 
     @Override
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
+        Toolbar toolbar = (Toolbar)getMainActivity().findViewById(androidx.appcompat.R.id.action_bar);
+        toolbar.setTitleTextColor(getColorFromResources(R.color.yellow));
         appPreferences = PreferenceManager.getDefaultSharedPreferences(getMainActivity());
         init();
     }
@@ -390,7 +393,7 @@ public class MainFragment extends Fragment {
                     if ((!inverted && newValue > previousValue) || (inverted && newValue < previousValue)) {
                         textView.setTextColor(Color.GREEN);
                     } else {
-                        textView.setTextColor(Color.RED);
+                        textView.setTextColor(getColorFromResources(R.color.red));
                     }
                 } catch (ParseException e) {}
             } else if (!fixed) {
@@ -408,7 +411,7 @@ public class MainFragment extends Fragment {
         synchronized (textView) {
             String previousValueAsString = String.valueOf(textView.getText());
             if (!previousValueAsString.isEmpty() && !previousValueAsString.equals(newValue)) {
-                textView.setTextColor(Color.CYAN);
+                textView.setTextColor(getColorFromResources(R.color.teal_200));
                 textView.setText(newValue);
             } else {
                 textView.setText(newValue);

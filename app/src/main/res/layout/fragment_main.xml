@@ -27,7 +27,8 @@
             <HorizontalScrollView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_gravity="center_horizontal">
+                android:layout_gravity="center_horizontal"
+                android:scrollbars="none" >
 
                 <LinearLayout
                     android:id="@+id/balancesTable"
@@ -199,7 +200,7 @@
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:layout_marginStart="@dimen/update_report_button_margin_start_size"
-                            android:backgroundTint="#E91E63"
+                            android:backgroundTint="@color/teal_700"
                             android:text="@string/updateReportButtonText"
                             app:layout_constraintStart_toEndOf="@id/linkToReport" />
 
@@ -273,7 +274,7 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:text="@string/loadingDataText"
-        android:textColor="#FFFFFF"
+        android:textColor="@color/yellow"
         android:textSize="34sp"
         android:gravity="center"
         app:layout_constraintBottom_toBottomOf="parent"
@@ -287,7 +288,7 @@
         style="@style/Widget.AppCompat.ProgressBar"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:indeterminateTint="#E91E63"
+        android:indeterminateTint="@color/red"
         app:layout_constraintEnd_toEndOf="@id/loadingDataAdvisor"
         app:layout_constraintStart_toStartOf="@id/loadingDataAdvisor"
         app:layout_constraintTop_toBottomOf="@id/loadingDataAdvisor" />
