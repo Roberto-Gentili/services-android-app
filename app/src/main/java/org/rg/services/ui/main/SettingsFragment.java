@@ -124,4 +124,5 @@ public class SettingsFragment extends PreferenceFragmentCompat {
         }
         return preference;
     }
+
 }

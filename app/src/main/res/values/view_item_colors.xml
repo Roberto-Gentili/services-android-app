@@ -1,7 +1,12 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
 
-    <color name="action_bar_title_text_color">@color/yellow</color>
+    <color name="status_bar_color">@color/dark_blue_700</color>
+    <color name="action_bar_background_color">@color/status_bar_color</color>
+    <color name="popup_menu_background_color">@color/dark_blue_500</color>
+    <color name="navigation_bar_color">@color/black</color>
+    <color name="action_bar_title_text_color">@color/dark_yellow</color>
+
     <color name="three_dot_menu_button_tint">@color/action_bar_title_text_color</color>
     <color name="three_dot_menu_item_text_color">@color/three_dot_menu_button_tint</color>
     <color name="loading_progress_bar_indeterminate_tint">@color/violet</color>

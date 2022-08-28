@@ -2,41 +2,43 @@
     <!-- Base application theme. -->
     <style name="Theme.RGServices" parent="Theme.MaterialComponents.DayNight.DarkActionBar">
         <!-- Primary brand color -->
-        <item name="colorPrimary">@color/dark_blue_700</item>
-        <item name="colorPrimaryDark">@color/dark_blue_700</item>
-        <item name="colorPrimaryVariant">@color/dark_blue_500</item>
+        <item name="colorPrimary">@color/action_bar_background_color</item>
+        <item name="colorPrimaryDark">@color/action_bar_background_color</item>
+        <item name="colorPrimaryVariant">@color/popup_menu_background_color</item>
         <item name="colorOnPrimary">@color/white</item>
         <!-- Secondary brand color -->
-        <item name="colorSecondary">@color/yellow</item>
-        <item name="colorSecondaryVariant">@color/yellow</item>
+        <item name="colorSecondary">@color/action_bar_title_text_color</item>
+        <item name="colorSecondaryVariant">@color/action_bar_title_text_color</item>
         <item name="colorOnSecondary">@color/black</item>
 
         <!-- Status bar -->
+        <item name="android:statusBarColor" tools:targetApi="l">@color/status_bar_color</item>
+        <!--
         <item name="android:statusBarColor" tools:targetApi="l">?attr/colorPrimary</item>
-
+        -->
         <!-- Action bar -->
         <item name="actionBarSize">36dp</item>-->
         <item name="windowActionBarOverlay">true</item>
         <item name="actionBarStyle">@style/actionBarStyle</item>
 
         <!-- Three dots menu -->
-        <item name="android:navigationBarColor">@color/black</item>
+        <item name="android:navigationBarColor">@color/navigation_bar_color</item>
         <item name="actionOverflowButtonStyle">@style/threeDotMenuButtonStyle</item>
-        <item name="popupMenuBackground">@color/dark_blue_500</item>
+        <item name="popupMenuBackground">@color/popup_menu_background_color</item>
         <item name="android:itemTextAppearance">@style/itemTextAppearanceStyle</item>
     </style>
 
     <!-- Three dots menu -->
     <style name="threeDotMenuButtonStyle" parent="Widget.AppCompat.Light.ActionButton.Overflow">
-        <item name="tint">@color/yellow</item>
+        <item name="tint">@color/three_dot_menu_button_tint</item>
     </style>
     <style name="itemTextAppearanceStyle" parent="@android:style/TextAppearance.Widget.IconMenu.Item">
-        <item name="android:textColor">@color/yellow</item>
+        <item name="android:textColor">@color/three_dot_menu_item_text_color</item>
     </style>
 
     <!-- Action bar -->
     <style name="actionBarStyle" parent="Widget.MaterialComponents.ActionBar.Primary">
-        <item name="background">?attr/colorPrimary</item>
+        <item name="background">@color/action_bar_background_color</item>
         <item name="titleTextStyle">@style/actionBarTextStyle</item>
         <item name="android:titleTextStyle">@style/actionBarTextStyle</item>
     </style>
@@ -44,7 +46,7 @@
         <!--
         <item name="android:textStyle">bold</item>
         -->
-        <item name="android:textSize">24sp</item>
+        <item name="android:textSize">22sp</item>
     </style>
 
 </resources>
