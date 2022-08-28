@@ -28,10 +28,10 @@
 
     <!-- Three dots menu -->
     <style name="threeDotMenuButtonStyle" parent="Widget.AppCompat.Light.ActionButton.Overflow">
-        <item name="tint">@color/yellow</item>
+        <item name="tint">@color/three_dot_menu_button_tint</item>
     </style>
     <style name="itemTextAppearanceStyle" parent="@android:style/TextAppearance.Widget.IconMenu.Item">
-        <item name="android:textColor">@color/yellow</item>
+        <item name="android:textColor">@color/three_dot_menu_item_text_color</item>
     </style>
 
     <!-- Action bar -->

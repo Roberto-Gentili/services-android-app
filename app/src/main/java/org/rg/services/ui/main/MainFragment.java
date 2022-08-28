@@ -2,7 +2,6 @@ package org.rg.services.ui.main;
 
 import android.content.Intent;
 import android.content.SharedPreferences;
-import android.graphics.Color;
 import android.graphics.Typeface;
 import android.net.Uri;
 import android.os.Bundle;
@@ -93,7 +92,7 @@ public class MainFragment extends Fragment {
     @Override
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         Toolbar toolbar = (Toolbar)getMainActivity().findViewById(androidx.appcompat.R.id.action_bar);
-        toolbar.setTitleTextColor(getColorFromResources(R.color.yellow));
+        toolbar.setTitleTextColor(getColorFromResources(R.color.action_bar_title_text_color));
         appPreferences = PreferenceManager.getDefaultSharedPreferences(getMainActivity());
         init();
     }
@@ -371,7 +370,7 @@ public class MainFragment extends Fragment {
     }
 
     void setHighlightedValue(TextView textView, DecimalFormat numberFormatter, Double newValue, boolean fixed, boolean inverted) {
-        setHighlightedValue(textView, numberFormatter, newValue, fixed, inverted, Color.WHITE);
+        setHighlightedValue(textView, numberFormatter, newValue, fixed, inverted, getColorFromResources(R.color.text_default_color));
     }
 
     void setHighlightedValue(TextView textView, DecimalFormat numberFormatter, Double newValue, boolean fixed, boolean inverted, int defaultColor) {
@@ -381,7 +380,7 @@ public class MainFragment extends Fragment {
             String currentValueAsString = numberFormatter.format(newValue);
             String naN = numberFormatter.format(Double.NaN);
             if (currentValueAsString.equals(naN)) {
-                textView.setTextColor(Color.GRAY);
+                textView.setTextColor(getColorFromResources(R.color.disabled_text_highlight_color));
                 textView.setTypeface(textView.getTypeface(), Typeface.ITALIC);
             } else if (fixed && currentValueAsString.equals(zeroAsString)) {
                 textView.setTextColor(defaultColor);
@@ -391,9 +390,9 @@ public class MainFragment extends Fragment {
                         numberFormatter.parse(previousValueAsString).doubleValue() :
                         newValue - 1D;
                     if ((!inverted && newValue > previousValue) || (inverted && newValue < previousValue)) {
-                        textView.setTextColor(Color.GREEN);
+                        textView.setTextColor(getColorFromResources(R.color.text_value_increased_highlight_color));
                     } else {
-                        textView.setTextColor(getColorFromResources(R.color.red));
+                        textView.setTextColor(getColorFromResources(R.color.text_value_decreased_highlight_color));
                     }
                 } catch (ParseException e) {}
             } else if (!fixed) {
@@ -404,14 +403,14 @@ public class MainFragment extends Fragment {
     }
 
     void setHighlightedValue(TextView textView, String newValue) {
-        setHighlightedValue(textView, newValue, Color.WHITE);
+        setHighlightedValue(textView, newValue, getColorFromResources(R.color.text_default_color));
     }
 
     void setHighlightedValue(TextView textView, String newValue, int defaultColor) {
         synchronized (textView) {
             String previousValueAsString = String.valueOf(textView.getText());
             if (!previousValueAsString.isEmpty() && !previousValueAsString.equals(newValue)) {
-                textView.setTextColor(getColorFromResources(R.color.teal_200));
+                textView.setTextColor(getColorFromResources(R.color.simple_text_highlight_color));
                 textView.setText(newValue);
             } else {
                 textView.setText(newValue);

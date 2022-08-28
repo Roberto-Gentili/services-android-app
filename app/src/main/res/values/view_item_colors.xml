@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <color name="action_bar_title_text_color">@color/yellow</color>
+    <color name="three_dot_menu_button_tint">@color/action_bar_title_text_color</color>
+    <color name="three_dot_menu_item_text_color">@color/three_dot_menu_button_tint</color>
+    <color name="loading_progress_bar_indeterminate_tint">@color/violet</color>
+    <color name="update_report_progress_bar_indeterminate_tint">@color/loading_progress_bar_indeterminate_tint</color>
+    <color name="link_to_report_link_text_color">@color/violet</color>
+    <color name="update_report_button_background_tint">@color/link_to_report_link_text_color</color>
+    <color name="loading_data_advisor_text_color">@color/action_bar_title_text_color</color>
+    <color name="text_default_color">@color/white</color>
+    <color name="text_value_increased_highlight_color">@color/green</color>
+    <color name="text_value_decreased_highlight_color">@color/red</color>
+    <color name="label_text_default_color">@color/yellow</color>
+    <color name="simple_text_highlight_color">@color/teal_200</color>
+    <color name="disabled_text_highlight_color">@color/dark_gray</color>
+
+</resources>

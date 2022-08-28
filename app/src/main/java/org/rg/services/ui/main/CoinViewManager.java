@@ -142,7 +142,7 @@ class CoinViewManager {
             textView.setTextSize(dimension);
             dimension = fragment.getResources().getDimension(R.dimen.coin_table_cell_padding_left_size) / fragment.getResources().getDisplayMetrics().density;
             textView.setPadding(dimension.intValue(), 0, 0, 0);
-            textView.setTextColor(fragment.getColorFromResources(R.color.yellow));
+            textView.setTextColor(fragment.getColorFromResources(R.color.label_text_default_color));
             textView.setGravity(Gravity.CENTER);
             textView.setTypeface(null, Typeface.BOLD);
             header.addView(textView);
@@ -159,7 +159,7 @@ class CoinViewManager {
             coinNameTextView.setText(coinName);
             Float dimension = fragment.getResources().getDimension(R.dimen.coin_table_coin_name_column_text_size) / fragment.getResources().getDisplayMetrics().density;
             coinNameTextView.setTextSize(dimension);
-            coinNameTextView.setTextColor(Color.WHITE);
+            coinNameTextView.setTextColor(fragment.getColorFromResources(R.color.text_default_color));
             coinNameTextView.setGravity(Gravity.LEFT);
             coinNameTextView.setTypeface(null, Typeface.BOLD);
             row.addView(coinNameTextView);
@@ -168,7 +168,7 @@ class CoinViewManager {
                 dimension = fragment.getResources().getDimension(R.dimen.coin_table_item_text_size) / fragment.getResources().getDisplayMetrics().density;
                 valueTextView.setTextSize(dimension);
                 valueTextView.setGravity(Gravity.RIGHT);
-                valueTextView.setTextColor(Color.WHITE);
+                valueTextView.setTextColor(fragment.getColorFromResources(R.color.text_default_color));
                 dimension = fragment.getResources().getDimension(R.dimen.coin_table_cell_padding_left_size) / fragment.getResources().getDisplayMetrics().density;
                 valueTextView.setPadding(dimension.intValue(), 0, 0, 0);
                 row.addView(valueTextView);

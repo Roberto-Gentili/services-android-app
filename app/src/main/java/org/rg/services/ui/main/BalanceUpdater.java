@@ -42,7 +42,7 @@ class BalanceUpdater {
         TextView loadingDataAdvisor = (TextView) fragment.getView().findViewById(R.id.loadingDataAdvisor);
         TextView linkToReport = (TextView) fragment.getView().findViewById(R.id.linkToReport);
         Button updateReportButton = (Button) fragment.getView().findViewById(R.id.updateReportButton);
-        ProgressBar progressBar = (ProgressBar) fragment.getView().findViewById(R.id.progressBar);
+        ProgressBar progressBar = (ProgressBar) fragment.getView().findViewById(R.id.loadingProgressBar);
         View coinsView = ((View) fragment.getView().findViewById(R.id.coinsView));
         updateTask = new AsyncLooper(() -> {
             CoinViewManager coinViewManager = fragment.coinViewManager;
@@ -85,7 +85,7 @@ class BalanceUpdater {
                                         fragment.gitHubUsernameSupplier.join()
                                 );
                                 linkToReport.setText(Html.fromHtml(String.valueOf(linkToReport.getText()).replace("&reportUrl;", reportUrl), Html.FROM_HTML_MODE_LEGACY));
-                                linkToReport.setLinkTextColor(fragment.getColorFromResources(R.color.teal_700));
+                                //linkToReport.setLinkTextColor(fragment.getColorFromResources(R.color.link_to_report_link_text_color));
                                 updateReportButton.setOnClickListener(view -> fragment.updateReport((Button)view));
                                 reportBar.setVisibility(View.VISIBLE);
                             } else {
