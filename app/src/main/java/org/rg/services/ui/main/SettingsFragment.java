@@ -85,7 +85,7 @@ public class SettingsFragment extends PreferenceFragmentCompat {
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
         LinearLayout view = (LinearLayout)super.onCreateView(inflater, container, savedInstanceState);
-        //view.setBackgroundColor(ResourcesCompat.getColor(getResources(), R.color.light_dark_gray, null));
+        //view.setBackgroundColor(ResourcesCompat.getColor(getResources(), R.color.dark_gray_two, null));
         return view;
     }
 

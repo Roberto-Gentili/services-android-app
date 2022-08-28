@@ -11,6 +11,14 @@
         <item name="colorSecondaryVariant">@color/action_bar_title_text_color</item>
         <item name="colorOnSecondary">@color/black</item>
 
+        <!-- PreferenceScreen
+        <item name="preferenceTheme">@style/PreferenceTheme</item>
+        -->
+        <!-- ListPreference
+        <item name="textColorAlertDialogListItem">@color/text_default_color</item>
+        -->
+
+
         <!-- Status bar -->
         <item name="android:statusBarColor" tools:targetApi="l">@color/status_bar_color</item>
         <!--
@@ -48,5 +56,12 @@
         -->
         <item name="android:textSize">22sp</item>
     </style>
+
+    <!--
+    <style name="PreferenceTheme" parent="PreferenceThemeOverlay">
+        <item name="android:background">@color/dark_gray_two</item>
+        <item name="android:textColor">@android:color/background_light</item>
+    </style>
+    -->
 
 </resources>
