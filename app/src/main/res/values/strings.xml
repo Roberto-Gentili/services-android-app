@@ -15,7 +15,7 @@
     <string name="intervalBetweenRequestGroupsTextLabel">Interval between request groups (in milliseconds)</string>
     <string name="lastUpdateLabelText">Last update:</string>
     <string name="linkToReport"><![CDATA[<a href="&reportUrl;">Download report</a>]]></string>
-    <string name="loadingDataText">Loading data</string>
+    <string name="loadingDataText">Loading</string>
     <string name="reportUrl">&reportUrl;</string>
     <string name="settingsLabelText">Settings</string>
     <string name="coinsToBeAlwaysDisplayedLabelText">Always show these coins</string>
