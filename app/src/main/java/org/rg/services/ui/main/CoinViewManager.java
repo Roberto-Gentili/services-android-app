@@ -273,10 +273,10 @@ class CoinViewManager {
 
     private AsyncLooper retrieveCoinValues() {
         Map<String, Map<String, Map<String, Object>>> currentCoinValues = MainActivity.Model.currentCoinValues;
-        Map<Wallet, CompletableFuture<Collection<String>>> coinToBeScannedSuppliers = new ConcurrentHashMap<>();
-        launchCoinToBeScannedSuppliers(coinToBeScannedSuppliers);
+        Map<Wallet, CompletableFuture<Collection<String>>> ownedCoinsSuppliers = new ConcurrentHashMap<>();
+        launchOwnedCoinRetrievers(ownedCoinsSuppliers);
         AsyncLooper coinsToBeScannedRetriever = new AsyncLooper(() -> {
-            launchCoinToBeScannedSuppliers(coinToBeScannedSuppliers);
+            launchOwnedCoinRetrievers(ownedCoinsSuppliers);
         }, fragment.getExecutorService()).atTheStartOfEveryIterationWaitFor(30000L);
         MainActivity mainActivity = fragment.getMainActivity();
         return new AsyncLooper(() -> {
@@ -288,7 +288,9 @@ class CoinViewManager {
                         CompletableFuture.supplyAsync(
                                 () -> {
                                     Collection<CompletableFuture<String>> innerTasks = new ArrayList<>();
-                                    Collection<String> coinsToBeScanned = coinToBeScannedSuppliers.get(wallet).join();
+                                    Collection<String> ownedCoins = ownedCoinsSuppliers.get(wallet).join();
+                                    Collection<String> coinsToBeScanned = new HashSet<>(ownedCoins);
+                                    coinsToBeScanned.addAll(coinsToBeAlwaysDisplayed);
                                     scannedCoins.addAll(coinsToBeScanned);
                                     for (String coinName : coinsToBeScanned) {
                                         Supplier<String> task = () -> {
@@ -306,7 +308,7 @@ class CoinViewManager {
                                             LoggerChain.getInstance().logError(exceptionMessage);
                                             return exceptionMessage;
                                         };
-                                        if (!coinsToBeAlwaysDisplayed.contains(coinName) || coinName.equals("EUR")) {
+                                        if (ownedCoins.contains(coinName)) {
                                             innerTasks.add(
                                                 buildTask(task, exceptionHandler)
                                             );
@@ -342,28 +344,28 @@ class CoinViewManager {
         ).exceptionally(exceptionHandler);
     }
 
-    private void launchCoinToBeScannedSuppliers(Map<Wallet, CompletableFuture<Collection<String>>> coinSuppliers) {
+    private void launchOwnedCoinRetrievers(Map<Wallet, CompletableFuture<Collection<String>>> coinSuppliers) {
         for (Wallet wallet : fragment.wallets) {
             CompletableFuture<Collection<String>> coinSupplier = coinSuppliers.get(wallet);
             if (coinSupplier == null) {
-                coinSuppliers.put(wallet, launchCoinToBeScannedSupplier(wallet, null));
+                coinSuppliers.put(wallet, launchOwnedCoinRetrievers(wallet, null));
             } else if (coinSupplier.isDone()) {
-                coinSupplier = launchCoinToBeScannedSupplier(wallet, coinSupplier.join());
+                coinSupplier = launchOwnedCoinRetrievers(wallet, coinSupplier.join());
                 coinSupplier.join();
                 coinSuppliers.put(wallet, coinSupplier);
             }
         }
     }
 
-    private CompletableFuture<Collection<String>> launchCoinToBeScannedSupplier(Wallet wallet, Collection<String> defaultValues) {
+    private CompletableFuture<Collection<String>> launchOwnedCoinRetrievers(Wallet wallet, Collection<String> defaultValues) {
         return CompletableFuture.supplyAsync(() -> {
             while (true) {
                 try {
-                    Collection<String> coinsToBeScanned = getCoinsToBeScanned(wallet);
+                    Collection<String> coinsToBeScanned = getOwnedCoins(wallet);
                     //LoggerChain.getInstance().logInfo("Retrieved coins to be scanned for " + wallet.getName());
                     return coinsToBeScanned;
                 } catch (Throwable exc) {
-                    LoggerChain.getInstance().logError("Unable to retrieve coins to be scanned: " + exc.getMessage());
+                    LoggerChain.getInstance().logError("Unable to retrieve owned coins: " + exc.getMessage());
                     if (defaultValues != null) {
                         return defaultValues;
                     }
@@ -373,9 +375,8 @@ class CoinViewManager {
     }
 
     @NonNull
-    private Collection<String> getCoinsToBeScanned(Wallet wallet) {
+    private Collection<String> getOwnedCoins(Wallet wallet) {
         Collection<String> coinsForWallet = wallet.getOwnedCoins();
-        coinsForWallet.addAll(coinsToBeAlwaysDisplayed);
         if (fragment.isUseAlwaysTheDollarCurrencyForBalancesDisabled()) {
             coinsForWallet.add("EUR");
         }
