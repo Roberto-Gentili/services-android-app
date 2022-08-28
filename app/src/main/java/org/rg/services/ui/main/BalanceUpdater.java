@@ -56,7 +56,7 @@ class BalanceUpdater {
                         if (totalInvestment != null) {
                             fragment.setFixedHighlightedValue(clearedBalance, fragment.numberFormatterWithSignAndTwoDecimals, clearedAmount - totalInvestment);
                         }
-                        fragment.setHighlightedValue(lastUpdate, MainActivity.Model.getLastUpdateTimeAsString());
+                        fragment.setHighlightedValue(lastUpdate, fragment.getLastUpdateTimeAsString());
                         if (loadingDataAdvisor.getVisibility() != View.INVISIBLE) {
                             if (coinViewManager.isCurrencyInEuro()) {
                                 cryptoAmountCurrency.setText("€");

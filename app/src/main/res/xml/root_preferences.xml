@@ -95,6 +95,13 @@
             app:title="@string/showDifferenceBetweenUPAndRUPEILabelText"
             app:defaultValue="false"
             app:singleLineTitle="false" />
+        <ListPreference
+            app:key="dateTimeFormat"
+            app:title="@string/dateTimeFormat"
+            app:entries="@array/dateTimeFormats"
+            app:entryValues="@array/dateTimeFormats"
+            app:defaultValue="@string/default_date_time_format"
+            app:useSimpleSummaryProvider="true" />
     </PreferenceCategory>
 
     <PreferenceCategory app:title="Technical settings">

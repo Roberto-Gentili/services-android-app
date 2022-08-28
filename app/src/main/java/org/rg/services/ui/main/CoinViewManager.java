@@ -24,6 +24,7 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
@@ -41,7 +42,7 @@ class CoinViewManager {
     private Collection<CompletableFuture<Collection<String>>> retrievingCoinValueTasks;
     private Collection<String> coinsToBeAlwaysDisplayed;
     private AsyncLooper retrievingCoinValuesTask;
-    private Collection<String> headerLabels;
+    private List<String> headerLabels;
     private boolean canBeRefreshed;
 
     CoinViewManager(MainFragment fragment) {
@@ -96,7 +97,7 @@ class CoinViewManager {
     }
 
     private void setLastUpdateForCoin(String coinName, LocalDateTime time) {
-        setValueForCoin(coinName, time, getIndexOfHeaderLabel(fragment.getResources().getString(R.string.lastUpdateForCoinLabelText)), MainActivity.Model.getDateTimeFormatter());
+        setValueForCoin(coinName, time, getIndexOfHeaderLabel(fragment.getResources().getString(R.string.lastUpdateForCoinLabelText)), fragment.dateTimeFormatter);
     }
 
     private void setUnitPriceForCoinInDollar(String coinName, Double value) {
@@ -163,11 +164,15 @@ class CoinViewManager {
             coinNameTextView.setGravity(Gravity.LEFT);
             coinNameTextView.setTypeface(null, Typeface.BOLD);
             row.addView(coinNameTextView);
-            for (int i = 1; i <= headerLabels.size(); i++) {
+            for (int i = 1; i < headerLabels.size(); i++) {
                 TextView valueTextView = new TextView(mainActivity);
                 dimension = fragment.getResources().getDimension(R.dimen.coin_table_item_text_size) / fragment.getResources().getDisplayMetrics().density;
                 valueTextView.setTextSize(dimension);
-                valueTextView.setGravity(Gravity.RIGHT);
+                if (headerLabels.get(i).equals(fragment.getResources().getString(R.string.lastUpdateForCoinLabelText))) {
+                    valueTextView.setGravity(Gravity.CENTER_HORIZONTAL);
+                } else {
+                    valueTextView.setGravity(Gravity.RIGHT);
+                }
                 valueTextView.setTextColor(fragment.getColorFromResources(R.color.text_default_color));
                 dimension = fragment.getResources().getDimension(R.dimen.coin_table_cell_padding_left_size) / fragment.getResources().getDisplayMetrics().density;
                 valueTextView.setPadding(dimension.intValue(), 0, 0, 0);

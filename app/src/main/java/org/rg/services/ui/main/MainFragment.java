@@ -38,6 +38,8 @@ import org.springframework.web.util.UriComponentsBuilder;
 import java.text.DecimalFormat;
 import java.text.DecimalFormatSymbols;
 import java.text.ParseException;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.LinkedHashMap;
@@ -54,6 +56,7 @@ import java.util.stream.Collectors;
 public class MainFragment extends Fragment {
     SharedPreferences appPreferences;
     final Collection<Wallet> wallets;
+    DateTimeFormatter dateTimeFormatter;
     final DecimalFormatSymbols decimalFormatSymbols;
     DecimalFormat numberFormatterWithTwoDecimals;
     DecimalFormat numberFormatterWithSignAndTwoDecimals;
@@ -94,6 +97,7 @@ public class MainFragment extends Fragment {
         Toolbar toolbar = (Toolbar)getMainActivity().findViewById(androidx.appcompat.R.id.action_bar);
         toolbar.setTitleTextColor(getColorFromResources(R.color.action_bar_title_text_color));
         appPreferences = PreferenceManager.getDefaultSharedPreferences(getMainActivity());
+        dateTimeFormatter = DateTimeFormatter.ofPattern(appPreferences.getString("dateTimeFormat", getResources().getString(R.string.default_date_time_format)));
         init();
     }
 
@@ -171,6 +175,18 @@ public class MainFragment extends Fragment {
 
     ExecutorService getExecutorService() {
         return MainActivity.Engine.getExecutorService();
+    }
+
+    public String getLastUpdateTimeAsString() {
+        LocalDateTime lastUpdate = MainActivity.Model.getLastUpdateTime();
+        try {
+            return dateTimeFormatter.format(lastUpdate);
+        } catch (NullPointerException exc) {
+            if (lastUpdate != null) {
+                throw exc;
+            }
+        }
+        return null;
     }
 
     boolean isUseAlwaysTheDollarCurrencyForBalancesDisabled() {

@@ -2,6 +2,8 @@
 <resources>
     <string name="app_name">Crypto info</string>
 
+    <string name="default_date_time_format">HH:mm:ss</string>
+
     <string name="alwaysActiveWhenInBackgroundLabelText">Always active when in background</string>
     <string name="apiKeyLabelText">API key</string>
     <string name="apiSecretsLabelText">API secret</string>
@@ -11,6 +13,7 @@
     <string name="clearedBalanceLabelText">Cleared bal.:</string>
     <string name="cryptoAmountLabelText">Amount:</string>
     <string name="currentTimeRetrievingModeLabelText">Current time retrieving mode</string>
+    <string name="dateTimeFormat">Date time format</string>
     <string name="enabledLabelText">Enabled</string>
     <string name="intervalBetweenRequestGroupsTextLabel">Interval between request groups (in milliseconds)</string>
     <string name="lastUpdateLabelText">Last update:</string>
@@ -35,7 +38,7 @@
     <string name="amountInUSDLabelText">Am ($)</string>
     <string name="coinLabelText">Coin</string>
     <string name="differenceBetweenUnitPriceAndRUPEIInUSD">UP-RUPEI ($)</string>
-    <string name="lastUpdateForCoinLabelText">Last update</string>
+    <string name="lastUpdateForCoinLabelText">Last upd</string>
     <string name="quantityLabelText">Quantity</string>
     <string name="rUPEIInUSDLabelText">RUPEI ($)</string>
     <string name="unitPriceInUSDLabelText">UP ($)</string>

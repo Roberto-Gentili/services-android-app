@@ -36,40 +36,22 @@ public class MainActivity extends AppCompatActivity {
     public static class Model {
         public final static Map<String, Object> currentValues;
         public final static Map<String, Map<String, Map<String, Object>>> currentCoinValues;
-        private final static DateTimeFormatter dateTimeFormatter;
-        private final static DateTimeFormatter timeFormatter;
         public static boolean isReadyToBeShown;
         private static LocalDateTime lastUpdateTime;
 
         static {
             currentValues = new ConcurrentHashMap<>();
             currentCoinValues = new ConcurrentHashMap<>();
-            dateTimeFormatter = DateTimeFormatter.ofPattern("dd/MM/yyyy - HH:mm:ss");
-            timeFormatter = DateTimeFormatter.ofPattern("HH:mm:ss");
         }
 
         public static LocalDateTime setLastUpdateTime() {
             return lastUpdateTime = LocalDateTime.now(ZoneId.systemDefault());
         }
 
-        public static String getLastUpdateTimeAsString() {
-            return format(lastUpdateTime);
+        public static LocalDateTime getLastUpdateTime() {
+            return lastUpdateTime;
         }
 
-        public static String format(LocalDateTime time) {
-            if (time != null) {
-                return dateTimeFormatter.format(time);
-            }
-            return null;
-        }
-
-        public static DateTimeFormatter getTimeFormatter() {
-            return timeFormatter;
-        }
-
-        public static DateTimeFormatter getDateTimeFormatter() {
-            return dateTimeFormatter;
-        }
     }
 
     public static class Engine {
