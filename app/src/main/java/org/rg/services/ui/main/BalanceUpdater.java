@@ -85,7 +85,6 @@ class BalanceUpdater {
                                         fragment.gitHubUsernameSupplier.join()
                                 );
                                 linkToReport.setText(Html.fromHtml(String.valueOf(linkToReport.getText()).replace("&reportUrl;", reportUrl), Html.FROM_HTML_MODE_LEGACY));
-                                //linkToReport.setLinkTextColor(fragment.getColorFromResources(R.color.link_to_report_link_text_color));
                                 updateReportButton.setOnClickListener(view -> fragment.updateReport((Button)view));
                                 reportBar.setVisibility(View.VISIBLE);
                             } else {
