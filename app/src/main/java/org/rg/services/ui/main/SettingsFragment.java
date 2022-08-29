@@ -5,7 +5,6 @@ import android.text.InputType;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.EditText;
 import android.widget.LinearLayout;
 
 import androidx.annotation.NonNull;
@@ -48,7 +47,7 @@ public class SettingsFragment extends PreferenceFragmentCompat {
             setEnabledFlag(textValue != null && !textValue.replace(" ", "").isEmpty(),ids);
             return true;
         };
-        final EditTextPreference preference = findPreference("totalInvestment");
+        final EditTextPreference preference = findPreference(id);
         valuePredicateAndAction.test(preference, preference.getText());
         setOnPreferenceChangeListener(preference, valuePredicateAndAction);
     }
@@ -56,19 +55,16 @@ public class SettingsFragment extends PreferenceFragmentCompat {
     private void setEnabledFlag(boolean flag, String... ids) {
         for (String id : ids) {
             Preference preference = findPreference(id);
-            getActivity().runOnUiThread(() -> {
-                preference.setEnabled(flag);
-            });
+            getActivity().runOnUiThread(() ->
+                preference.setEnabled(flag)
+            );
         }
     }
 
     private <T extends Preference> void setOnPreferenceChangeListener(T pref, BiPredicate<T, Object> valuePredicateAndAction) {
-        pref.setOnPreferenceChangeListener(new Preference.OnPreferenceChangeListener() {
-            @Override
-            public boolean onPreferenceChange(Preference preference, Object newValue) {
-                return valuePredicateAndAction.test((T)preference, newValue);
-            }
-        });
+        pref.setOnPreferenceChangeListener((preference, newValue) ->
+            valuePredicateAndAction.test((T)preference, newValue)
+        );
     }
 
     @Override
@@ -87,36 +83,28 @@ public class SettingsFragment extends PreferenceFragmentCompat {
     }
 
     private void setMinMaxFilter(EditTextPreference pref, int min, int max) {
-        pref.setOnPreferenceChangeListener(new Preference.OnPreferenceChangeListener() {
-            @Override
-            public boolean onPreferenceChange(Preference preference, Object newValueAsString) {
-                Integer newValue = null;
-                try {
-                    newValue = Integer.valueOf((String)newValueAsString);
-                } catch (Throwable exc) {
-                    newValue = -1;
-                }
-                if (newValue >= min && newValue <= max) {
-                    return true;
-                }
-                getActivity().runOnUiThread(() -> {
-                    LoggerChain.getInstance().logError("The value must be between " + min + " and " + max);
-                });
-                return false;
+        pref.setOnPreferenceChangeListener((preference, newValueAsString) -> {
+            Integer newValue;
+            try {
+                newValue = Integer.valueOf((String)newValueAsString);
+            } catch (Throwable exc) {
+                newValue = -1;
             }
+            if (newValue >= min && newValue <= max) {
+                return true;
+            }
+            getActivity().runOnUiThread(() ->
+                LoggerChain.getInstance().logError("The value must be between " + min + " and " + max)
+            );
+            return false;
         });
     }
 
     private EditTextPreference setEditTextPreferenceType(String id, int type) {
         final EditTextPreference preference = findPreference(id);
         if (preference != null) {
-            preference.setOnBindEditTextListener(
-                new EditTextPreference.OnBindEditTextListener() {
-                    @Override
-                    public void onBindEditText(@NonNull EditText editText) {
-                        editText.setInputType(type);
-                    }
-                }
+            preference.setOnBindEditTextListener(editText ->
+                editText.setInputType(type)
             );
         }
         return preference;

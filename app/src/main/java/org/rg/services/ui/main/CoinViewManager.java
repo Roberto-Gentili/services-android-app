@@ -46,7 +46,7 @@ class CoinViewManager {
 
     CoinViewManager(MainFragment fragment) {
         this.fragment = fragment;
-        this.coinsToBeAlwaysDisplayed = Arrays.asList(fragment.appPreferences.getString("coinsToBeAlwaysDisplayed", "BTC, ETH").toUpperCase().replace(" ", "").split(",")).stream().filter(fragment::isStringNotEmpty).collect(Collectors.toList());
+        this.coinsToBeAlwaysDisplayed = Arrays.stream(fragment.appPreferences.getString("coinsToBeAlwaysDisplayed", "BTC, ETH").toUpperCase().replace(" ", "").split(",")).filter(fragment::isStringNotEmpty).collect(Collectors.toList());
         headerLabels = new ArrayList<>();
         String totalInvestmentAsString = fragment.appPreferences.getString("totalInvestment", null);
         if (totalInvestmentAsString != null && !totalInvestmentAsString.isEmpty()) {
@@ -75,7 +75,7 @@ class CoinViewManager {
     }
 
     private synchronized void buildHeader() {
-        TableLayout coinsTable = (TableLayout) fragment.getMainActivity().findViewById(R.id.coinTable);
+        TableLayout coinsTable = fragment.getMainActivity().findViewById(R.id.coinTable);
         if (coinsTable.getChildAt(0) != null) {
             return;
         }
@@ -128,7 +128,7 @@ class CoinViewManager {
 
     private void addHeaderColumn(String text) {
         fragment.runOnUIThread(() -> {
-            TableLayout coinsTable = (TableLayout) fragment.getMainActivity().findViewById(R.id.coinTable);
+            TableLayout coinsTable = fragment.getMainActivity().findViewById(R.id.coinTable);
             TableRow header = (TableRow) coinsTable.getChildAt(0);
             if (header == null) {
                 header = new TableRow(fragment.getMainActivity());
@@ -160,7 +160,7 @@ class CoinViewManager {
             Float dimension = fragment.getResources().getDimension(R.dimen.coin_table_coin_name_column_text_size) / fragment.getResources().getDisplayMetrics().density;
             coinNameTextView.setTextSize(dimension);
             coinNameTextView.setTextColor(fragment.getColorFromResources(R.color.text_default_color));
-            coinNameTextView.setGravity(Gravity.LEFT);
+            coinNameTextView.setGravity(Gravity.START);
             coinNameTextView.setTypeface(null, Typeface.BOLD);
             row.addView(coinNameTextView);
             for (int i = 1; i < headerLabels.size(); i++) {
@@ -170,7 +170,7 @@ class CoinViewManager {
                 if (headerLabels.get(i).equals(fragment.getResources().getString(R.string.lastUpdateForCoinLabelText))) {
                     valueTextView.setGravity(Gravity.CENTER_HORIZONTAL);
                 } else {
-                    valueTextView.setGravity(Gravity.RIGHT);
+                    valueTextView.setGravity(Gravity.END);
                 }
                 valueTextView.setTextColor(fragment.getColorFromResources(R.color.text_default_color));
                 dimension = fragment.getResources().getDimension(R.dimen.coin_table_cell_padding_left_size) / fragment.getResources().getDisplayMetrics().density;
@@ -184,12 +184,12 @@ class CoinViewManager {
 
     @Nullable
     private TableRow removeCoinRow(String coinName) {
-        TableLayout coinsTable = (TableLayout) fragment.getMainActivity().findViewById(R.id.coinTable);
+        TableLayout coinsTable = fragment.getMainActivity().findViewById(R.id.coinTable);
         TableRow coinRow = getOrBuildCoinRow(coinName);
         if (coinRow != null) {
-            fragment.runOnUIThread(() -> {
-                coinsTable.removeView(coinRow);
-            });
+            fragment.runOnUIThread(() ->
+                coinsTable.removeView(coinRow)
+            );
         }
         return null;
     }
@@ -197,7 +197,7 @@ class CoinViewManager {
     private void setValueForCoin(String coinName, LocalDateTime value, int columnIndex, DateTimeFormatter formatter) {
         fragment.runOnUIThread(() -> {
             MainActivity mainActivity = fragment.getMainActivity();
-            TableLayout coinsTable = (TableLayout) mainActivity.findViewById(R.id.coinTable);
+            TableLayout coinsTable = mainActivity.findViewById(R.id.coinTable);
             TableRow row = getOrBuildCoinRow(mainActivity, coinsTable, coinName);
             TextView coinNameCell = ((TextView)row.getChildAt(getIndexOfHeaderLabel(fragment.getResources().getString(R.string.coinLabelText))));
             fragment.setHighlightedValue((TextView) row.getChildAt(columnIndex), formatter.format(value), coinNameCell.getCurrentTextColor());
@@ -211,7 +211,7 @@ class CoinViewManager {
     private void setValueForCoin(String coinName, Double value, int columnIndex, DecimalFormat numberFormatter, boolean inverted, boolean toDisabledRowIfNaNOrZero) {
         fragment.runOnUIThread(() -> {
             MainActivity mainActivity = fragment.getMainActivity();
-            TableLayout coinsTable = (TableLayout) mainActivity.findViewById(R.id.coinTable);
+            TableLayout coinsTable = mainActivity.findViewById(R.id.coinTable);
             TableRow row = getOrBuildCoinRow(mainActivity, coinsTable, coinName);
             TextView coinNameCell = ((TextView)row.getChildAt(getIndexOfHeaderLabel(fragment.getResources().getString(R.string.coinLabelText))));
             if (toDisabledRowIfNaNOrZero && (value == 0D || value.isNaN())) {
@@ -225,7 +225,7 @@ class CoinViewManager {
     }
 
     private TableRow getOrBuildCoinRow(String coinName) {
-        TableLayout coinsTable = (TableLayout) fragment.getMainActivity().findViewById(R.id.coinTable);
+        TableLayout coinsTable = fragment.getMainActivity().findViewById(R.id.coinTable);
         int childCount = coinsTable.getChildCount();
         if (childCount > 1) {
             String coinLabelText = fragment.getResources().getString(R.string.coinLabelText);
@@ -241,16 +241,15 @@ class CoinViewManager {
     }
 
     private void clearCoinTable() {
-        TableLayout coinsTable = (TableLayout) fragment.getMainActivity().findViewById(R.id.coinTable);
+        TableLayout coinsTable = fragment.getMainActivity().findViewById(R.id.coinTable);
         int childCount = coinsTable.getChildCount();
         if (childCount > 1) {
-            String coinLabelText = fragment.getResources().getString(R.string.coinLabelText);
             for (int i = 1; i < childCount; i++) {
                 TableRow coinRow = (TableRow) coinsTable.getChildAt(i);
                 if (coinRow != null) {
-                    fragment.runOnUIThread(() -> {
-                        coinsTable.removeView(coinRow);
-                    });
+                    fragment.runOnUIThread(() ->
+                        coinsTable.removeView(coinRow)
+                    );
                 }
             }
         }
@@ -474,14 +473,14 @@ class CoinViewManager {
                 Map<String, Object> values = allCoinValues.getValue();
                 Double coinQuantity = (Double)values.get("coinQuantity");
                 Double coinAmount = (Double)values.get("coinAmount");
-                Double RUPEI = coinAmount.isNaN() /*|| coinAmount == 0D*/ ? Double.NaN :
+                Double rUPEI = coinAmount.isNaN() /*|| coinAmount == 0D*/ ? Double.NaN :
                         (((((((totalInvestment + 1D) * 100D) / 99.9D) + 1D) * 100D) / 99.6) - ((amount - coinAmount) / currencyValue)) / coinQuantity;
                 if (showRUPEI) {
-                    setRUPEIForCoin(allCoinValues.getKey(), RUPEI);
+                    setRUPEIForCoin(allCoinValues.getKey(), rUPEI);
                 }
                 if (showDifferenceBetweenUPAndRUPEI) {
-                    setDifferenceBetweenUPAndRUPEIForCoin(allCoinValues.getKey(), RUPEI.isNaN() ? Double.NaN :
-                        (Double)values.get("unitPrice") - RUPEI
+                    setDifferenceBetweenUPAndRUPEIForCoin(allCoinValues.getKey(), rUPEI.isNaN() ? Double.NaN :
+                        (Double)values.get("unitPrice") - rUPEI
                     );
                 }
 
@@ -493,7 +492,7 @@ class CoinViewManager {
 
     private Map<String, Object> retrieveValuesWithMinMaxUnitPrice(Collection<Map<String, Object>> allCoinValues, BiPredicate<Double, Double> unitPriceTester) {
         Double coinQuantity = 0D;
-        Double coinAmount = 0D;
+        double coinAmount = 0D;
         Double unitPrice = null;
         LocalDateTime updateTime = null;
         for (Map<String, Object> coinValues : allCoinValues) {
@@ -611,7 +610,7 @@ class CoinViewManager {
     public Double getClearedAmount() {
         Double amount = getAmountInDollar();
         Double eurValue = getEuroValue();
-        Double currencyUnit = (eurValue != null && !eurValue.isNaN() ? eurValue : 1D);
+        double currencyUnit = (eurValue != null && !eurValue.isNaN() ? eurValue : 1D);
         Double clearedAmount = ((((((amount * 99.6D) / 100D) - 1D) * 99.9D) / 100D) - currencyUnit) / currencyUnit;
         return clearedAmount >= 0D ? clearedAmount : 0D;
     }

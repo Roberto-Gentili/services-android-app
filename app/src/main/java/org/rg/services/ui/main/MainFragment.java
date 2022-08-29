@@ -9,7 +9,6 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
-import android.widget.ProgressBar;
 import android.widget.TextView;
 
 import androidx.annotation.ColorRes;
@@ -94,7 +93,7 @@ public class MainFragment extends Fragment {
 
     @Override
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
-        Toolbar toolbar = (Toolbar)getMainActivity().findViewById(androidx.appcompat.R.id.action_bar);
+        Toolbar toolbar = getMainActivity().findViewById(androidx.appcompat.R.id.action_bar);
         toolbar.setTitleTextColor(getColorFromResources(R.color.action_bar_title_text_color));
         appPreferences = PreferenceManager.getDefaultSharedPreferences(getMainActivity());
         dateTimeFormatter = DateTimeFormatter.ofPattern(appPreferences.getString("dateTimeFormat", getResources().getString(R.string.default_date_time_format)));
@@ -213,7 +212,7 @@ public class MainFragment extends Fragment {
             synchronized (updateButton) {
                 if (updateButton.isEnabled()) {
                     updateButton.setEnabled(false);
-                    ((ProgressBar) getView().findViewById(R.id.updateReportProgressBar)).setVisibility(View.VISIBLE);
+                    getView().findViewById(R.id.updateReportProgressBar).setVisibility(View.VISIBLE);
                     try {
                         Supplier<Boolean> alreadyRunningChecker = launchCryptoReportUpdate();
                         ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(1);
@@ -236,7 +235,7 @@ public class MainFragment extends Fragment {
                                 LoggerChain.getInstance().logError("Maximum number of attempts reached");
                             }
                             runOnUIThread(() -> {
-                                ((ProgressBar) getView().findViewById(R.id.updateReportProgressBar)).setVisibility(View.INVISIBLE);
+                                getView().findViewById(R.id.updateReportProgressBar).setVisibility(View.INVISIBLE);
                                 updateButton.setEnabled(true);
                                 scheduler.shutdownNow();
                                 String reportUrl = getResources().getString(R.string.reportUrl).replace(
@@ -405,17 +404,17 @@ public class MainFragment extends Fragment {
                     Double previousValue = !previousValueAsString.equals(naN) ?
                         numberFormatter.parse(previousValueAsString).doubleValue() :
                         newValue - 1D;
+                    int color;
                     if ((!inverted && newValue > previousValue) || (inverted && newValue < previousValue)) {
-                        int color = defaultColor != getColorFromResources(R.color.disabled_text_highlight_color) ?
-                            getColorFromResources(R.color.text_value_increased_highlight_color) :
-                            getColorFromResources(R.color.text_value_disabled_increased_highlight_color);
-                        textView.setTextColor(color);
+                        color = defaultColor != getColorFromResources(R.color.disabled_text_highlight_color) ?
+                                getColorFromResources(R.color.text_value_increased_highlight_color) :
+                                getColorFromResources(R.color.text_value_disabled_increased_highlight_color);
                     } else {
-                        int color = defaultColor != getColorFromResources(R.color.disabled_text_highlight_color) ?
-                            getColorFromResources(R.color.text_value_decreased_highlight_color) :
-                            getColorFromResources(R.color.text_value_disabled_decreased_highlight_color);
-                        textView.setTextColor(color);
+                        color = defaultColor != getColorFromResources(R.color.disabled_text_highlight_color) ?
+                                getColorFromResources(R.color.text_value_decreased_highlight_color) :
+                                getColorFromResources(R.color.text_value_disabled_decreased_highlight_color);
                     }
+                    textView.setTextColor(color);
                 } catch (ParseException e) {}
             } else if (!fixed) {
                 textView.setTextColor(defaultColor);

@@ -19,8 +19,8 @@ import org.springframework.web.client.HttpServerErrorException;
 import org.springframework.web.client.RestTemplate;
 
 public class RestTemplateSupplier {
-    private static RestTemplateSupplier sharedInstance;
-    private RestTemplate restTemplate;
+    private static volatile RestTemplateSupplier sharedInstance;
+    private volatile RestTemplate restTemplate;
     private Consumer<HttpClientBuilder> httpClientBuilderSetter;
     private boolean requestLoggerEnabled;
 
@@ -39,7 +39,7 @@ public class RestTemplateSupplier {
         return new RestTemplateSupplier(httpClientBuilderSetter);
     }
 
-    public final static RestTemplateSupplier setupSharedInstance(Consumer<HttpClientBuilder> httpClientBuilderSetter) {
+    public static RestTemplateSupplier setupSharedInstance(Consumer<HttpClientBuilder> httpClientBuilderSetter) {
         if (sharedInstance == null) {
             synchronized (RestTemplateSupplier.class) {
                 if (sharedInstance == null) {
@@ -54,7 +54,7 @@ public class RestTemplateSupplier {
         return sharedInstance;
     }
 
-    public final static RestTemplateSupplier getSharedInstance() {
+    public static RestTemplateSupplier getSharedInstance() {
         if (sharedInstance == null) {
             synchronized (RestTemplateSupplier.class) {
                 if (sharedInstance == null) {
@@ -119,7 +119,7 @@ public class RestTemplateSupplier {
                 interceptors = new CopyOnWriteArrayList<>();
                 restTemplate.setInterceptors(interceptors);
             }
-            if (!interceptors.stream().filter(interceptor -> interceptor instanceof RequestLogger).findFirst().isPresent()) {
+            if (!interceptors.stream().anyMatch(interceptor -> interceptor instanceof RequestLogger)) {
                 interceptors.add(new RequestLogger());
             }
         } else {

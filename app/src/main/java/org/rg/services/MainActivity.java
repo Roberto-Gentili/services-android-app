@@ -104,7 +104,7 @@ public class MainActivity extends AppCompatActivity {
         }
 
         static void resetExecutorService() {
-            ExecutorService oldExecutorService = null;
+            ExecutorService oldExecutorService;
             synchronized (Engine.class) {
                 oldExecutorService = executorService;
                 executorService = null;
@@ -114,9 +114,7 @@ public class MainActivity extends AppCompatActivity {
 
         private static void shutDown(ExecutorService toBeShuttedDown, Supplier<ExecutorService> executorSupplier) {
             if (toBeShuttedDown != null) {
-                CompletableFuture.runAsync(() -> {
-                    toBeShuttedDown.shutdown();
-                }, executorSupplier.get());
+                CompletableFuture.runAsync(toBeShuttedDown::shutdown, executorSupplier.get());
             }
         }
     }
@@ -138,9 +136,9 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         Consumer<String> logger = message -> {
             if (!message.toLowerCase().contains("invalid symbol")) {
-                runOnUiThread(() -> {
-                    Toast.makeText(this, message, Toast.LENGTH_LONG).show();
-                });
+                runOnUiThread(() ->
+                    Toast.makeText(this, message, Toast.LENGTH_LONG).show()
+                );
             }
         };
         LoggerChain.getInstance().appendExceptionLogger(logger);
@@ -153,7 +151,7 @@ public class MainActivity extends AppCompatActivity {
 
     }
 
-    protected MainFragment getMainFragment(){
+    public MainFragment getMainFragment(){
         return (MainFragment)getSupportFragmentManager().findFragmentById(R.id.container);
     }
 
@@ -165,13 +163,11 @@ public class MainActivity extends AppCompatActivity {
 
     @Override
     public boolean onOptionsItemSelected(@NonNull MenuItem item) {
-        switch (item.getItemId()) {
-            case R.id.settingsMenuItem:
-                goToSettingsView();
-                break;
-            case R.id.cryptoInfoMenuItem:
-                goToMainView();
-                break;
+        int itemId = item.getItemId();
+        if (itemId == R.id.cryptoInfoMenuItem) {
+            goToMainView();
+        } else if (itemId == R.id.settingsMenuItem) {
+            goToSettingsView();
         }
         return super.onOptionsItemSelected(item);
     }

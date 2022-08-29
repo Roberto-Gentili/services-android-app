@@ -25,24 +25,24 @@ class BalanceUpdater {
             return;
         }
         System.out.println("Wallet updater " + this + " activated");
-        LinearLayout mainLayout = (LinearLayout) fragment.getView().findViewById(R.id.balancesTable);
-        LinearLayout cryptoAmountBar = (LinearLayout) fragment.getView().findViewById(R.id.cryptoAmountBar);
-        TextView cryptoAmount = (TextView) fragment.getView().findViewById(R.id.cryptoAmount);
-        TextView cryptoAmountCurrency = (TextView) fragment.getView().findViewById(R.id.cryptoAmountCurrency);
-        LinearLayout clearedCryptoAmountBar = (LinearLayout) fragment.getView().findViewById(R.id.clearedCryptoAmountBar);
-        TextView clearedCryptoAmount = (TextView) fragment.getView().findViewById(R.id.clearedCryptoAmount);
-        TextView clearedCryptoBalanceCurrency = (TextView) fragment.getView().findViewById(R.id.clearedCryptoAmountCurrency);
-        LinearLayout balanceBar = (LinearLayout) fragment.getView().findViewById(R.id.balanceBar);
-        TextView clearedBalance = (TextView) fragment.getView().findViewById(R.id.clearedBalance);
-        TextView clearedBalanceCurrency = (TextView) fragment.getView().findViewById(R.id.clearedBalanceCurrency);
-        LinearLayout lastUpdateBar = (LinearLayout) fragment.getView().findViewById(R.id.lastUpdateBar);
-        TextView lastUpdate = (TextView) fragment.getView().findViewById(R.id.lastUpdate);
-        LinearLayout reportBar = (LinearLayout) fragment.getView().findViewById(R.id.reportBar);
-        TextView loadingDataAdvisor = (TextView) fragment.getView().findViewById(R.id.loadingDataAdvisor);
-        TextView linkToReport = (TextView) fragment.getView().findViewById(R.id.linkToReport);
-        Button updateReportButton = (Button) fragment.getView().findViewById(R.id.updateReportButton);
-        ProgressBar progressBar = (ProgressBar) fragment.getView().findViewById(R.id.loadingProgressBar);
-        View coinsView = ((View) fragment.getView().findViewById(R.id.coinsView));
+        LinearLayout mainLayout = fragment.getView().findViewById(R.id.balancesTable);
+        LinearLayout cryptoAmountBar = fragment.getView().findViewById(R.id.cryptoAmountBar);
+        TextView cryptoAmount = fragment.getView().findViewById(R.id.cryptoAmount);
+        TextView cryptoAmountCurrency = fragment.getView().findViewById(R.id.cryptoAmountCurrency);
+        LinearLayout clearedCryptoAmountBar = fragment.getView().findViewById(R.id.clearedCryptoAmountBar);
+        TextView clearedCryptoAmount = fragment.getView().findViewById(R.id.clearedCryptoAmount);
+        TextView clearedCryptoBalanceCurrency = fragment.getView().findViewById(R.id.clearedCryptoAmountCurrency);
+        LinearLayout balanceBar = fragment.getView().findViewById(R.id.balanceBar);
+        TextView clearedBalance = fragment.getView().findViewById(R.id.clearedBalance);
+        TextView clearedBalanceCurrency = fragment.getView().findViewById(R.id.clearedBalanceCurrency);
+        LinearLayout lastUpdateBar = fragment.getView().findViewById(R.id.lastUpdateBar);
+        TextView lastUpdate = fragment.getView().findViewById(R.id.lastUpdate);
+        LinearLayout reportBar = fragment.getView().findViewById(R.id.reportBar);
+        TextView loadingDataAdvisor = fragment.getView().findViewById(R.id.loadingDataAdvisor);
+        TextView linkToReport = fragment.getView().findViewById(R.id.linkToReport);
+        Button updateReportButton = fragment.getView().findViewById(R.id.updateReportButton);
+        ProgressBar progressBar = fragment.getView().findViewById(R.id.loadingProgressBar);
+        View coinsView = fragment.getView().findViewById(R.id.coinsView);
         updateTask = new AsyncLooper(() -> {
             CoinViewManager coinViewManager = fragment.coinViewManager;
             if (coinViewManager != null) {

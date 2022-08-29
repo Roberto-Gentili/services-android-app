@@ -6,9 +6,9 @@ import java.util.function.BiPredicate;
 
 public class AsyncLooper {
 
-    private Executor executor;
+    private final Executor executor;
+    private final Runnable action;
     private Boolean isAlive;
-    private Runnable action;
     private Runnable actionToBeExecutedAtStarting;
     private Runnable actionToBeExecutedWhenKilled;
     private Long waitingTimeAtTheEndOfEveryIteration;
@@ -32,27 +32,11 @@ public class AsyncLooper {
             }
             while(isAlive) {
                 try {
-                    if (waitingTimeAtTheStartOfEveryIteration != null && waitingTimeAtTheStartOfEveryIteration > 0) {
-                        synchronized (waitingTimeAtTheStartOfEveryIteration) {
-                            try {
-                                waitingTimeAtTheStartOfEveryIteration.wait(waitingTimeAtTheStartOfEveryIteration);
-                            } catch (InterruptedException exc) {
-                                LoggerChain.getInstance().logError(exc.getMessage());
-                            }
-                        }
-                    }
+                    waitFor(waitingTimeAtTheStartOfEveryIteration);
                     action.run();
-                    if (waitingTimeAtTheEndOfEveryIteration != null && waitingTimeAtTheEndOfEveryIteration > 0) {
-                        synchronized (waitingTimeAtTheEndOfEveryIteration) {
-                            try {
-                                waitingTimeAtTheEndOfEveryIteration.wait(waitingTimeAtTheEndOfEveryIteration);
-                            } catch (InterruptedException exc) {
-                                LoggerChain.getInstance().logError(exc.getMessage());
-                            }
-                        }
-                    }
+                    waitFor(waitingTimeAtTheEndOfEveryIteration);
                 } catch (Throwable exc) {
-                    isAlive = excpetionHandler != null ? excpetionHandler.test(this, exc) : false;
+                    isAlive = excpetionHandler != null && excpetionHandler.test(this, exc);
                 }
             }
             if (actionToBeExecutedWhenKilled != null) {
@@ -60,6 +44,18 @@ public class AsyncLooper {
             }
         }, executor);
         return this;
+    }
+
+    private void waitFor(Long timeMillis) {
+        if (timeMillis != null && timeMillis > 0) {
+            synchronized (timeMillis) {
+                try {
+                    timeMillis.wait(timeMillis);
+                } catch (InterruptedException exc) {
+                    LoggerChain.getInstance().logError(exc.getMessage());
+                }
+            }
+        }
     }
 
     public AsyncLooper atTheStartOfEveryIterationWaitFor(long millis) {
