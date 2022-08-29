@@ -60,6 +60,10 @@ public class MainActivity extends AppCompatActivity {
             return lastUpdateTime;
         }
 
+        public static void clearValues() {
+            balancesValues.clear();
+            currentCoinValues.clear();
+        }
     }
 
     public static class Engine {
@@ -150,18 +154,16 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void storeMapToCache(Map<?, ?> map, String fileName) {
-        if (!map.isEmpty()) {
-            try {
-                File outputDir = getCacheDir();
-                try (
+        try {
+            File outputDir = getCacheDir();
+            try (
                     FileOutputStream fout = new FileOutputStream(outputDir.getAbsolutePath() + "/" + fileName);
                     ObjectOutputStream oos = new ObjectOutputStream(fout)
-                ) {
-                    oos.writeObject(map);
-                }
-            } catch (IOException exc) {
-                LoggerChain.getInstance().logError("Exception occured: " + exc.getMessage());
+            ) {
+                oos.writeObject(map);
             }
+        } catch (IOException exc) {
+            LoggerChain.getInstance().logError("Exception occured: " + exc.getMessage());
         }
     }
 

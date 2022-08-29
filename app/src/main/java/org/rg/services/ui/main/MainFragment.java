@@ -150,7 +150,11 @@ public class MainFragment extends Fragment {
             wallets.add(wallet);
         }
         if (wallets.isEmpty()) {
-            getMainActivity().goToSettingsView();
+            MainActivity.Model.clearValues();
+            MainActivity mainActivity = getMainActivity();
+            mainActivity.storeBalancesValues();
+            mainActivity.storeCurrentCoinValues();
+            mainActivity.goToSettingsView();
             return;
         }
         gitHubUsernameSupplier = CompletableFuture.supplyAsync(
