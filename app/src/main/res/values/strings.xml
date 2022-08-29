@@ -22,8 +22,10 @@
     <string name="reportUrl">&reportUrl;</string>
     <string name="settingsLabelText">Settings</string>
     <string name="coinsToBeAlwaysDisplayedLabelText">Always show these coins</string>
+    <string name="showAUPEILabelText">Show the absolute unit price to equalize the investment</string>
     <string name="showClearedBalanceLabelText">Show cleared balance</string>
     <string name="showNaNAmountsLabelText">Show NaN amounts</string>
+    <string name="showDifferenceBetweenUPAndAUPEILabelText">Show the difference between the unit price and the absolute unit price to equalize the investment</string>
     <string name="showDifferenceBetweenUPAndRUPEILabelText">Show the difference between the unit price and the relative unit price to equalize the investment</string>
     <string name="showRUPEILabelText">Show the relative unit price to equalize the investment</string>
     <string name="totalInvestmentLabelText">Total investment</string>
@@ -36,11 +38,13 @@
     <!-- Coin table labels -->
     <string name="amountInEuroLabelText">Am (€)</string>
     <string name="amountInUSDLabelText">Am ($)</string>
+    <string name="aUPEIInUSDLabelText">AUPEI™ ($)</string>
     <string name="coinLabelText">Coin</string>
-    <string name="differenceBetweenUnitPriceAndRUPEIInUSD">UP-RUPEI ($)</string>
+    <string name="differenceBetweenUnitPriceAndAUPEIInUSDLabelText">UP-AUPEI™ ($)</string>
+    <string name="differenceBetweenUnitPriceAndRUPEIInUSDLabelText">UP-RUPEI™ ($)</string>
     <string name="lastUpdateForCoinLabelText">Last upd</string>
     <string name="quantityLabelText">Quantity</string>
-    <string name="rUPEIInUSDLabelText">RUPEI ($)</string>
+    <string name="rUPEIInUSDLabelText">RUPEI™ ($)</string>
     <string name="unitPriceInUSDLabelText">UP ($)</string>
 
 </resources>

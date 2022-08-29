@@ -48,10 +48,7 @@ class CoinViewManager {
         this.fragment = fragment;
         this.coinsToBeAlwaysDisplayed = Arrays.stream(fragment.appPreferences.getString("coinsToBeAlwaysDisplayed", "BTC, ETH").toUpperCase().replace(" ", "").split(",")).filter(fragment::isStringNotEmpty).collect(Collectors.toList());
         headerLabels = new ArrayList<>();
-        String totalInvestmentAsString = fragment.appPreferences.getString("totalInvestment", null);
-        if (totalInvestmentAsString != null && !totalInvestmentAsString.isEmpty()) {
-            MainActivity.Model.currentValues.put("totalInvestment", Double.valueOf(totalInvestmentAsString));
-        }
+        setTotalInvestmentFromPreferences();
     }
 
     private void setUpHeaderLabelsForSpaces() {
@@ -62,7 +59,13 @@ class CoinViewManager {
                 headerLabels.add(fragment.getResources().getString(R.string.rUPEIInUSDLabelText));
             }
             if (fragment.appPreferences.getBoolean("showDifferenceBetweenUPAndRUPEI", false)) {
-                headerLabels.add(fragment.getResources().getString(R.string.differenceBetweenUnitPriceAndRUPEIInUSD));
+                headerLabels.add(fragment.getResources().getString(R.string.differenceBetweenUnitPriceAndRUPEIInUSDLabelText));
+            }
+            if (fragment.appPreferences.getBoolean("showAUPEI", false)) {
+                headerLabels.add(fragment.getResources().getString(R.string.aUPEIInUSDLabelText));
+            }
+            if (fragment.appPreferences.getBoolean("showDifferenceBetweenUPAndAUPEI", false)) {
+                headerLabels.add(fragment.getResources().getString(R.string.differenceBetweenUnitPriceAndAUPEIInUSDLabelText));
             }
         }
         headerLabels.add(fragment.getResources().getString(R.string.quantityLabelText));
@@ -119,7 +122,15 @@ class CoinViewManager {
     }
 
     private void setDifferenceBetweenUPAndRUPEIForCoin(String coinName, Double value) {
-        setValueForCoin(coinName, value, getIndexOfHeaderLabel(fragment.getResources().getString(R.string.differenceBetweenUnitPriceAndRUPEIInUSD)), fragment.numberFormatterWithFiveVariableDecimals, false);
+        setValueForCoin(coinName, value, getIndexOfHeaderLabel(fragment.getResources().getString(R.string.differenceBetweenUnitPriceAndRUPEIInUSDLabelText)), fragment.numberFormatterWithFiveVariableDecimals, false);
+    }
+
+    private void setAUPEIForCoin(String coinName, Double value) {
+        setValueForCoin(coinName, value, getIndexOfHeaderLabel(fragment.getResources().getString(R.string.aUPEIInUSDLabelText)), fragment.numberFormatterWithFiveVariableDecimals, true);
+    }
+
+    private void setDifferenceBetweenUPAndAUPEIForCoin(String coinName, Double value) {
+        setValueForCoin(coinName, value, getIndexOfHeaderLabel(fragment.getResources().getString(R.string.differenceBetweenUnitPriceAndAUPEIInUSDLabelText)), fragment.numberFormatterWithFiveVariableDecimals, false);
     }
 
     private void setValueForCoin(String coinName, Double value, int columnIndex, DecimalFormat numberFormatter) {
@@ -465,9 +476,11 @@ class CoinViewManager {
         coinTableUpdaters.stream().forEach(Runnable::run);
         setAmount(amount);
         boolean showRUPEI = fragment.appPreferences.getBoolean("showRUPEI", true);
-        boolean showDifferenceBetweenUPAndRUPEI = fragment.appPreferences.getBoolean("showDifferenceBetweenUPAndRUPEI", true);
+        boolean showDifferenceBetweenUPAndRUPEI = fragment.appPreferences.getBoolean("showDifferenceBetweenUPAndRUPEI", false);
+        boolean showAUPEI = fragment.appPreferences.getBoolean("showAUPEI", false);
+        boolean showDifferenceBetweenUPAndAUPEI = fragment.appPreferences.getBoolean("showDifferenceBetweenUPAndAUPEI", false);
         Double totalInvestment = getTotalInvestment();
-        if (totalInvestment != null && (showRUPEI || showDifferenceBetweenUPAndRUPEI)) {
+        if (totalInvestment != null && (showRUPEI || showDifferenceBetweenUPAndRUPEI || showAUPEI || showDifferenceBetweenUPAndAUPEI)) {
             Double currencyValue = isCurrencyInEuro() ? euroValue : 1D;
             for (Map.Entry<String, Map<String, Object>> allCoinValues : allCoinsValues.entrySet()) {
                 Map<String, Object> values = allCoinValues.getValue();
@@ -475,12 +488,22 @@ class CoinViewManager {
                 Double coinAmount = (Double)values.get("coinAmount");
                 Double rUPEI = coinAmount.isNaN() /*|| coinAmount == 0D*/ ? Double.NaN :
                         (((((((totalInvestment + 1D) * 100D) / 99.9D) + 1D) * 100D) / 99.6) - ((amount - coinAmount) / currencyValue)) / coinQuantity;
+                Double aUPEI = coinAmount.isNaN() /*|| coinAmount == 0D*/ ? Double.NaN :
+                        ((((((totalInvestment + 1D) * 100D) / 99.9D) + 1D) * 100D) / 99.6) / coinQuantity;
                 if (showRUPEI) {
                     setRUPEIForCoin(allCoinValues.getKey(), rUPEI);
                 }
                 if (showDifferenceBetweenUPAndRUPEI) {
                     setDifferenceBetweenUPAndRUPEIForCoin(allCoinValues.getKey(), rUPEI.isNaN() ? Double.NaN :
                         (Double)values.get("unitPrice") - rUPEI
+                    );
+                }
+                if (showAUPEI) {
+                    setAUPEIForCoin(allCoinValues.getKey(), aUPEI);
+                }
+                if (showDifferenceBetweenUPAndAUPEI) {
+                    setDifferenceBetweenUPAndAUPEIForCoin(allCoinValues.getKey(), aUPEI.isNaN() ? Double.NaN :
+                        (Double)values.get("unitPrice") - aUPEI
                     );
                 }
 
@@ -622,6 +645,23 @@ class CoinViewManager {
 
     public Double getTotalInvestment() {
         return (Double) MainActivity.Model.currentValues.get("totalInvestment");
+    }
+
+    public void setTotalInvestment(Double value) {
+        if (value != null) {
+            MainActivity.Model.currentValues.put("totalInvestment", value);
+        } else {
+            MainActivity.Model.currentValues.remove("totalInvestment");
+        }
+    }
+
+    public void setTotalInvestmentFromPreferences() {
+        String totalInvestmentAsString = fragment.appPreferences.getString("totalInvestment", null);
+        Double value = null;
+        if (fragment.isStringNotEmpty(totalInvestmentAsString)) {
+            value = Double.valueOf(totalInvestmentAsString);
+        }
+        setTotalInvestment(value);
     }
 
     private void setEuroValue(Double value) {

@@ -95,6 +95,16 @@
             app:title="@string/showDifferenceBetweenUPAndRUPEILabelText"
             app:defaultValue="false"
             app:singleLineTitle="false" />
+        <CheckBoxPreference
+            app:key="showAUPEI"
+            app:title="@string/showAUPEILabelText"
+            app:defaultValue="false"
+            app:singleLineTitle="false" />
+        <CheckBoxPreference
+            app:key="showDifferenceBetweenUPAndAUPEI"
+            app:title="@string/showDifferenceBetweenUPAndAUPEILabelText"
+            app:defaultValue="false"
+            app:singleLineTitle="false" />
         <ListPreference
             app:key="dateTimeFormat"
             app:title="@string/dateTimeFormat"
