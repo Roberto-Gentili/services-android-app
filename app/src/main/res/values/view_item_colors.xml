@@ -20,7 +20,9 @@
     <color name="text_value_increased_highlight_color">@color/green</color>
     <color name="text_value_decreased_highlight_color">@color/red</color>
     <color name="label_text_default_color">@color/yellow</color>
+    <color name="simple_text_disabled_highlight_color">@color/teal_700</color>
     <color name="simple_text_highlight_color">@color/teal_200</color>
+
     <color name="disabled_text_highlight_color">@color/dark_gray</color>
 
 </resources>

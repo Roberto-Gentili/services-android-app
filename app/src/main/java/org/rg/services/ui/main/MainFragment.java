@@ -431,7 +431,9 @@ public class MainFragment extends Fragment {
         synchronized (textView) {
             String previousValueAsString = String.valueOf(textView.getText());
             if (!previousValueAsString.isEmpty() && !previousValueAsString.equals(newValue)) {
-                textView.setTextColor(getColorFromResources(R.color.simple_text_highlight_color));
+                textView.setTextColor(defaultColor != getColorFromResources(R.color.disabled_text_highlight_color) ?
+                        getColorFromResources(R.color.simple_text_highlight_color) :
+                        getColorFromResources(R.color.simple_text_disabled_highlight_color));
                 textView.setText(newValue);
             } else {
                 textView.setText(newValue);
