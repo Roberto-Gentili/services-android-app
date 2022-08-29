@@ -5,8 +5,8 @@
     <color name="green">#FF00FF00</color>
     <color name="blue">#FF0000FF</color>
 
-    <color name="dark_red">#AE0000</color>
-    <color name="dark_green">#008800</color>
+    <color name="dark_red">#700000</color>
+    <color name="dark_green">#006600</color>
     <color name="purple_200">#FFBB86FC</color>
     <color name="purple_500">#FF6200EE</color>
     <color name="purple_700">#FF3700B3</color>
