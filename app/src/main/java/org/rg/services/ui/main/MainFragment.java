@@ -406,9 +406,15 @@ public class MainFragment extends Fragment {
                         numberFormatter.parse(previousValueAsString).doubleValue() :
                         newValue - 1D;
                     if ((!inverted && newValue > previousValue) || (inverted && newValue < previousValue)) {
-                        textView.setTextColor(getColorFromResources(R.color.text_value_increased_highlight_color));
+                        int color = defaultColor != getColorFromResources(R.color.disabled_text_highlight_color) ?
+                            getColorFromResources(R.color.text_value_increased_highlight_color) :
+                            getColorFromResources(R.color.text_value_disabled_increased_highlight_color);
+                        textView.setTextColor(color);
                     } else {
-                        textView.setTextColor(getColorFromResources(R.color.text_value_decreased_highlight_color));
+                        int color = defaultColor != getColorFromResources(R.color.disabled_text_highlight_color) ?
+                            getColorFromResources(R.color.text_value_decreased_highlight_color) :
+                            getColorFromResources(R.color.text_value_disabled_decreased_highlight_color);
+                        textView.setTextColor(color);
                     }
                 } catch (ParseException e) {}
             } else if (!fixed) {

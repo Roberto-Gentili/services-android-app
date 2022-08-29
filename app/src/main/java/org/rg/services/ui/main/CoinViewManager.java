@@ -209,16 +209,16 @@ class CoinViewManager {
         setValueForCoin(coinName, value, columnIndex, numberFormatter, inverted, false);
     }
 
-    private void setValueForCoin(String coinName, Double value, int columnIndex, DecimalFormat numberFormatter, boolean inverted, boolean toGrayRowIfNaNOrZero) {
+    private void setValueForCoin(String coinName, Double value, int columnIndex, DecimalFormat numberFormatter, boolean inverted, boolean toDisabledRowIfNaNOrZero) {
         fragment.runOnUIThread(() -> {
             MainActivity mainActivity = fragment.getMainActivity();
             TableLayout coinsTable = (TableLayout) mainActivity.findViewById(R.id.coinTable);
             TableRow row = getOrBuildCoinRow(mainActivity, coinsTable, coinName);
             TextView coinNameCell = ((TextView)row.getChildAt(getIndexOfHeaderLabel(fragment.getResources().getString(R.string.coinLabelText))));
-            if (toGrayRowIfNaNOrZero && (value == 0D || value.isNaN())) {
+            if (toDisabledRowIfNaNOrZero && (value == 0D || value.isNaN())) {
                 for (int i = 0; i < row.getChildCount(); i++) {
                     TextView cell = (TextView)row.getChildAt(i);
-                    cell.setTextColor(Color.GRAY);
+                    cell.setTextColor(fragment.getColorFromResources(R.color.disabled_text_highlight_color));
                 }
             }
             fragment.setHighlightedValue((TextView) row.getChildAt(columnIndex), numberFormatter, value, false, inverted, coinNameCell.getCurrentTextColor());
