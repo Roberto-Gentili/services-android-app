@@ -129,6 +129,11 @@
             app:key="alwaysActiveWhenInBackground"
             app:title="@string/alwaysActiveWhenInBackgroundLabelText"
             app:defaultValue="false" />
+
+        <CheckBoxPreference
+            app:key="fastBootEnabled"
+            app:title="@string/fastBootEnabledLabelText"
+            app:defaultValue="true" />
     </PreferenceCategory>
 
 </PreferenceScreen>

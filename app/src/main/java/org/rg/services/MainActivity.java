@@ -16,13 +16,22 @@ import org.rg.services.ui.main.SettingsFragment;
 import org.rg.util.LoggerChain;
 import org.rg.util.RestTemplateSupplier;
 import org.rg.util.Throwables;
+import org.rg.util.Utility;
 import org.springframework.web.client.RestTemplate;
 
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Map;
+import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutorService;
@@ -31,15 +40,15 @@ import java.util.function.Consumer;
 import java.util.function.Supplier;
 
 public class MainActivity extends AppCompatActivity {
-
+    private Utility utility;
     public static class Model {
-        public final static Map<String, Object> currentValues;
+        public final static Map<String, Object> balancesValues;
         public final static Map<String, Map<String, Map<String, Object>>> currentCoinValues;
         public static boolean isReadyToBeShown;
         private static LocalDateTime lastUpdateTime;
 
         static {
-            currentValues = new ConcurrentHashMap<>();
+            balancesValues = new ConcurrentHashMap<>();
             currentCoinValues = new ConcurrentHashMap<>();
         }
 
@@ -120,6 +129,7 @@ public class MainActivity extends AppCompatActivity {
     }
 
     public MainActivity() {
+        utility = new Utility();
         int SDK_INT = android.os.Build.VERSION.SDK_INT;
         if (SDK_INT > 8)  {
             StrictMode.ThreadPolicy policy = new StrictMode.ThreadPolicy.Builder()
@@ -129,6 +139,47 @@ public class MainActivity extends AppCompatActivity {
         Engine.executorServiceSupplierSizeSupplier = () ->
             getLongValueFromAppPreferencesOrDefault("threadPoolSize", R.integer.default_thread_pool_size).intValue();
         //RestTemplateSupplier.getSharedInstance().enableRequestLogger();
+    }
+
+    public void storeBalancesValues() {
+        storeMapToCache(Model.balancesValues, "latestBalance.values");
+    }
+
+    public void storeCurrentCoinValues() {
+        storeMapToCache(Model.currentCoinValues, "latestCoin.values");
+    }
+
+    private void storeMapToCache(Map<?, ?> map, String fileName) {
+        if (!map.isEmpty()) {
+            try {
+                File outputDir = getCacheDir();
+                try (
+                    FileOutputStream fout = new FileOutputStream(outputDir.getAbsolutePath() + "/" + fileName);
+                    ObjectOutputStream oos = new ObjectOutputStream(fout)
+                ) {
+                    oos.writeObject(map);
+                }
+            } catch (IOException exc) {
+                LoggerChain.getInstance().logError("Exception occured: " + exc.getMessage());
+            }
+        }
+    }
+
+    public <V> Map<String, V> loadMapFromCache(String fileName) {
+        try {
+            File outputDir = getCacheDir();
+            try (FileInputStream fIS = new FileInputStream(outputDir.getAbsolutePath() + "/" + fileName);
+                 ObjectInputStream oIS = new ObjectInputStream(fIS)) {
+                return (Map<String, V>) oIS.readObject();
+            } catch (FileNotFoundException exc) {
+                return null;
+            } catch (IOException | ClassNotFoundException exc) {
+                LoggerChain.getInstance().logError("Exception occured: " + exc.getMessage());
+            }
+        } catch (Throwable exc) {
+            LoggerChain.getInstance().logError("Exception occured: " + exc.getMessage());
+        }
+        return null;
     }
 
     @Override
@@ -144,6 +195,14 @@ public class MainActivity extends AppCompatActivity {
         LoggerChain.getInstance().appendExceptionLogger(logger);
         LoggerChain.getInstance().appendInfoLogger(logger);
         Engine.resetExecutorService();
+        if (Model.balancesValues.isEmpty()) {
+            Optional.ofNullable(loadMapFromCache("latestBalance.values")).ifPresent(Model.balancesValues::putAll);
+        }
+        //Model.balancesValues.clear();
+        if (Model.currentCoinValues.isEmpty()) {
+            Optional.ofNullable(loadMapFromCache("latestCoin.values")).ifPresent(map -> map.forEach((key, value) -> Model.currentCoinValues.put(key, (Map<String, Map<String, Object>>)value)));
+        }
+        //Model.currentCoinValues.clear();
         setContentView(R.layout.activity_main);
         if (savedInstanceState == null) {
             goToMainView();

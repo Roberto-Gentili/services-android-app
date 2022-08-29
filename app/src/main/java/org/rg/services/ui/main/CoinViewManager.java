@@ -28,6 +28,7 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.TreeMap;
+import java.util.TreeSet;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CopyOnWriteArrayList;
@@ -38,6 +39,7 @@ import java.util.stream.Collectors;
 
 class CoinViewManager {
     private final MainFragment fragment;
+    private Map<Wallet, CompletableFuture<Collection<String>>> ownedCoinsSuppliers;
     private Collection<CompletableFuture<Collection<String>>> retrievingCoinValueTasks;
     private Collection<String> coinsToBeAlwaysDisplayed;
     private AsyncLooper retrievingCoinValuesTask;
@@ -48,6 +50,7 @@ class CoinViewManager {
         this.fragment = fragment;
         this.coinsToBeAlwaysDisplayed = Arrays.stream(fragment.appPreferences.getString("coinsToBeAlwaysDisplayed", "BTC, ETH").toUpperCase().replace(" ", "").split(",")).filter(fragment::isStringNotEmpty).collect(Collectors.toList());
         headerLabels = new ArrayList<>();
+        ownedCoinsSuppliers = new ConcurrentHashMap<>();
         setTotalInvestmentFromPreferences();
     }
 
@@ -281,13 +284,16 @@ class CoinViewManager {
                 return;
             }
             this.retrievingCoinValuesTask = null;
+            MainActivity mainActivity = fragment.getMainActivity();
+            if (mainActivity != null) {
+                mainActivity.storeCurrentCoinValues();
+            }
         }
         retrievingCoinValuesTask.kill();
     }
 
     private AsyncLooper retrieveCoinValues() {
         Map<String, Map<String, Map<String, Object>>> currentCoinValues = MainActivity.Model.currentCoinValues;
-        Map<Wallet, CompletableFuture<Collection<String>>> ownedCoinsSuppliers = new ConcurrentHashMap<>();
         launchOwnedCoinRetrievers(ownedCoinsSuppliers);
         AsyncLooper coinsToBeScannedRetriever = new AsyncLooper(() -> {
             launchOwnedCoinRetrievers(ownedCoinsSuppliers);
@@ -311,7 +317,7 @@ class CoinViewManager {
                                             Double unitPriceInDollar = wallet.getValueForCoin(coinName);
                                             Double quantity = wallet.getQuantityForCoin(coinName);
                                             Map<String, Map<String, Object>> allCoinValues = currentCoinValues.computeIfAbsent(coinName, key -> new ConcurrentHashMap<>());
-                                            Map<String, Object> coinValues = allCoinValues.computeIfAbsent(wallet.getId(), key -> new ConcurrentHashMap<>());
+                                            Map<String, Object> coinValues = allCoinValues.computeIfAbsent(wallet.getName(), key -> new ConcurrentHashMap<>());
                                             coinValues.put("unitPrice", unitPriceInDollar);
                                             Optional.ofNullable(mainActivity).map(mA -> MainActivity.Model.setLastUpdateTime()).ifPresent(lUT -> coinValues.put("lastUpdate", lUT));
                                             coinValues.put("quantity", quantity);
@@ -371,6 +377,14 @@ class CoinViewManager {
         }
     }
 
+    private Collection<String> getAllOwnedCoins() {
+        Collection<String> allOwnedCoins = new TreeSet<>();
+        for (CompletableFuture<Collection<String>> ownedCoins : ownedCoinsSuppliers.values()) {
+            allOwnedCoins.addAll(ownedCoins.join());
+        }
+        return allOwnedCoins;
+    }
+
     private CompletableFuture<Collection<String>> launchOwnedCoinRetrievers(Wallet wallet, Collection<String> defaultValues) {
         return CompletableFuture.supplyAsync(() -> {
             while (true) {
@@ -414,7 +428,10 @@ class CoinViewManager {
         }
         MainActivity mainActivity = fragment.getMainActivity();
         if (!MainActivity.Model.isReadyToBeShown) {
-            if (retrievingCoinValueTasks.stream().map(CompletableFuture::join).filter(excMsgs -> !excMsgs.isEmpty()).count() > 0) {
+            boolean waitForRetrievingCoinValueTasks =
+                !(fragment.appPreferences.getBoolean("fastBootEnabled", true) &&
+                MainActivity.Model.currentCoinValues.keySet().containsAll(getAllOwnedCoins()));
+            if (waitForRetrievingCoinValueTasks && retrievingCoinValueTasks.stream().map(CompletableFuture::join).filter(excMsgs -> !excMsgs.isEmpty()).count() > 0) {
                 setToNaNValuesIfNulls();
                 return false;
             }
@@ -609,7 +626,7 @@ class CoinViewManager {
     }
 
     public Double getAmountInDollar() {
-        return (Double) MainActivity.Model.currentValues.get("amount");
+        return (Double) MainActivity.Model.balancesValues.get("amount");
     }
 
     public Double getAmountInEuro() {
@@ -621,7 +638,7 @@ class CoinViewManager {
     }
 
     public Double getEuroValue() {
-        return (Double) MainActivity.Model.currentValues.get("euroValue");
+        return (Double) MainActivity.Model.balancesValues.get("euroValue");
     }
 
     public Double getPureAmountInDollar() {
@@ -644,14 +661,14 @@ class CoinViewManager {
     }
 
     public Double getTotalInvestment() {
-        return (Double) MainActivity.Model.currentValues.get("totalInvestment");
+        return (Double) MainActivity.Model.balancesValues.get("totalInvestment");
     }
 
     public void setTotalInvestment(Double value) {
         if (value != null) {
-            MainActivity.Model.currentValues.put("totalInvestment", value);
+            MainActivity.Model.balancesValues.put("totalInvestment", value);
         } else {
-            MainActivity.Model.currentValues.remove("totalInvestment");
+            MainActivity.Model.balancesValues.remove("totalInvestment");
         }
     }
 
@@ -666,14 +683,14 @@ class CoinViewManager {
 
     private void setEuroValue(Double value) {
         if (value != null) {
-            MainActivity.Model.currentValues.put("euroValue", value);
+            MainActivity.Model.balancesValues.put("euroValue", value);
         } else {
-            MainActivity.Model.currentValues.remove("euroValue");
+            MainActivity.Model.balancesValues.remove("euroValue");
         }
     }
 
     private void setAmount(Double value) {
-        MainActivity.Model.currentValues.put("amount", value);
+        MainActivity.Model.balancesValues.put("amount", value);
     }
 
 }

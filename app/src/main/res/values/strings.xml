@@ -14,6 +14,7 @@
     <string name="cryptoAmountLabelText">Amount:</string>
     <string name="currentTimeRetrievingModeLabelText">Current time retrieving mode</string>
     <string name="dateTimeFormat">Date time format</string>
+    <string name="fastBootEnabledLabelText">Fast boot</string>
     <string name="enabledLabelText">Enabled</string>
     <string name="intervalBetweenRequestGroupsTextLabel">Interval between request groups (in milliseconds)</string>
     <string name="lastUpdateLabelText">Last update:</string>
