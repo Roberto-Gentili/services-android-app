@@ -434,6 +434,8 @@ class CoinViewManager {
             if (waitForRetrievingCoinValueTasks && retrievingCoinValueTasks.stream().map(CompletableFuture::join).filter(excMsgs -> !excMsgs.isEmpty()).count() > 0) {
                 setToNaNValuesIfNulls();
                 return false;
+            } else {
+                MainActivity.Model.isReadyToBeShown = true;
             }
         }
         Map<String, Map<String, Map<String, Object>>> currentCoinValuesOrderedSnapshot = getCurrentCoinValuesOrderedSnapshot();
@@ -526,7 +528,6 @@ class CoinViewManager {
 
             }
         }
-        MainActivity.Model.isReadyToBeShown = true;
         return canBeRefreshed = true;
     }
 
