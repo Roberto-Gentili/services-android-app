@@ -8,7 +8,6 @@ import android.widget.LinearLayout;
 import android.widget.ProgressBar;
 import android.widget.TextView;
 
-import org.rg.services.MainActivity;
 import org.rg.services.R;
 import org.rg.util.AsyncLooper;
 import org.rg.util.LoggerChain;

@@ -1,6 +1,5 @@
 package org.rg.services.ui.main;
 
-import android.graphics.Color;
 import android.graphics.Typeface;
 import android.view.Gravity;
 import android.widget.TableLayout;
