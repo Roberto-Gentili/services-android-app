@@ -175,8 +175,8 @@ class CoinViewManager {
     }
 
     @NonNull
-    private TableRow getOrBuildCoinRow(MainActivity mainActivity, TableLayout coinsTable, String coinName) {
-        TableRow row = getOrBuildCoinRow(coinName);
+    private TableRow getCoinRow(MainActivity mainActivity, TableLayout coinsTable, String coinName) {
+        TableRow row = getCoinRow(coinName);
         if (row == null) {
             buildHeader();
             row = new TableRow(fragment.getMainActivity());
@@ -210,7 +210,7 @@ class CoinViewManager {
     @Nullable
     private TableRow removeCoinRow(String coinName) {
         TableLayout coinsTable = fragment.getMainActivity().findViewById(R.id.coinTable);
-        TableRow coinRow = getOrBuildCoinRow(coinName);
+        TableRow coinRow = getCoinRow(coinName);
         if (coinRow != null) {
             fragment.runOnUIThread(() ->
                 coinsTable.removeView(coinRow)
@@ -223,7 +223,7 @@ class CoinViewManager {
         fragment.runOnUIThread(() -> {
             MainActivity mainActivity = fragment.getMainActivity();
             TableLayout coinsTable = mainActivity.findViewById(R.id.coinTable);
-            TableRow row = getOrBuildCoinRow(mainActivity, coinsTable, coinName);
+            TableRow row = getCoinRow(mainActivity, coinsTable, coinName);
             TextView coinNameCell = ((TextView)row.getChildAt(getIndexOfHeaderLabel(fragment.getResources().getString(R.string.coinLabelText))));
             fragment.setHighlightedValue((TextView) row.getChildAt(columnIndex), formatter.format(value), coinNameCell.getCurrentTextColor());
         });
@@ -237,19 +237,19 @@ class CoinViewManager {
         fragment.runOnUIThread(() -> {
             MainActivity mainActivity = fragment.getMainActivity();
             TableLayout coinsTable = mainActivity.findViewById(R.id.coinTable);
-            TableRow row = getOrBuildCoinRow(mainActivity, coinsTable, coinName);
+            TableRow row = getCoinRow(mainActivity, coinsTable, coinName);
             TextView coinNameCell = ((TextView)row.getChildAt(getIndexOfHeaderLabel(fragment.getResources().getString(R.string.coinLabelText))));
-            if (toDisabledRowIfNaNOrZero && (value == 0D || value.isNaN())) {
-                for (int i = 0; i < row.getChildCount(); i++) {
-                    TextView cell = (TextView)row.getChildAt(i);
-                    cell.setTextColor(fragment.getColorFromResources(R.color.disabled_text_highlight_color));
-                }
+            if (toDisabledRowIfNaNOrZero) {
+                int color = value == 0D || value.isNaN() ?
+                    fragment.getColorFromResources(R.color.disabled_text_highlight_color) :
+                    fragment.getColorFromResources(R.color.text_default_color);
+                coinNameCell.setTextColor(color);
             }
             fragment.setHighlightedValue((TextView) row.getChildAt(columnIndex), numberFormatter, value, false, inverted, coinNameCell.getCurrentTextColor());
         });
     }
 
-    private TableRow getOrBuildCoinRow(String coinName) {
+    private TableRow getCoinRow(String coinName) {
         TableLayout coinsTable = fragment.getMainActivity().findViewById(R.id.coinTable);
         int childCount = coinsTable.getChildCount();
         if (childCount > 1) {

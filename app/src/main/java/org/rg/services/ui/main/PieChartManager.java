@@ -3,20 +3,15 @@ package org.rg.services.ui.main;
 import android.graphics.Color;
 import android.graphics.Typeface;
 import android.view.View;
-import android.view.animation.Animation;
 
 import androidx.core.content.res.ResourcesCompat;
 
-import com.github.mikephil.charting.charts.Chart;
 import com.github.mikephil.charting.charts.PieChart;
 import com.github.mikephil.charting.data.PieData;
 import com.github.mikephil.charting.data.PieDataSet;
 import com.github.mikephil.charting.data.PieEntry;
 import com.github.mikephil.charting.formatter.PercentFormatter;
 
-import org.rg.services.R;
-
-import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Iterator;
@@ -34,8 +29,7 @@ public class PieChartManager {
         pieEntries = new ArrayList<>();
         pieEntriesColors = new ArrayList<>();
         pieValuesColors = new ArrayList<>();
-        String label = "type";
-        PieDataSet pieDataSet = new PieDataSet(pieEntries,label);
+        PieDataSet pieDataSet = new PieDataSet(pieEntries,null);
         pieDataSet.setValueTextSize(12f);
         pieDataSet.setColors(pieEntriesColors);
         PieData pieData = new PieData(pieDataSet);
@@ -53,10 +47,11 @@ public class PieChartManager {
         //pieChart.setTransparentCircleAlpha(88);
         //pieChart.setTransparentCircleColor(ResourcesCompat.getColor(pieChart.getResources(), R.color.dark_red, null));
         pieChart.setHoleColor(Color.TRANSPARENT);
-        pieChart.getLegend().setEnabled(false);
         pieChart.setEntryLabelColor(Color.WHITE);
         pieChart.setEntryLabelTextSize(16);
         pieChart.setEntryLabelTypeface(Typeface.defaultFromStyle(Typeface.BOLD_ITALIC));
+        pieChart.getLegend().setEnabled(false);
+        pieChart.getDescription().setEnabled(false);
         //pieChart.setRotationEnabled(false);
         if (percentage) {
             pieChart.setUsePercentValues(true);
