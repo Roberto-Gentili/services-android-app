@@ -649,7 +649,7 @@ class CoinViewManager {
         Double amountInDollar = getClearedAmountInDollar();
         Double euroValue = getEuroValue();
         if (isCurrencyInEuro()) {
-            return amountInDollar / euroValue;
+            return amountInDollar != null? amountInDollar / euroValue : null;
         }
         return amountInDollar;
     }

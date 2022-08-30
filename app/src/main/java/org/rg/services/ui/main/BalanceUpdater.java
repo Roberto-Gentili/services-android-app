@@ -61,6 +61,9 @@ class BalanceUpdater {
         }
         updateTask = new AsyncLooper(() -> {
             CoinViewManager coinViewManager = fragment.coinViewManager;
+            if (coinViewManager == null) {
+                return;
+            }
             if (coinViewManager.refresh()) {
                 this.fragment.runOnUIThread(() -> {
                     fragment.setHighlightedValue(cryptoAmount, fragment.numberFormatterWithTwoDecimals, fragment.coinViewManager.getAmount());
