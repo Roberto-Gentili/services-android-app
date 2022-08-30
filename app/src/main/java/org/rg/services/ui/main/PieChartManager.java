@@ -1,9 +1,12 @@
 package org.rg.services.ui.main;
 
+import android.graphics.Color;
+import android.graphics.Typeface;
 import android.view.View;
 
 import androidx.core.content.res.ResourcesCompat;
 
+import com.github.mikephil.charting.charts.Chart;
 import com.github.mikephil.charting.charts.PieChart;
 import com.github.mikephil.charting.data.PieData;
 import com.github.mikephil.charting.data.PieDataSet;
@@ -40,6 +43,9 @@ public class PieChartManager {
         pieChart.setTransparentCircleColor(50);
         pieChart.setHoleColor(0);
         pieChart.getLegend().setEnabled(false);
+        pieChart.setEntryLabelTextSize(16);
+        pieChart.setEntryLabelTypeface(Typeface.defaultFromStyle(Typeface.BOLD_ITALIC));
+        pieChart.setRotationEnabled(false);
         if (percentage) {
             pieChart.setUsePercentValues(true);
             pieData.setValueFormatter(new PercentFormatter() {
