@@ -357,26 +357,26 @@ public class MainFragment extends Fragment {
     }
 
     synchronized void activate() {
-        if (this.balanceUpdater == null) {
-            balanceUpdater = new BalanceUpdater(this);
-            balanceUpdater.activate();
-        }
         if (this.coinViewManager == null) {
             coinViewManager = new CoinViewManager(this);
             coinViewManager.activate();
         }
+        if (this.balanceUpdater == null) {
+            balanceUpdater = new BalanceUpdater(this);
+            balanceUpdater.activate();
+        }
     }
 
     synchronized void stop() {
-        BalanceUpdater balanceUpdater = this.balanceUpdater;
-        if (balanceUpdater != null) {
-            this.balanceUpdater = null;
-            balanceUpdater.stop();
-        }
         CoinViewManager coinViewManager = this.coinViewManager;
         if (coinViewManager != null) {
             this.coinViewManager = null;
             coinViewManager.stop();
+        }
+        BalanceUpdater balanceUpdater = this.balanceUpdater;
+        if (balanceUpdater != null) {
+            this.balanceUpdater = null;
+            balanceUpdater.stop();
         }
     }
 
