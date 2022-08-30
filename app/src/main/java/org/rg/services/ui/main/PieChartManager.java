@@ -57,7 +57,7 @@ public class PieChartManager {
         pieChart.setEntryLabelColor(Color.WHITE);
         pieChart.setEntryLabelTextSize(16);
         pieChart.setEntryLabelTypeface(Typeface.defaultFromStyle(Typeface.BOLD_ITALIC));
-        pieChart.setRotationEnabled(false);
+        //pieChart.setRotationEnabled(false);
         if (percentage) {
             pieChart.setUsePercentValues(true);
             pieData.setValueFormatter(new PercentFormatter() {
