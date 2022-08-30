@@ -468,6 +468,7 @@ public class MainFragment extends Fragment {
                 action.run();
             } catch (Throwable exc) {
                 Arrays.stream(stackTraceElements).forEach(System.out::println);
+                exc.printStackTrace();
                 LoggerChain.getInstance().logError("Exception occurred: " + exc.getMessage());
             }
         });

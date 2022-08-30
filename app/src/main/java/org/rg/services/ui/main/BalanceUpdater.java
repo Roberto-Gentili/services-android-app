@@ -56,6 +56,8 @@ class BalanceUpdater {
             if (fragment.coinViewManager.getTotalInvestment() != null && fragment.coinViewManager.getClearedAmount() != null) {
                 setBalancesChartData(fragment.coinViewManager.getTotalInvestment(), fragment.coinViewManager.getClearedAmount());
             }
+        } else {
+            mainLayout.removeView(chartsTable);
         }
         updateTask = new AsyncLooper(() -> {
             CoinViewManager coinViewManager = fragment.coinViewManager;
@@ -68,8 +70,6 @@ class BalanceUpdater {
                     if (totalInvestment != null && fragment.appPreferences.getBoolean("showClearedBalance", true)) {
                         fragment.setFixedHighlightedValue(clearedBalance, fragment.numberFormatterWithSignAndTwoDecimals, clearedAmount - totalInvestment);
                         setBalancesChartData(totalInvestment, clearedAmount);
-                    } else {
-                        mainLayout.removeView(chartsTable);
                     }
                     fragment.setHighlightedValue(lastUpdate, fragment.getLastUpdateTimeAsString());
                     if (loadingDataAdvisor.getVisibility() != View.INVISIBLE) {
@@ -93,7 +93,9 @@ class BalanceUpdater {
                         }
                         lastUpdateBar.setVisibility(View.VISIBLE);
                         coinsView.setVisibility(View.VISIBLE);
-                        pieChartManager.visible();
+                        if (pieChartManager != null) {
+                            pieChartManager.visible();
+                        }
                         if (fragment.gitHubUsernameSupplier.join() != null) {
                             linkToReport.setMovementMethod(LinkMovementMethod.getInstance());
                             String reportUrl = fragment.getResources().getString(R.string.reportUrl).replace(
