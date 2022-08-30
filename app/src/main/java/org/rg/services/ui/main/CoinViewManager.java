@@ -57,6 +57,14 @@ class CoinViewManager {
     private void setUpHeaderLabelsForSpaces() {
         headerLabels.add(fragment.getResources().getString(R.string.coinLabelText));
         headerLabels.add(fragment.getResources().getString(R.string.unitPriceInUSDLabelText));
+        headerLabels.add(fragment.getResources().getString(R.string.quantityLabelText));
+        if (isCurrencyInEuro()) {
+            headerLabels.add(fragment.getResources().getString(R.string.amountInEuroLabelText));
+            headerLabels.add(fragment.getResources().getString(R.string.clearedAmountInEuroLabelText));
+        } else {
+            headerLabels.add(fragment.getResources().getString(R.string.amountInUSDLabelText));
+            headerLabels.add(fragment.getResources().getString(R.string.clearedAmountInUSDLabelText));
+        }
         if (getTotalInvestment() != null) {
             if (fragment.appPreferences.getBoolean("showRUPEI", true)) {
                 headerLabels.add(fragment.getResources().getString(R.string.rUPEIInUSDLabelText));
@@ -70,12 +78,6 @@ class CoinViewManager {
             if (fragment.appPreferences.getBoolean("showDifferenceBetweenUPAndAUPEI", false)) {
                 headerLabels.add(fragment.getResources().getString(R.string.differenceBetweenUnitPriceAndAUPEIInUSDLabelText));
             }
-        }
-        headerLabels.add(fragment.getResources().getString(R.string.quantityLabelText));
-        if (isCurrencyInEuro()) {
-            headerLabels.add(fragment.getResources().getString(R.string.amountInEuroLabelText));
-        } else {
-            headerLabels.add(fragment.getResources().getString(R.string.amountInUSDLabelText));
         }
         headerLabels.add(fragment.getResources().getString(R.string.lastUpdateForCoinLabelText));
     }
@@ -114,10 +116,19 @@ class CoinViewManager {
     }
 
     private void setAmountForCoin(String coinName, Double value) {
-        String amountInEuroLabelText = fragment.getResources().getString(R.string.amountInEuroLabelText);
-        int index = headerLabels.contains(amountInEuroLabelText) ?
-                getIndexOfHeaderLabel(amountInEuroLabelText) : getIndexOfHeaderLabel(fragment.getResources().getString(R.string.amountInUSDLabelText));
-        setValueForCoin(coinName, isCurrencyInEuro() ? value / getEuroValue() : value, index, fragment.numberFormatterWithTwoVariableDecimals);
+        boolean isCurrencyInEuro = isCurrencyInEuro();
+        int index = isCurrencyInEuro ?
+                getIndexOfHeaderLabel(fragment.getResources().getString(R.string.amountInEuroLabelText)) :
+                getIndexOfHeaderLabel(fragment.getResources().getString(R.string.amountInUSDLabelText));
+        setValueForCoin(coinName, isCurrencyInEuro ? value / getEuroValue() : value, index, fragment.numberFormatterWithTwoVariableDecimals);
+    }
+
+    private void setClearedAmountForCoin(String coinName, Double value) {
+        boolean isCurrencyInEuro = isCurrencyInEuro();
+        int index = isCurrencyInEuro ?
+                getIndexOfHeaderLabel(fragment.getResources().getString(R.string.clearedAmountInEuroLabelText)) :
+                getIndexOfHeaderLabel(fragment.getResources().getString(R.string.clearedAmountInUSDLabelText));
+        setValueForCoin(coinName, isCurrencyInEuro ? value / getEuroValue() : value, index, fragment.numberFormatterWithTwoVariableDecimals);
     }
 
     private void setRUPEIForCoin(String coinName, Double value) {
@@ -465,21 +476,28 @@ class CoinViewManager {
             setUpHeaderLabelsForSpaces();
         }
         Double amount = 0D;
+        Double clearedAmount = 0D;
         Map<String, Map<String, Object>> allCoinsValues = new TreeMap<>();
         Collection<Runnable> coinTableUpdaters = new ArrayList<>();
+        Double eurValue = getEuroValue();
+        double currencyUnit =  (eurValue != null && !eurValue.isNaN() ? eurValue : 1D);
         for (Map.Entry<String, Map<String, Map<String, Object>>> allCoinValuesFromCurrentOrderedSnapshot : currentCoinValuesOrderedSnapshot.entrySet()) {
             Map<String, Object> values = valuesRetriever.apply(allCoinValuesFromCurrentOrderedSnapshot);
             Double coinQuantity = (Double)values.get("coinQuantity");
             Double coinAmount = (Double)values.get("coinAmount");
+            Double coinClearedAmountRaw = ((((((coinAmount * 99.6D) / 100D) - 1D) * 99.9D) / 100D) - currencyUnit) / currencyUnit;
+            Double coinClearedAmount = coinClearedAmountRaw >= 0 ? coinClearedAmountRaw : 0D;
             if ((!coinAmount.isNaN() && (coinAmount > 0 || coinsToBeAlwaysDisplayed.contains(allCoinValuesFromCurrentOrderedSnapshot.getKey()))) ||
                     (fragment.appPreferences.getBoolean("showNaNAmounts", true) && coinQuantity != 0D)) {
                 coinTableUpdaters.add(() -> {
                     setQuantityForCoin(allCoinValuesFromCurrentOrderedSnapshot.getKey(), coinQuantity);
                     setAmountForCoin(allCoinValuesFromCurrentOrderedSnapshot.getKey(), coinAmount);
+                    setClearedAmountForCoin(allCoinValuesFromCurrentOrderedSnapshot.getKey(), coinClearedAmount);
                     setUnitPriceForCoinInDollar(allCoinValuesFromCurrentOrderedSnapshot.getKey(), (Double)values.get("unitPrice"));
                     setLastUpdateForCoin(allCoinValuesFromCurrentOrderedSnapshot.getKey(), (LocalDateTime)values.get("lastUpdate"));
                 });
                 amount += (!coinAmount.isNaN() ? coinAmount : 0D);
+                clearedAmount += (!coinClearedAmount.isNaN() ? coinClearedAmount : 0D);
                 allCoinsValues.put(allCoinValuesFromCurrentOrderedSnapshot.getKey(), values);
             }
         }
@@ -494,6 +512,7 @@ class CoinViewManager {
         }
         coinTableUpdaters.stream().forEach(Runnable::run);
         setAmount(amount);
+        setClearedAmount(clearedAmount);
         boolean showRUPEI = fragment.appPreferences.getBoolean("showRUPEI", true);
         boolean showDifferenceBetweenUPAndRUPEI = fragment.appPreferences.getBoolean("showDifferenceBetweenUPAndRUPEI", false);
         boolean showAUPEI = fragment.appPreferences.getBoolean("showAUPEI", false);
@@ -626,16 +645,21 @@ class CoinViewManager {
         return amountInDollar;
     }
 
+    public Double getClearedAmount() {
+        Double amountInDollar = getClearedAmountInDollar();
+        Double euroValue = getEuroValue();
+        if (isCurrencyInEuro()) {
+            return amountInDollar / euroValue;
+        }
+        return amountInDollar;
+    }
+
     public Double getAmountInDollar() {
         return (Double) MainActivity.Model.balancesValues.get("amount");
     }
 
-    public Double getAmountInEuro() {
-        Double euroValue = getEuroValue();
-        if (euroValue != null && !euroValue.isNaN()) {
-            return getAmountInDollar() / euroValue;
-        }
-        return null;
+    public Double getClearedAmountInDollar() {
+        return (Double) MainActivity.Model.balancesValues.get("clearedAmount");
     }
 
     public Double getEuroValue() {
@@ -646,14 +670,6 @@ class CoinViewManager {
         Double amount = getAmountInDollar();
         Double eurValue = getEuroValue();
         return ((((((amount * 99.6D) / 100D) - 1D) * 99.9D) / 100D) - (eurValue != null && !eurValue.isNaN() ? eurValue : 1D));
-    }
-
-    public Double getClearedAmount() {
-        Double amount = getAmountInDollar();
-        Double eurValue = getEuroValue();
-        double currencyUnit = (eurValue != null && !eurValue.isNaN() ? eurValue : 1D);
-        Double clearedAmount = ((((((amount * 99.6D) / 100D) - 1D) * 99.9D) / 100D) - currencyUnit) / currencyUnit;
-        return clearedAmount >= 0D ? clearedAmount : 0D;
     }
 
     public boolean isCurrencyInEuro() {
@@ -692,6 +708,10 @@ class CoinViewManager {
 
     private void setAmount(Double value) {
         MainActivity.Model.balancesValues.put("amount", value);
+    }
+
+    private void setClearedAmount(Double value) {
+        MainActivity.Model.balancesValues.put("clearedAmount", value);
     }
 
 }

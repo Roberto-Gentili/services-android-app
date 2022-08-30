@@ -40,6 +40,8 @@
     <string name="amountInEuroLabelText">Am (€)</string>
     <string name="amountInUSDLabelText">Am ($)</string>
     <string name="aUPEIInUSDLabelText">AUPEI™ ($)</string>
+    <string name="clearedAmountInEuroLabelText">Cl Am (€)</string>
+    <string name="clearedAmountInUSDLabelText">Cl Am ($)</string>
     <string name="coinLabelText">Coin</string>
     <string name="differenceBetweenUnitPriceAndAUPEIInUSDLabelText">UP-AUPEI™ ($)</string>
     <string name="differenceBetweenUnitPriceAndRUPEIInUSDLabelText">UP-RUPEI™ ($)</string>
