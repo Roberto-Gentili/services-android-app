@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
 
-    <integer name="default_binance_current_time_retrieving_mode">1</integer>
+    <integer name="default_binance_current_time_retrieving_mode">2</integer>
     <integer name="default_binance_time_offset">0</integer>
     <integer name="default_crypto_com_time_offset">-1000</integer>
     <integer name="default_thread_pool_size">10</integer>

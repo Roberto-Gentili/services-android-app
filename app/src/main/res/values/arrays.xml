@@ -18,7 +18,7 @@
     </string-array>
 
     <string-array name="currentTimeRetrievingModeLabels">
-        <item>Default</item>
+        <item>From local time</item>
         <item>From Binance servers</item>
     </string-array>
 
