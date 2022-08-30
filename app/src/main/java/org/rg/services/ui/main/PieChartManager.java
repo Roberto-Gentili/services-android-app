@@ -31,19 +31,17 @@ public class PieChartManager {
         pieEntriesColors = new ArrayList<>();
         String label = "type";
         PieDataSet pieDataSet = new PieDataSet(pieEntries,label);
-        //setting text size of the value
         pieDataSet.setValueTextSize(12f);
-        //providing color list for coloring different entries
         pieDataSet.setColors(pieEntriesColors);
-        //grouping the data set from entry to chart
         PieData pieData = new PieData(pieDataSet);
-        //showing the value of the entries, default true if not set
+        pieDataSet.setValueTextColor(Color.WHITE);
+        pieDataSet.setValueTypeface(Typeface.defaultFromStyle(Typeface.BOLD));
         pieData.setDrawValues(true);
         pieChart.setData(pieData);
         pieChart.setTransparentCircleColor(50);
         pieChart.setHoleColor(0);
         pieChart.getLegend().setEnabled(false);
-        pieChart.setEntryLabelTextSize(16);
+        pieChart.setEntryLabelTextSize(17);
         pieChart.setEntryLabelTypeface(Typeface.defaultFromStyle(Typeface.BOLD_ITALIC));
         pieChart.setRotationEnabled(false);
         if (percentage) {
