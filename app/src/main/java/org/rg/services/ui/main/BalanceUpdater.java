@@ -76,7 +76,7 @@ class BalanceUpdater {
                                 data.add(totalInvestment.floatValue());
                                 data.add(clearedBalanceValue.floatValue());
                             } else {
-                                labelsAndColors.put("Cleared coin amount", R.color.yellow);
+                                labelsAndColors.put("Cl. coin am.", R.color.yellow);
                                 labelsAndColors.put("Loss", R.color.red);
                                 data.add(clearedAmount.floatValue());
                                 data.add(clearedBalanceValue.floatValue());
