@@ -41,7 +41,7 @@ public class PieChartManager {
         pieChart.setTransparentCircleColor(50);
         pieChart.setHoleColor(0);
         pieChart.getLegend().setEnabled(false);
-        pieChart.setEntryLabelTextSize(17);
+        pieChart.setEntryLabelTextSize(16);
         pieChart.setEntryLabelTypeface(Typeface.defaultFromStyle(Typeface.BOLD_ITALIC));
         pieChart.setRotationEnabled(false);
         if (percentage) {
