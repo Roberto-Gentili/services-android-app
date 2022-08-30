@@ -176,7 +176,17 @@
                             android:textSize="@dimen/last_update_bar_text_size"
                             app:layout_constraintEnd_toEndOf="parent" />
                     </LinearLayout>
-
+                    <LinearLayout
+                        android:id="@+id/chartsTable"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:orientation="horizontal">
+                        <com.github.mikephil.charting.charts.PieChart
+                            android:id="@+id/balancesChart"
+                            android:layout_width="300dp"
+                            android:layout_height="300dp"
+                            android:visibility="invisible" />
+                    </LinearLayout>
                     <LinearLayout
                         android:id="@+id/reportBar"
                         android:layout_width="wrap_content"
@@ -227,11 +237,9 @@
                 android:layout_gravity="center_horizontal"
                 android:layout_marginTop="@dimen/coins_view_margin_top_size"
                 android:visibility="invisible" >
-
                 <LinearLayout
                     android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:backgroundTint="@color/white">
+                    android:layout_height="wrap_content">
 
                     <TableLayout
                         android:id="@+id/coinTable"
@@ -239,16 +247,13 @@
                         android:layout_height="wrap_content" />
                 </LinearLayout>
             </HorizontalScrollView>
-            <!-- Old table view version: DO NOT DELETE
+            <!-- Old table view version: DO NOT DELETE (with charts doesn't work) -->
+            <!--
             <ScrollView
                 android:id="@+id/coinsView"
                 android:layout_width="match_parent"
-                android:layout_height="match_parent"
-                android:layout_marginTop="15dp"
-                android:layout_marginBottom="15dp"
-                app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintEnd_toEndOf="parent"
-                app:layout_constraintTop_toBottomOf="@id/reportBar"
+                android:layout_height="350dp"
+                android:layout_marginTop="@dimen/coins_view_margin_top_size"
                 android:visibility="invisible">
                 <HorizontalScrollView
                     android:layout_width="wrap_content"
@@ -256,10 +261,9 @@
                     android:layout_gravity="center_horizontal">
                     <LinearLayout
                         android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:backgroundTint="@color/white">
+                        android:layout_height="wrap_content">
                         <TableLayout
-                            android:id="@+id/coinsTable"
+                            android:id="@+id/coinTable"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content">
                         </TableLayout>

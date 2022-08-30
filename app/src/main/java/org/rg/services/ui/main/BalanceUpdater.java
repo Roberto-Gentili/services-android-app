@@ -8,17 +8,28 @@ import android.widget.LinearLayout;
 import android.widget.ProgressBar;
 import android.widget.TextView;
 
+import com.github.mikephil.charting.data.PieData;
+import com.github.mikephil.charting.data.PieDataSet;
+import com.github.mikephil.charting.data.PieEntry;
+
 import org.rg.services.MainActivity;
 import org.rg.services.R;
 import org.rg.util.AsyncLooper;
 import org.rg.util.LoggerChain;
 
+import java.util.ArrayList;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
+
 class BalanceUpdater {
     private final MainFragment fragment;
     private AsyncLooper updateTask;
+    private PieChartManager pieChartManager;
 
     BalanceUpdater(MainFragment fragment) {
         this.fragment = fragment;
+        pieChartManager = new PieChartManager(fragment.getView().findViewById(R.id.balancesChart), true);
     }
 
     synchronized void activate() {
@@ -39,6 +50,7 @@ class BalanceUpdater {
         LinearLayout lastUpdateBar = fragment.getView().findViewById(R.id.lastUpdateBar);
         TextView lastUpdate = fragment.getView().findViewById(R.id.lastUpdate);
         LinearLayout reportBar = fragment.getView().findViewById(R.id.reportBar);
+        View chartsTable = fragment.getView().findViewById(R.id.chartsTable);
         TextView loadingDataAdvisor = fragment.getView().findViewById(R.id.loadingDataAdvisor);
         TextView linkToReport = fragment.getView().findViewById(R.id.linkToReport);
         Button updateReportButton = fragment.getView().findViewById(R.id.updateReportButton);
@@ -53,8 +65,26 @@ class BalanceUpdater {
                         Double clearedAmount = fragment.coinViewManager.getClearedAmount();
                         fragment.setHighlightedValue(clearedCryptoAmount, fragment.numberFormatterWithTwoDecimals, clearedAmount);
                         Double totalInvestment = coinViewManager.getTotalInvestment();
-                        if (totalInvestment != null) {
-                            fragment.setFixedHighlightedValue(clearedBalance, fragment.numberFormatterWithSignAndTwoDecimals, clearedAmount - totalInvestment);
+                        if (totalInvestment != null && fragment.appPreferences.getBoolean("showClearedBalance", true)) {
+                            Double clearedBalanceValue = clearedAmount - totalInvestment;
+                            fragment.setFixedHighlightedValue(clearedBalance, fragment.numberFormatterWithSignAndTwoDecimals, clearedBalanceValue);
+                            Map<String, Integer> labelsAndColors = new LinkedHashMap();
+                            List<Float> data = new ArrayList<>();
+                            if (clearedBalanceValue >= 0) {
+                                labelsAndColors.put("Total investment", R.color.yellow);
+                                labelsAndColors.put("Gain", R.color.green);
+                                data.add(totalInvestment.floatValue());
+                                data.add(clearedBalanceValue.floatValue());
+                            } else {
+                                labelsAndColors.put("Cleared coin amount", R.color.yellow);
+                                labelsAndColors.put("Loss", R.color.red);
+                                data.add(clearedAmount.floatValue());
+                                data.add(clearedBalanceValue.floatValue());
+                            }
+                            pieChartManager.setup(labelsAndColors);
+                            pieChartManager.setData(data);
+                        } else {
+                            mainLayout.removeView(chartsTable);
                         }
                         fragment.setHighlightedValue(lastUpdate, fragment.getLastUpdateTimeAsString());
                         if (loadingDataAdvisor.getVisibility() != View.INVISIBLE) {
@@ -78,6 +108,7 @@ class BalanceUpdater {
                             }
                             lastUpdateBar.setVisibility(View.VISIBLE);
                             coinsView.setVisibility(View.VISIBLE);
+                            pieChartManager.visible();
                             if (fragment.gitHubUsernameSupplier.join() != null) {
                                 linkToReport.setMovementMethod(LinkMovementMethod.getInstance());
                                 String reportUrl = fragment.getResources().getString(R.string.reportUrl).replace(
@@ -120,4 +151,5 @@ class BalanceUpdater {
         }
         updateTask.kill();
     }
+
 }

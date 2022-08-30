@@ -66,7 +66,6 @@ public class MainFragment extends Fragment {
     CoinViewManager coinViewManager;
     CompletableFuture<String> gitHubUsernameSupplier;
 
-
     public MainFragment() {
         try {
             wallets = new ArrayList<>();
