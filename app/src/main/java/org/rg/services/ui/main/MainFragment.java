@@ -40,6 +40,7 @@ import java.text.ParseException;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.LinkedHashMap;
 import java.util.Map;
@@ -459,11 +460,16 @@ public class MainFragment extends Fragment {
         if (mainActivity == null) {
             return;
         }
+        StackTraceElement[] stackTraceElements = Thread.currentThread().getStackTrace();
         mainActivity.runOnUiThread(() -> {
             try {
+                if (getMainActivity() == null) {
+                    return;
+                }
                 action.run();
             } catch (Throwable exc) {
-                LoggerChain.getInstance().logError(exc.getMessage());
+                Arrays.stream(stackTraceElements).forEach(System.out::println);
+                LoggerChain.getInstance().logError("Exception occurred: " + exc.getMessage());
             }
         });
     }

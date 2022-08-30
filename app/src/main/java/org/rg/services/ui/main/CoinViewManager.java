@@ -297,7 +297,7 @@ class CoinViewManager {
         launchOwnedCoinRetrievers(ownedCoinsSuppliers);
         AsyncLooper coinsToBeScannedRetriever = new AsyncLooper(() -> {
             launchOwnedCoinRetrievers(ownedCoinsSuppliers);
-        }, fragment.getExecutorService()).atTheStartOfEveryIterationWaitFor(30000L);
+        }, fragment::getExecutorService).atTheStartOfEveryIterationWaitFor(30000L);
         MainActivity mainActivity = fragment.getMainActivity();
         return new AsyncLooper(() -> {
             Collection<String> scannedCoins = ConcurrentHashMap.newKeySet();
@@ -350,7 +350,7 @@ class CoinViewManager {
             }
             tasks.stream().forEach(CompletableFuture::join);
             currentCoinValues.keySet().stream().filter(coinName -> !scannedCoins.contains(coinName)).forEach(currentCoinValues::remove);
-        }, fragment.getExecutorService())
+        }, fragment::getExecutorService)
                 .whenStarted(coinsToBeScannedRetriever::activate)
                 .whenKilled(coinsToBeScannedRetriever::kill)
                 .atTheEndOfEveryIterationWaitFor(fragment.getMainActivity().getLongValueFromAppPreferencesOrDefault("intervalBetweenRequestGroups", R.integer.default_interval_between_request_groups_value))

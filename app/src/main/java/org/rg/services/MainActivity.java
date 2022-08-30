@@ -16,7 +16,6 @@ import org.rg.services.ui.main.SettingsFragment;
 import org.rg.util.LoggerChain;
 import org.rg.util.RestTemplateSupplier;
 import org.rg.util.Throwables;
-import org.rg.util.Utility;
 import org.springframework.web.client.RestTemplate;
 
 import java.io.File;
@@ -40,7 +39,6 @@ import java.util.function.Consumer;
 import java.util.function.Supplier;
 
 public class MainActivity extends AppCompatActivity {
-    private Utility utility;
     public static class Model {
         public final static Map<String, Object> balancesValues;
         public final static Map<String, Map<String, Map<String, Object>>> currentCoinValues;
@@ -133,7 +131,6 @@ public class MainActivity extends AppCompatActivity {
     }
 
     public MainActivity() {
-        utility = new Utility();
         int SDK_INT = android.os.Build.VERSION.SDK_INT;
         if (SDK_INT > 8)  {
             StrictMode.ThreadPolicy policy = new StrictMode.ThreadPolicy.Builder()
@@ -167,12 +164,12 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
-    public <V> Map<String, V> loadMapFromCache(String fileName) {
+    public <K, V> Map<K, V> loadMapFromCache(String fileName) {
         try {
             File outputDir = getCacheDir();
             try (FileInputStream fIS = new FileInputStream(outputDir.getAbsolutePath() + "/" + fileName);
                  ObjectInputStream oIS = new ObjectInputStream(fIS)) {
-                return (Map<String, V>) oIS.readObject();
+                return (Map<K, V>) oIS.readObject();
             } catch (FileNotFoundException exc) {
                 return null;
             } catch (IOException | ClassNotFoundException exc) {
@@ -198,11 +195,11 @@ public class MainActivity extends AppCompatActivity {
         LoggerChain.getInstance().appendInfoLogger(logger);
         Engine.resetExecutorService();
         if (Model.balancesValues.isEmpty()) {
-            Optional.ofNullable(loadMapFromCache("latestBalance.values")).ifPresent(Model.balancesValues::putAll);
+            Optional.ofNullable(loadMapFromCache("latestBalance.values")).ifPresent(map -> map.forEach((key, value) ->  Model.balancesValues.put((String)key, value)));
         }
         //Model.balancesValues.clear();
         if (Model.currentCoinValues.isEmpty()) {
-            Optional.ofNullable(loadMapFromCache("latestCoin.values")).ifPresent(map -> map.forEach((key, value) -> Model.currentCoinValues.put(key, (Map<String, Map<String, Object>>)value)));
+            Optional.ofNullable(loadMapFromCache("latestCoin.values")).ifPresent(map -> map.forEach((key, value) -> Model.currentCoinValues.put((String)key, (Map<String, Map<String, Object>>)value)));
         }
         //Model.currentCoinValues.clear();
         setContentView(R.layout.activity_main);

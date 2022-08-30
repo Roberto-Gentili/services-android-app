@@ -3,10 +3,11 @@ package org.rg.util;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Executor;
 import java.util.function.BiPredicate;
+import java.util.function.Supplier;
 
 public class AsyncLooper {
 
-    private final Executor executor;
+    private final Supplier<Executor> executorSupplier;
     private final Runnable action;
     private Boolean isAlive;
     private Runnable actionToBeExecutedAtStarting;
@@ -15,9 +16,14 @@ public class AsyncLooper {
     private Long waitingTimeAtTheStartOfEveryIteration;
     private BiPredicate<AsyncLooper, Throwable> excpetionHandler;
 
-    public AsyncLooper(Runnable action, Executor executor) {
+    public AsyncLooper(Runnable action, Supplier<Executor> executorSupplier) {
         this.action = action;
-        this.executor = executor;
+        this.executorSupplier = executorSupplier;
+    }
+
+    public AsyncLooper(Supplier<Boolean> stoppableAction, Supplier<Executor> executorSupplier) {
+        this.action = () -> isAlive = stoppableAction.get();
+        this.executorSupplier = executorSupplier;
     }
 
     public synchronized AsyncLooper activate() {
@@ -42,7 +48,7 @@ public class AsyncLooper {
             if (actionToBeExecutedWhenKilled != null) {
                 actionToBeExecutedWhenKilled.run();
             }
-        }, executor);
+        }, executorSupplier.get());
         return this;
     }
 

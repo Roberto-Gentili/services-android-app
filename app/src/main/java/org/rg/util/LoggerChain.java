@@ -62,6 +62,9 @@ public class LoggerChain {
     }
 
     public void logError(String message) {
+        for (StackTraceElement stackTraceElement : Thread.currentThread().getStackTrace()) {
+            System.out.println(stackTraceElement);
+        }
         exceptionLogger.accept(message);
     }
 

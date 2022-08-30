@@ -94,7 +94,7 @@ class BalanceUpdater {
                     });
                 }
             }
-        }, fragment.getExecutorService()).atTheEndOfEveryIterationWaitFor(750L).whenAnExceptionIsThrown((looper, exc) -> {
+        }, fragment::getExecutorService).atTheEndOfEveryIterationWaitFor(750L).whenAnExceptionIsThrown((looper, exc) -> {
             boolean isActivityNotNull = fragment.getMainActivity() != null;
             if (isActivityNotNull) {
                 exc.printStackTrace();
