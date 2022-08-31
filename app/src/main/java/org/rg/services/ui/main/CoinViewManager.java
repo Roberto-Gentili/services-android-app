@@ -45,6 +45,7 @@ class CoinViewManager {
     private AsyncLooper retrievingCoinValuesTask;
     private List<String> headerLabels;
     private boolean canBeRefreshed;
+    private Map<String, Map<String, Object>> allCoinClearedValues;
 
     CoinViewManager(MainFragment fragment) {
         this.fragment = fragment;
@@ -547,6 +548,7 @@ class CoinViewManager {
 
             }
         }
+        allCoinClearedValues = allCoinsValues;
         return canBeRefreshed = true;
     }
 
@@ -714,4 +716,7 @@ class CoinViewManager {
         MainActivity.Model.balancesValues.put("clearedAmount", value);
     }
 
+    public Map<String, Map<String, Object>> getAllCoinClearedValues() {
+        return this.allCoinClearedValues;
+    }
 }

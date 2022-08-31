@@ -3,8 +3,7 @@ package org.rg.services.ui.main;
 import android.graphics.Color;
 import android.graphics.Typeface;
 import android.view.View;
-
-import androidx.core.content.res.ResourcesCompat;
+import android.view.ViewGroup;
 
 import com.github.mikephil.charting.charts.PieChart;
 import com.github.mikephil.charting.data.PieData;
@@ -15,14 +14,19 @@ import com.github.mikephil.charting.formatter.PercentFormatter;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Iterator;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Random;
 
 public class PieChartManager {
     PieChart pieChart;
     List<PieEntry> pieEntries;
     List<Integer> pieEntriesColors;
     List<Integer> pieValuesColors;
+    ViewGroup parent;
+    Map<String, Integer> colorForLabel;
+    Random random = new Random();
 
     public PieChartManager(PieChart pieChart, boolean percentage) {
         this.pieChart = pieChart;
@@ -67,6 +71,8 @@ public class PieChartManager {
                 }
             });
         }
+        colorForLabel = new LinkedHashMap<>();
+        random = new Random();
     }
 
     public void setup(Map<String, Integer> labelsAndColors) {
@@ -75,7 +81,7 @@ public class PieChartManager {
         pieValuesColors.clear();
         for (Map.Entry<String, Integer> labelAndColor : labelsAndColors.entrySet()) {
             pieEntries.add(new PieEntry(0F, labelAndColor.getKey()));
-            Integer color = ResourcesCompat.getColor(pieChart.getResources(), labelAndColor.getValue(), null);
+            Integer color = labelAndColor.getValue();
             pieEntriesColors.add((color & 0x00FFFFFF) | 0xE0000000);
             pieValuesColors.add(color);
         }
@@ -97,5 +103,26 @@ public class PieChartManager {
 
     public void invisible() {
         pieChart.setVisibility(View.INVISIBLE);
+    }
+
+    public void removeFromParent() {
+        parent = (ViewGroup)pieChart.getParent();
+        parent.removeView(pieChart);
+    }
+
+    public boolean reAddToPreviousParent() {
+        if (parent != null) {
+            parent.addView(pieChart);
+            parent = null;
+        }
+        return false;
+    }
+
+    public int getOrGenerateColorFor(String label){
+        Integer color = colorForLabel.get(label);
+        if (color == null) {
+            colorForLabel.put(label, color = Color.argb(255, random.nextInt(256), random.nextInt(256), random.nextInt(256)));
+        }
+        return color;
     }
 }

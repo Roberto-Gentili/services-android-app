@@ -177,18 +177,6 @@
                             app:layout_constraintEnd_toEndOf="parent" />
                     </LinearLayout>
                     <LinearLayout
-                        android:id="@+id/chartsTable"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:orientation="horizontal"
-                        android:layout_gravity="center_horizontal">
-                        <com.github.mikephil.charting.charts.PieChart
-                            android:id="@+id/balancesChart"
-                            android:layout_width="325dp"
-                            android:layout_height="325dp"
-                            android:visibility="invisible" />
-                    </LinearLayout>
-                    <LinearLayout
                         android:id="@+id/reportBar"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
@@ -228,6 +216,29 @@
                             app:layout_constraintTop_toTopOf="@id/updateReportButton"
                             android:visibility="invisible" />
                     </LinearLayout>
+                </LinearLayout>
+            </HorizontalScrollView>
+
+            <HorizontalScrollView
+                android:id="@+id/chartsView"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:scrollbars="none" >
+                <LinearLayout
+                    android:id="@+id/chartsTable"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal">
+                    <com.github.mikephil.charting.charts.PieChart
+                        android:id="@+id/balancesChart"
+                        android:layout_width="325dp"
+                        android:layout_height="325dp"
+                        android:visibility="invisible" />
+                    <com.github.mikephil.charting.charts.PieChart
+                        android:id="@+id/coinsChart"
+                        android:layout_width="325dp"
+                        android:layout_height="325dp"
+                        android:visibility="invisible" />
                 </LinearLayout>
             </HorizontalScrollView>
 
