@@ -11,6 +11,7 @@ import com.github.mikephil.charting.data.PieDataSet;
 import com.github.mikephil.charting.data.PieEntry;
 import com.github.mikephil.charting.formatter.PercentFormatter;
 
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Iterator;
@@ -26,7 +27,7 @@ public class PieChartManager {
     List<Integer> pieValuesColors;
     ViewGroup parent;
     Map<String, Integer> colorForLabel;
-    Random random = new Random();
+    Random random;
 
     public PieChartManager(PieChart pieChart, boolean percentage) {
         this.pieChart = pieChart;
@@ -73,6 +74,7 @@ public class PieChartManager {
         }
         colorForLabel = new LinkedHashMap<>();
         random = new Random();
+        random.setSeed(LocalDateTime.now().getDayOfYear());
     }
 
     public void setup(Map<String, Integer> labelsAndColors) {
@@ -84,6 +86,7 @@ public class PieChartManager {
             Integer color = labelAndColor.getValue();
             pieEntriesColors.add((color & 0x00FFFFFF) | 0xE0000000);
             pieValuesColors.add(color);
+            colorForLabel.put(labelAndColor.getKey(), color);
         }
     }
 
