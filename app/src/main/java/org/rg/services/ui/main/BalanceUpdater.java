@@ -20,6 +20,7 @@ import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Random;
 import java.util.concurrent.atomic.AtomicReference;
 
 class BalanceUpdater {
@@ -37,7 +38,8 @@ class BalanceUpdater {
             return;
         }
         System.out.println("Wallet updater " + this + " activated");
-        LinearLayout mainLayout = fragment.getView().findViewById(R.id.balancesTable);
+        LinearLayout mainContainer = fragment.getView().findViewById(R.id.mainContainer);
+        LinearLayout balancesTable = fragment.getView().findViewById(R.id.balancesTable);
         LinearLayout cryptoAmountBar = fragment.getView().findViewById(R.id.cryptoAmountBar);
         TextView cryptoAmount = fragment.getView().findViewById(R.id.cryptoAmount);
         TextView cryptoAmountCurrency = fragment.getView().findViewById(R.id.cryptoAmountCurrency);
@@ -66,6 +68,7 @@ class BalanceUpdater {
         } else {
             chartsTable.removeView(balancesChart);
         }
+        coinsChartManager = new PieChartManager(fragment.getView().findViewById(R.id.coinsChart), true);
         updateTask = new AsyncLooper(() -> {
             CoinViewManager coinViewManager = fragment.coinViewManager;
             if (coinViewManager == null) {
@@ -82,20 +85,19 @@ class BalanceUpdater {
                         setBalancesChartData(totalInvestment, clearedAmount);
                     }
                     Map<String, Map<String, Object>> allCoinClearedValues = coinViewManager.getAllCoinClearedValues();
-                    if (!allCoinClearedValues.isEmpty()) {
-                        if (coinsChartManager == null) {
-                            coinsChartManager = new PieChartManager(fragment.getView().findViewById(R.id.coinsChart), true);
-                        }
+                    boolean allCoinClearedValuesIsNotEmpty = !allCoinClearedValues.isEmpty();
+                    if (allCoinClearedValuesIsNotEmpty) {
                         setCoinsChartData(allCoinClearedValues);
                         coinsChartManager.reAddToPreviousParent();
-                        if (chartsTable.getChildCount() == 0) {
-                            mainLayout.addView(chartsView);
-                        }
                     } else {
                         coinsChartManager.removeFromParent();
                     }
                     if (chartsTable.getChildCount() == 0) {
-                        mainLayout.removeView(chartsView);
+                        mainContainer.removeView(chartsView);
+                    } else if (mainContainer.findViewById(chartsView.getId()) == null) {
+                        mainContainer.removeView(coinsView);
+                        mainContainer.addView(chartsView);
+                        mainContainer.addView(coinsView);
                     }
                     fragment.setHighlightedValue(lastUpdate, fragment.getLastUpdateTimeAsString());
                     if (loadingDataAdvisor.getVisibility() != View.INVISIBLE) {
@@ -115,15 +117,12 @@ class BalanceUpdater {
                         if (coinViewManager.getTotalInvestment() != null && fragment.appPreferences.getBoolean("showClearedBalance", true)) {
                             balanceBar.setVisibility(View.VISIBLE);
                         } else {
-                            mainLayout.removeView(balanceBar);
+                            balancesTable.removeView(balanceBar);
                         }
                         lastUpdateBar.setVisibility(View.VISIBLE);
                         coinsView.setVisibility(View.VISIBLE);
                         if (balancesChartManager != null) {
                             balancesChartManager.visible();
-                        }
-                        if (!allCoinClearedValues.isEmpty()) {
-                            coinsChartManager.visible();
                         }
                         if (fragment.gitHubUsernameSupplier.join() != null) {
                             linkToReport.setMovementMethod(LinkMovementMethod.getInstance());
@@ -135,8 +134,11 @@ class BalanceUpdater {
                             updateReportButton.setOnClickListener(view -> fragment.updateReport((Button)view));
                             reportBar.setVisibility(View.VISIBLE);
                         } else {
-                            mainLayout.removeView(reportBar);
+                            balancesTable.removeView(reportBar);
                         }
+                    }
+                    if (allCoinClearedValuesIsNotEmpty) {
+                        coinsChartManager.visible();
                     }
                 });
             }

@@ -100,8 +100,10 @@ public class PieChartManager {
     }
 
     public void visible() {
-        pieChart.animateXY(700,700);
-        pieChart.setVisibility(View.VISIBLE);
+        if (pieChart.getVisibility() == View.INVISIBLE) {
+            pieChart.animateXY(700, 700);
+            pieChart.setVisibility(View.VISIBLE);
+        }
     }
 
     public void invisible() {
@@ -109,14 +111,18 @@ public class PieChartManager {
     }
 
     public void removeFromParent() {
-        parent = (ViewGroup)pieChart.getParent();
-        parent.removeView(pieChart);
+        ViewGroup currentParent = (ViewGroup)pieChart.getParent();
+        if (currentParent != null) {
+            parent = currentParent;
+            currentParent.removeView(pieChart);
+        }
     }
 
     public boolean reAddToPreviousParent() {
         if (parent != null) {
             parent.addView(pieChart);
             parent = null;
+            return true;
         }
         return false;
     }
