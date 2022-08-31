@@ -3,9 +3,9 @@ package org.rg.services.ui.main;
 import android.text.Html;
 import android.text.method.LinkMovementMethod;
 import android.view.View;
+import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.HorizontalScrollView;
-import android.widget.LinearLayout;
 import android.widget.ProgressBar;
 import android.widget.TextView;
 
@@ -20,7 +20,6 @@ import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Random;
 import java.util.concurrent.atomic.AtomicReference;
 
 class BalanceUpdater {
@@ -38,23 +37,24 @@ class BalanceUpdater {
             return;
         }
         System.out.println("Wallet updater " + this + " activated");
-        LinearLayout mainContainer = fragment.getView().findViewById(R.id.mainContainer);
-        LinearLayout balancesTable = fragment.getView().findViewById(R.id.balancesTable);
-        LinearLayout cryptoAmountBar = fragment.getView().findViewById(R.id.cryptoAmountBar);
+        ViewGroup mainContainer = fragment.getView().findViewById(R.id.mainContainer);
+        ViewGroup balancesTable = fragment.getView().findViewById(R.id.balancesTable);
+        ViewGroup cryptoAmountBar = fragment.getView().findViewById(R.id.cryptoAmountBar);
         TextView cryptoAmount = fragment.getView().findViewById(R.id.cryptoAmount);
         TextView cryptoAmountCurrency = fragment.getView().findViewById(R.id.cryptoAmountCurrency);
-        LinearLayout clearedCryptoAmountBar = fragment.getView().findViewById(R.id.clearedCryptoAmountBar);
+        ViewGroup clearedCryptoAmountBar = fragment.getView().findViewById(R.id.clearedCryptoAmountBar);
         TextView clearedCryptoAmount = fragment.getView().findViewById(R.id.clearedCryptoAmount);
         TextView clearedCryptoBalanceCurrency = fragment.getView().findViewById(R.id.clearedCryptoAmountCurrency);
-        LinearLayout balanceBar = fragment.getView().findViewById(R.id.balanceBar);
+        ViewGroup balanceBar = fragment.getView().findViewById(R.id.balanceBar);
         TextView clearedBalance = fragment.getView().findViewById(R.id.clearedBalance);
         TextView clearedBalanceCurrency = fragment.getView().findViewById(R.id.clearedBalanceCurrency);
-        LinearLayout lastUpdateBar = fragment.getView().findViewById(R.id.lastUpdateBar);
+        ViewGroup lastUpdateBar = fragment.getView().findViewById(R.id.lastUpdateBar);
         TextView lastUpdate = fragment.getView().findViewById(R.id.lastUpdate);
-        LinearLayout reportBar = fragment.getView().findViewById(R.id.reportBar);
+        ViewGroup reportBar = fragment.getView().findViewById(R.id.reportBar);
         HorizontalScrollView chartsView = fragment.getView().findViewById(R.id.chartsView);
-        LinearLayout chartsTable = fragment.getView().findViewById(R.id.chartsTable);
+        ViewGroup chartsTable = fragment.getView().findViewById(R.id.chartsTable);
         View balancesChart = fragment.getView().findViewById(R.id.balancesChart);
+        View coinsChart = fragment.getView().findViewById(R.id.coinsChart);
         TextView loadingDataAdvisor = fragment.getView().findViewById(R.id.loadingDataAdvisor);
         TextView linkToReport = fragment.getView().findViewById(R.id.linkToReport);
         Button updateReportButton = fragment.getView().findViewById(R.id.updateReportButton);
@@ -88,9 +88,11 @@ class BalanceUpdater {
                     boolean allCoinClearedValuesIsNotEmpty = !allCoinClearedValues.isEmpty();
                     if (allCoinClearedValuesIsNotEmpty) {
                         setCoinsChartData(allCoinClearedValues);
-                        coinsChartManager.reAddToPreviousParent();
-                    } else {
-                        coinsChartManager.removeFromParent();
+                        if (coinsChart.getParent() == null) {
+                            chartsTable.addView(coinsChart);
+                        }
+                    } else if (chartsTable.findViewById(coinsChart.getId()) != null) {
+                        chartsTable.removeView(coinsChart);
                     }
                     if (chartsTable.getChildCount() == 0) {
                         mainContainer.removeView(chartsView);

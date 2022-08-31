@@ -110,23 +110,6 @@ public class PieChartManager {
         pieChart.setVisibility(View.INVISIBLE);
     }
 
-    public void removeFromParent() {
-        ViewGroup currentParent = (ViewGroup)pieChart.getParent();
-        if (currentParent != null) {
-            parent = currentParent;
-            currentParent.removeView(pieChart);
-        }
-    }
-
-    public boolean reAddToPreviousParent() {
-        if (parent != null) {
-            parent.addView(pieChart);
-            parent = null;
-            return true;
-        }
-        return false;
-    }
-
     public int getOrGenerateColorFor(String label){
         Integer color = colorForLabel.get(label);
         if (color == null) {
