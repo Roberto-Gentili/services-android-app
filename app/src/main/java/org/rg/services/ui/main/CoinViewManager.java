@@ -45,14 +45,12 @@ class CoinViewManager {
     private AsyncLooper retrievingCoinValuesTask;
     private List<String> headerLabels;
     private boolean canBeRefreshed;
-    private Map<String, Map<String, Object>> allCoinClearedValues;
 
     CoinViewManager(MainFragment fragment) {
         this.fragment = fragment;
         this.coinsToBeAlwaysDisplayed = Arrays.stream(fragment.appPreferences.getString("coinsToBeAlwaysDisplayed", "BTC, ETH").toUpperCase().replace(" ", "").split(",")).filter(fragment::isStringNotEmpty).collect(Collectors.toList());
         headerLabels = new ArrayList<>();
         ownedCoinsSuppliers = new ConcurrentHashMap<>();
-        setTotalInvestmentFromPreferences();
     }
 
     private void setUpHeaderLabelsForSpaces() {
@@ -66,7 +64,7 @@ class CoinViewManager {
             headerLabels.add(fragment.getResources().getString(R.string.amountInUSDLabelText));
             headerLabels.add(fragment.getResources().getString(R.string.clearedAmountInUSDLabelText));
         }
-        if (getTotalInvestment() != null) {
+        if (getTotalInvestmentFromPreferences() != null) {
             if (fragment.appPreferences.getBoolean("showRUPEI", true)) {
                 headerLabels.add(fragment.getResources().getString(R.string.rUPEIInUSDLabelText));
             }
@@ -305,7 +303,7 @@ class CoinViewManager {
     }
 
     private AsyncLooper retrieveCoinValues() {
-        Map<String, Map<String, Map<String, Object>>> currentCoinValues = MainActivity.Model.currentCoinValues;
+        Map<String, Map<String, Map<String, Object>>> currentCoinValues = MainActivity.Model.currentCoinRawValues;
         launchOwnedCoinRetrievers(ownedCoinsSuppliers);
         AsyncLooper coinsToBeScannedRetriever = new AsyncLooper(() -> {
             launchOwnedCoinRetrievers(ownedCoinsSuppliers);
@@ -442,7 +440,7 @@ class CoinViewManager {
         if (!MainActivity.Model.isReadyToBeShown) {
             boolean waitForRetrievingCoinValueTasks =
                 !(fragment.appPreferences.getBoolean("fastBootEnabled", true) &&
-                MainActivity.Model.currentCoinValues.keySet().containsAll(getAllOwnedCoins()));
+                MainActivity.Model.currentCoinRawValues.keySet().containsAll(getAllOwnedCoins()));
             if (waitForRetrievingCoinValueTasks && retrievingCoinValueTasks.stream().map(CompletableFuture::join).filter(excMsgs -> !excMsgs.isEmpty()).count() > 0) {
                 setToNaNValuesIfNulls();
                 return false;
@@ -518,7 +516,7 @@ class CoinViewManager {
         boolean showDifferenceBetweenUPAndRUPEI = fragment.appPreferences.getBoolean("showDifferenceBetweenUPAndRUPEI", false);
         boolean showAUPEI = fragment.appPreferences.getBoolean("showAUPEI", false);
         boolean showDifferenceBetweenUPAndAUPEI = fragment.appPreferences.getBoolean("showDifferenceBetweenUPAndAUPEI", false);
-        Double totalInvestment = getTotalInvestment();
+        Double totalInvestment = getTotalInvestmentFromPreferences();
         if (totalInvestment != null && (showRUPEI || showDifferenceBetweenUPAndRUPEI || showAUPEI || showDifferenceBetweenUPAndAUPEI)) {
             Double currencyValue = isCurrencyInEuro() ? euroValue : 1D;
             for (Map.Entry<String, Map<String, Object>> allCoinValues : allCoinsValues.entrySet()) {
@@ -548,7 +546,7 @@ class CoinViewManager {
 
             }
         }
-        allCoinClearedValues = allCoinsValues;
+        setAllCoinValues(allCoinsValues);
         return canBeRefreshed = true;
     }
 
@@ -582,7 +580,7 @@ class CoinViewManager {
 
     private Map<String, Map<String, Map<String, Object>>> getCurrentCoinValuesOrderedSnapshot() {
         Map<String, Map<String, Map<String, Object>>> currentCoinValuesSnapshot = new TreeMap<>();
-        for (Map.Entry<String, Map<String, Map<String, Object>>> allCoinValues : MainActivity.Model.currentCoinValues.entrySet()) {
+        for (Map.Entry<String, Map<String, Map<String, Object>>> allCoinValues : MainActivity.Model.currentCoinRawValues.entrySet()) {
             Map<String, Map<String, Object>> coinValuesForWallets = new HashMap<>();
             currentCoinValuesSnapshot.put(allCoinValues.getKey(), coinValuesForWallets);
             for (Map.Entry<String, Map<String, Object>> coinValuesForWallet : allCoinValues.getValue().entrySet()) {
@@ -679,7 +677,7 @@ class CoinViewManager {
         return fragment.isUseAlwaysTheDollarCurrencyForBalancesDisabled() && eurValue != null && !eurValue.isNaN();
     }
 
-    public Double getTotalInvestment() {
+    /*public Double getTotalInvestment() {
         return (Double) MainActivity.Model.balancesValues.get("totalInvestment");
     }
 
@@ -698,6 +696,14 @@ class CoinViewManager {
             value = Double.valueOf(totalInvestmentAsString);
         }
         setTotalInvestment(value);
+    }*/
+
+    public Double getTotalInvestmentFromPreferences() {
+        String totalInvestmentAsString = fragment.appPreferences.getString("totalInvestment", null);
+        if (fragment.isStringNotEmpty(totalInvestmentAsString)) {
+            return Double.valueOf(totalInvestmentAsString);
+        }
+        return null;
     }
 
     private void setEuroValue(Double value) {
@@ -717,6 +723,10 @@ class CoinViewManager {
     }
 
     public Map<String, Map<String, Object>> getAllCoinClearedValues() {
-        return this.allCoinClearedValues;
+        return (Map<String, Map<String, Object>>)MainActivity.Model.balancesValues.get("allCoinValues");
+    }
+
+    private void setAllCoinValues(Map<String, Map<String, Object>> allCoinValues) {
+        MainActivity.Model.balancesValues.put("allCoinValues", allCoinValues);
     }
 }

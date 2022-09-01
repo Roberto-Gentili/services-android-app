@@ -24,6 +24,7 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicReference;
+import java.util.function.Function;
 
 class BalanceUpdater {
     private final MainFragment fragment;
@@ -63,14 +64,6 @@ class BalanceUpdater {
         Button updateReportButton = fragment.getView().findViewById(R.id.updateReportButton);
         ProgressBar progressBar = fragment.getView().findViewById(R.id.loadingProgressBar);
         View coinsView = fragment.getView().findViewById(R.id.coinsView);
-        if (fragment.appPreferences.getBoolean("showClearedBalance", true)) {
-            balancesChartManager = new PieChartManager(fragment.getView().findViewById(R.id.balancesChart), true, Integer.valueOf(LocalDateTime.now().getDayOfYear()).longValue());
-            if (fragment.coinViewManager.getTotalInvestment() != null && fragment.coinViewManager.getClearedAmount() != null) {
-                setBalancesChartData(fragment.coinViewManager.getTotalInvestment(), fragment.coinViewManager.getClearedAmount(), fragment.coinViewManager.getAllCoinClearedValues());
-            }
-        } else {
-            chartsTable.removeView(balancesChart);
-        }
         coinsChartManager = new PieChartManager(fragment.getView().findViewById(R.id.coinsChart), true, Integer.valueOf(LocalDateTime.now().getDayOfYear()).longValue());
         updateTask = new AsyncLooper(() -> {
             CoinViewManager coinViewManager = fragment.coinViewManager;
@@ -82,10 +75,12 @@ class BalanceUpdater {
                     fragment.setHighlightedValue(cryptoAmount, fragment.numberFormatterWithTwoDecimals, fragment.coinViewManager.getAmount());
                     Double clearedAmount = fragment.coinViewManager.getClearedAmount();
                     fragment.setHighlightedValue(clearedCryptoAmount, fragment.numberFormatterWithTwoDecimals, clearedAmount);
-                    Double totalInvestment = coinViewManager.getTotalInvestment();
+                    Double totalInvestment = coinViewManager.getTotalInvestmentFromPreferences();
                     if (totalInvestment != null && fragment.appPreferences.getBoolean("showClearedBalance", true)) {
                         fragment.setFixedHighlightedValue(clearedBalance, fragment.numberFormatterWithSignAndTwoDecimals, clearedAmount - totalInvestment);
-                        setBalancesChartData(totalInvestment, clearedAmount, fragment.coinViewManager.getAllCoinClearedValues());
+                        if (balancesChartManager != null) {
+                            setBalancesChartData(totalInvestment, clearedAmount, fragment.coinViewManager.getAllCoinClearedValues());
+                        }
                     }
                     Map<String, Map<String, Object>> allCoinClearedValues = coinViewManager.getAllCoinClearedValues();
                     boolean allCoinClearedValuesIsNotEmpty = !allCoinClearedValues.isEmpty();
@@ -119,16 +114,17 @@ class BalanceUpdater {
                         progressBar.setVisibility(View.INVISIBLE);
                         cryptoAmountBar.setVisibility(View.VISIBLE);
                         clearedCryptoAmountBar.setVisibility(View.VISIBLE);
-                        if (coinViewManager.getTotalInvestment() != null && fragment.appPreferences.getBoolean("showClearedBalance", true)) {
+                        if (coinViewManager.getTotalInvestmentFromPreferences() != null && fragment.appPreferences.getBoolean("showClearedBalance", true)) {
                             balanceBar.setVisibility(View.VISIBLE);
+                            balancesChartManager = new PieChartManager(fragment.getView().findViewById(R.id.balancesChart), true, Integer.valueOf(LocalDateTime.now().getDayOfYear()).longValue());
+                            setBalancesChartData(fragment.coinViewManager.getTotalInvestmentFromPreferences(), fragment.coinViewManager.getClearedAmount(), fragment.coinViewManager.getAllCoinClearedValues());
+                            balancesChartManager.visible();
                         } else {
                             balancesTable.removeView(balanceBar);
+                            chartsTable.removeView(balancesChart);
                         }
                         lastUpdateBar.setVisibility(View.VISIBLE);
                         coinsView.setVisibility(View.VISIBLE);
-                        if (balancesChartManager != null) {
-                            balancesChartManager.visible();
-                        }
                         if (fragment.gitHubUsernameSupplier.join() != null) {
                             linkToReport.setMovementMethod(LinkMovementMethod.getInstance());
                             String reportUrl = fragment.getResources().getString(R.string.reportUrl).replace(
@@ -176,15 +172,30 @@ class BalanceUpdater {
 
     private void setBalancesChartData(Double totalInvestment, Double clearedAmount, Map<String, Map<String, Object>> allCoinClearedValues) {
         Double clearedBalanceValue = clearedAmount - totalInvestment;
-        Map<String, Integer> labelsAndColors;
-        List<Float> data;
-        if (clearedBalanceValue >= 0 || allCoinClearedValues == null || allCoinClearedValues.isEmpty()) {
-            labelsAndColors = new LinkedHashMap();
-            data = new ArrayList<>();
-            if (clearedBalanceValue >= 0) {
-                labelsAndColors.put("Total inv.", ResourcesCompat.getColor(fragment.getResources(), R.color.yellow, null));
+        Map<String, Integer> labelsAndColors = new LinkedHashMap<>();
+        List<Float> data = new ArrayList<>();
+        if (clearedBalanceValue >= 0) {
+            if (allCoinClearedValues != null && !allCoinClearedValues.isEmpty()) {
+                Pair<Map<String, Integer>, List<Float>> valuesForPieChart = getValuesForPieChart(
+                        balancesChartManager, allCoinClearedValues, clearedAmount / 100,
+                        coinAmount -> (totalInvestment / 100) * ((coinAmount * 100) / clearedAmount)
+                );
+                labelsAndColors = valuesForPieChart.first;
+                data = valuesForPieChart.second;
                 labelsAndColors.put("Gain", ResourcesCompat.getColor(fragment.getResources(), R.color.green, null));
-                data.add(totalInvestment.floatValue());
+                data.add(clearedBalanceValue.floatValue());
+            } else {
+                labelsAndColors.put("Cl. coin am.", ResourcesCompat.getColor(fragment.getResources(), R.color.yellow, null));
+                labelsAndColors.put("Gain", ResourcesCompat.getColor(fragment.getResources(), R.color.green, null));
+                data.add(clearedAmount.floatValue());
+                data.add(clearedBalanceValue.floatValue());
+            }
+        } else {
+            if (allCoinClearedValues != null && !allCoinClearedValues.isEmpty()) {
+                Pair<Map<String, Integer>, List<Float>> valuesForPieChart = getValuesForPieChart(balancesChartManager, allCoinClearedValues, clearedAmount / 100);
+                labelsAndColors = valuesForPieChart.first;
+                data = valuesForPieChart.second;
+                labelsAndColors.put("Loss", ResourcesCompat.getColor(fragment.getResources(), R.color.red, null));
                 data.add(clearedBalanceValue.floatValue());
             } else {
                 labelsAndColors.put("Cl. coin am.", ResourcesCompat.getColor(fragment.getResources(), R.color.yellow, null));
@@ -192,12 +203,6 @@ class BalanceUpdater {
                 data.add(clearedAmount.floatValue());
                 data.add(clearedBalanceValue.floatValue());
             }
-        } else {
-            Pair<Map<String, Integer>, List<Float>> valuesForPieChart = getValuesForPieChart(balancesChartManager, allCoinClearedValues, clearedAmount / 100);
-            labelsAndColors = valuesForPieChart.first;
-            data = valuesForPieChart.second;
-            labelsAndColors.put("Loss", ResourcesCompat.getColor(fragment.getResources(), R.color.red, null));
-            data.add(clearedBalanceValue.floatValue());
         }
         balancesChartManager.setup(labelsAndColors);
         balancesChartManager.setData(data);
@@ -209,7 +214,15 @@ class BalanceUpdater {
         coinsChartManager.setData(valuesForPieChart.second);
     }
 
-    private Pair<Map<String, Integer>, List<Float>> getValuesForPieChart(PieChartManager chartManager, Map<String, Map<String, Object>> allCoinClearedValues, Double minValue) {
+    private Pair<Map<String, Integer>, List<Float>> getValuesForPieChart(
+            PieChartManager chartManager, Map<String, Map<String, Object>> allCoinClearedValues, Double minValue
+    ) {
+        return getValuesForPieChart(chartManager, allCoinClearedValues, minValue, coinAmount -> coinAmount);
+    }
+
+    private Pair<Map<String, Integer>, List<Float>> getValuesForPieChart(
+        PieChartManager chartManager, Map<String, Map<String, Object>> allCoinClearedValues, Double minValue, Function<Double, Double> coinAmountProcessor
+    ) {
         Map<String, Integer> labelsAndColors = new LinkedHashMap();
         List<Float> data = new ArrayList<>();
         Pair<Map<String, Integer>, List<Float>> valuesForPieChart = new Pair<>(labelsAndColors, data);
@@ -219,7 +232,7 @@ class BalanceUpdater {
             (Double)((Map.Entry<String, Map<String, Object>>)entry).getValue().get("coinAmount")
         ))
         .forEach(entry -> {
-            Double coinAmount = (Double)entry.getValue().get("coinAmount");
+            Double coinAmount = coinAmountProcessor.apply((Double)entry.getValue().get("coinAmount"));
             if (coinAmount > minValue) {
                 labelsAndColors.put(entry.getKey(), chartManager.getOrGenerateColorFor(entry.getKey()));
                 data.add(coinAmount.floatValue());
@@ -233,4 +246,5 @@ class BalanceUpdater {
         }
         return valuesForPieChart;
     }
+
 }

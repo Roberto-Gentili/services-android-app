@@ -223,7 +223,8 @@
                 android:id="@+id/chartsView"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:scrollbars="none" >
+                android:scrollbars="none"
+                android:layout_gravity="center_horizontal">
                 <LinearLayout
                     android:id="@+id/chartsTable"
                     android:layout_width="wrap_content"
@@ -252,7 +253,6 @@
                 <LinearLayout
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content">
-
                     <TableLayout
                         android:id="@+id/coinTable"
                         android:layout_width="wrap_content"

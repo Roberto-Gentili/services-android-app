@@ -41,13 +41,13 @@ import java.util.function.Supplier;
 public class MainActivity extends AppCompatActivity {
     public static class Model {
         public final static Map<String, Object> balancesValues;
-        public final static Map<String, Map<String, Map<String, Object>>> currentCoinValues;
+        public final static Map<String, Map<String, Map<String, Object>>> currentCoinRawValues;
         public static boolean isReadyToBeShown;
         private static LocalDateTime lastUpdateTime;
 
         static {
             balancesValues = new ConcurrentHashMap<>();
-            currentCoinValues = new ConcurrentHashMap<>();
+            currentCoinRawValues = new ConcurrentHashMap<>();
         }
 
         public static LocalDateTime setLastUpdateTime() {
@@ -60,7 +60,7 @@ public class MainActivity extends AppCompatActivity {
 
         public static void clearValues() {
             balancesValues.clear();
-            currentCoinValues.clear();
+            currentCoinRawValues.clear();
         }
     }
 
@@ -147,7 +147,7 @@ public class MainActivity extends AppCompatActivity {
     }
 
     public void storeCurrentCoinValues() {
-        storeMapToCache(Model.currentCoinValues, "latestCoin.values");
+        storeMapToCache(Model.currentCoinRawValues, "latestCoin.values");
     }
 
     private void storeMapToCache(Map<?, ?> map, String fileName) {
@@ -198,8 +198,8 @@ public class MainActivity extends AppCompatActivity {
             Optional.ofNullable(loadMapFromCache("latestBalance.values")).ifPresent(map -> map.forEach((key, value) ->  Model.balancesValues.put((String)key, value)));
         }
         //Model.balancesValues.clear();
-        if (Model.currentCoinValues.isEmpty()) {
-            Optional.ofNullable(loadMapFromCache("latestCoin.values")).ifPresent(map -> map.forEach((key, value) -> Model.currentCoinValues.put((String)key, (Map<String, Map<String, Object>>)value)));
+        if (Model.currentCoinRawValues.isEmpty()) {
+            Optional.ofNullable(loadMapFromCache("latestCoin.values")).ifPresent(map -> map.forEach((key, value) -> Model.currentCoinRawValues.put((String)key, (Map<String, Map<String, Object>>)value)));
         }
         //Model.currentCoinValues.clear();
         setContentView(R.layout.activity_main);
