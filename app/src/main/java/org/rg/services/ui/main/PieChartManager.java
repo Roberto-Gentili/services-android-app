@@ -21,13 +21,19 @@ import java.util.Map;
 import java.util.Random;
 
 public class PieChartManager {
+    private final static Random random;
     PieChart pieChart;
     List<PieEntry> pieEntries;
     List<Integer> pieEntriesColors;
     List<Integer> pieValuesColors;
     ViewGroup parent;
     Map<String, Integer> colorForLabel;
-    Random random;
+
+    static {
+        random = new Random();
+        //Nice seeds: 244
+        random.setSeed(LocalDateTime.now().getDayOfYear());
+    }
 
     public PieChartManager(PieChart pieChart, boolean percentage) {
         this.pieChart = pieChart;
@@ -73,8 +79,6 @@ public class PieChartManager {
             });
         }
         colorForLabel = new LinkedHashMap<>();
-        random = new Random();
-        random.setSeed(LocalDateTime.now().getDayOfYear());
     }
 
     public void setup(Map<String, Integer> labelsAndColors) {
@@ -84,6 +88,9 @@ public class PieChartManager {
         for (Map.Entry<String, Integer> labelAndColor : labelsAndColors.entrySet()) {
             pieEntries.add(new PieEntry(0F, labelAndColor.getKey()));
             Integer color = labelAndColor.getValue();
+            if (color == null) {
+                color = randomColor();
+            }
             pieEntriesColors.add((color & 0x00FFFFFF) | 0xE0000000);
             pieValuesColors.add(color);
             colorForLabel.put(labelAndColor.getKey(), color);
@@ -113,8 +120,12 @@ public class PieChartManager {
     public int getOrGenerateColorFor(String label){
         Integer color = colorForLabel.get(label);
         if (color == null) {
-            colorForLabel.put(label, color = Color.argb(255, random.nextInt(256), random.nextInt(256), random.nextInt(256)));
+            colorForLabel.put(label, color = randomColor());
         }
         return color;
+    }
+
+    public final static int randomColor() {
+        return Color.argb(255, random.nextInt(256), random.nextInt(256), random.nextInt(256));
     }
 }
