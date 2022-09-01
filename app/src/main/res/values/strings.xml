@@ -11,6 +11,7 @@
     <string name="backLabelText">Back</string>
     <string name="clearedCryptoAmountLabelText">Cleared am.:</string>
     <string name="clearedBalanceLabelText">Cleared bal.:</string>
+    <string name="coinsToBeAlwaysDisplayedLabelText">Always show these coins</string>
     <string name="cryptoAmountLabelText">Amount:</string>
     <string name="currentTimeRetrievingModeLabelText">Current time retrieving mode</string>
     <string name="dateTimeFormat">Date time format</string>
@@ -21,8 +22,8 @@
     <string name="linkToReport"><![CDATA[<a href="&reportUrl;">Download report</a>]]></string>
     <string name="loadingDataText">Loading</string>
     <string name="reportUrl">&reportUrl;</string>
+    <string name="seedForChartColorsLabelText">Seed for chart colors</string>
     <string name="settingsLabelText">Settings</string>
-    <string name="coinsToBeAlwaysDisplayedLabelText">Always show these coins</string>
     <string name="showAUPEILabelText">Show the absolute unit price to equalize the investment</string>
     <string name="showClearedBalanceLabelText">Show cleared balance</string>
     <string name="showNaNAmountsLabelText">Show NaN amounts</string>

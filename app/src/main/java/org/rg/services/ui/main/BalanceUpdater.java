@@ -1,16 +1,22 @@
 package org.rg.services.ui.main;
 
+import android.content.SharedPreferences;
 import android.text.Html;
 import android.text.method.LinkMovementMethod;
 import android.util.Pair;
+import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.HorizontalScrollView;
 import android.widget.ProgressBar;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import androidx.core.content.res.ResourcesCompat;
+
+import com.github.mikephil.charting.listener.ChartTouchListener;
+import com.github.mikephil.charting.listener.OnChartGestureListener;
 
 import org.rg.services.MainActivity;
 import org.rg.services.R;
@@ -18,6 +24,7 @@ import org.rg.util.AsyncLooper;
 import org.rg.util.LoggerChain;
 
 import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.LinkedHashMap;
@@ -27,6 +34,7 @@ import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Function;
 
 class BalanceUpdater {
+    private static Long seedForCharts;
     private final MainFragment fragment;
     private AsyncLooper updateTask;
     private PieChartManager balancesChartManager;
@@ -64,7 +72,12 @@ class BalanceUpdater {
         Button updateReportButton = fragment.getView().findViewById(R.id.updateReportButton);
         ProgressBar progressBar = fragment.getView().findViewById(R.id.loadingProgressBar);
         View coinsView = fragment.getView().findViewById(R.id.coinsView);
-        coinsChartManager = new PieChartManager(fragment.getView().findViewById(R.id.coinsChart), true, Integer.valueOf(LocalDateTime.now().getDayOfYear()).longValue());
+        if (seedForCharts == null) {
+            seedForCharts = fragment.getMainActivity().getLongValueFromAppPreferencesOrDefault("seedForChartColors", LocalDateTime.now().atZone(ZoneId.systemDefault()).toInstant().toEpochMilli());
+        }
+        fragment.appPreferences.getString("seedForChartColors", null);
+        coinsChartManager = new PieChartManager(fragment.getView().findViewById(R.id.coinsChart), true, seedForCharts);
+        setOnChartGestureListener(coinsChartManager);
         updateTask = new AsyncLooper(() -> {
             CoinViewManager coinViewManager = fragment.coinViewManager;
             if (coinViewManager == null) {
@@ -116,8 +129,9 @@ class BalanceUpdater {
                         clearedCryptoAmountBar.setVisibility(View.VISIBLE);
                         if (coinViewManager.getTotalInvestmentFromPreferences() != null && fragment.appPreferences.getBoolean("showClearedBalance", true)) {
                             balanceBar.setVisibility(View.VISIBLE);
-                            balancesChartManager = new PieChartManager(fragment.getView().findViewById(R.id.balancesChart), true, Integer.valueOf(LocalDateTime.now().getDayOfYear()).longValue());
+                            balancesChartManager = new PieChartManager(fragment.getView().findViewById(R.id.balancesChart), true, seedForCharts);
                             setBalancesChartData(fragment.coinViewManager.getTotalInvestmentFromPreferences(), fragment.coinViewManager.getClearedAmount(), fragment.coinViewManager.getAllCoinClearedValues());
+                            setOnChartGestureListener(balancesChartManager);
                             balancesChartManager.visible();
                         } else {
                             balancesTable.removeView(balanceBar);
@@ -247,4 +261,28 @@ class BalanceUpdater {
         return valuesForPieChart;
     }
 
+    private void setOnChartGestureListener(PieChartManager pieChartManager) {
+        pieChartManager.setOnChartGestureListener(new OnChartGestureListener(){
+            public void onChartLongPressed(MotionEvent me) {
+                SharedPreferences.Editor editor = fragment.appPreferences.edit();
+                editor.putString("seedForChartColors", seedForCharts.toString());
+                editor.commit();
+                Toast.makeText(fragment.getMainActivity(), "Current seed value " + seedForCharts + " stored", Toast.LENGTH_LONG).show();
+            }
+            @Override
+            public void onChartGestureStart(MotionEvent me, ChartTouchListener.ChartGesture lastPerformedGesture) {}
+            @Override
+            public void onChartGestureEnd(MotionEvent me, ChartTouchListener.ChartGesture lastPerformedGesture) {};
+            @Override
+            public void onChartDoubleTapped(MotionEvent me) {}
+            @Override
+            public void onChartSingleTapped(MotionEvent me) {}
+            @Override
+            public void onChartFling(MotionEvent me1, MotionEvent me2, float velocityX, float velocityY) {}
+            @Override
+            public void onChartScale(MotionEvent me, float scaleX, float scaleY) {}
+            @Override
+            public void onChartTranslate(MotionEvent me, float dX, float dY) {}
+        });
+    }
 }

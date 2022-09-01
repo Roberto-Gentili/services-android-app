@@ -132,7 +132,7 @@ public class MainFragment extends Fragment {
             if (wallet.setApiKey(cryptoComApiKey) | wallet.setApiSecret(cryptoComApiSecret)) {
                 MainActivity.Model.isReadyToBeShown = false;
             }
-            wallet.setTimeOffset(getMainActivity().getLongValueFromAppPreferencesOrDefault("cryptoComTimeOffset", R.integer.default_crypto_com_time_offset));
+            wallet.setTimeOffset(getMainActivity().getLongValueFromAppPreferencesOrDefaultFromResources("cryptoComTimeOffset", R.integer.default_crypto_com_time_offset));
             wallets.add(wallet);
         }
         if (isStringNotEmpty(binanceApiKey) && isStringNotEmpty(binanceApiSecret) && binanceWalletEnabled) {
@@ -140,13 +140,13 @@ public class MainFragment extends Fragment {
             if (wallet.setApiKey(binanceApiKey) | wallet.setApiSecret(binanceApiSecret)) {
                 MainActivity.Model.isReadyToBeShown = false;
             }
-            long currentTimeRetrievingMode = getMainActivity().getLongValueFromAppPreferencesOrDefault("binanceCurrentTimeRetrievingMode", R.integer.default_binance_current_time_retrieving_mode);
+            long currentTimeRetrievingMode = getMainActivity().getLongValueFromAppPreferencesOrDefaultFromResources("binanceCurrentTimeRetrievingMode", R.integer.default_binance_current_time_retrieving_mode);
             if (currentTimeRetrievingMode == 1) {
                 wallet.enableDefaultCurrentTimeMillisRetrieverRetriever();
             } else if (currentTimeRetrievingMode == 2) {
                 wallet.enableCurrentTimeMillisFromBinanceServersRetriever();
             }
-            wallet.setTimeOffset(getMainActivity().getLongValueFromAppPreferencesOrDefault("binanceTimeOffset", R.integer.default_binance_time_offset));
+            wallet.setTimeOffset(getMainActivity().getLongValueFromAppPreferencesOrDefaultFromResources("binanceTimeOffset", R.integer.default_binance_time_offset));
             wallets.add(wallet);
         }
         if (wallets.isEmpty()) {

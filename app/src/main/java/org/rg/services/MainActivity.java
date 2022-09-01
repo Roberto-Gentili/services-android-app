@@ -138,7 +138,7 @@ public class MainActivity extends AppCompatActivity {
             StrictMode.setThreadPolicy(policy);
         }
         Engine.executorServiceSupplierSizeSupplier = () ->
-            getLongValueFromAppPreferencesOrDefault("threadPoolSize", R.integer.default_thread_pool_size).intValue();
+            getLongValueFromAppPreferencesOrDefaultFromResources("threadPoolSize", R.integer.default_thread_pool_size).intValue();
         //RestTemplateSupplier.getSharedInstance().enableRequestLogger();
     }
 
@@ -242,13 +242,21 @@ public class MainActivity extends AppCompatActivity {
             .commitNow();
     }
 
-    public Long getLongValueFromAppPreferencesOrDefault(String valueName, int id) {
+    public Long getLongValueFromAppPreferencesOrDefaultFromResources(String valueName, int id) {
         Integer defaultValue = getResources().getInteger(id);
         String valueAsString = PreferenceManager.getDefaultSharedPreferences(this).getString(valueName, String.valueOf(defaultValue));
         try {
             return Long.valueOf(valueAsString);
         } catch (Throwable exc) {
             return defaultValue.longValue();
+        }
+    }
+
+    public Long getLongValueFromAppPreferencesOrDefault(String valueName, Long defaultValue) {
+        try {
+            return Long.valueOf(PreferenceManager.getDefaultSharedPreferences(this).getString(valueName, String.valueOf(defaultValue)));
+        } catch (Throwable exc) {
+            return defaultValue;
         }
     }
 }

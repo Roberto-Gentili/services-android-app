@@ -363,7 +363,7 @@ class CoinViewManager {
         }, fragment::getExecutorService)
                 .whenStarted(coinsToBeScannedRetriever::activate)
                 .whenKilled(coinsToBeScannedRetriever::kill)
-                .atTheEndOfEveryIterationWaitFor(fragment.getMainActivity().getLongValueFromAppPreferencesOrDefault("intervalBetweenRequestGroups", R.integer.default_interval_between_request_groups_value))
+                .atTheEndOfEveryIterationWaitFor(fragment.getMainActivity().getLongValueFromAppPreferencesOrDefaultFromResources("intervalBetweenRequestGroups", R.integer.default_interval_between_request_groups_value))
                 .activate();
     }
 

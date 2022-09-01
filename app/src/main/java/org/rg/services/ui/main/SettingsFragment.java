@@ -39,6 +39,7 @@ public class SettingsFragment extends PreferenceFragmentCompat {
         Optional.ofNullable(setEditTextPreferenceType("threadPoolSize", InputType.TYPE_CLASS_NUMBER)).ifPresent(pref -> setMinMaxFilter(pref, getResources().getInteger(R.integer.thread_pool_min_size), getResources().getInteger(R.integer.thread_pool_max_size)));
         setEditTextPreferenceType("totalInvestment", InputType.TYPE_CLASS_NUMBER | InputType.TYPE_NUMBER_FLAG_DECIMAL);
         disableAllDependentFieldsIfEmpty("totalInvestment", "showClearedBalance", "showRUPEI", "showDifferenceBetweenUPAndRUPEI", "showAUPEI", "showDifferenceBetweenUPAndAUPEI");
+        setEditTextPreferenceType("seedForChartColors", InputType.TYPE_CLASS_NUMBER);
     }
 
     private void disableAllDependentFieldsIfEmpty(String id, String... ids) {

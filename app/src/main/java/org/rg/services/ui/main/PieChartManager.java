@@ -10,6 +10,7 @@ import com.github.mikephil.charting.data.PieData;
 import com.github.mikephil.charting.data.PieDataSet;
 import com.github.mikephil.charting.data.PieEntry;
 import com.github.mikephil.charting.formatter.PercentFormatter;
+import com.github.mikephil.charting.listener.OnChartGestureListener;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
@@ -145,5 +146,9 @@ public class PieChartManager {
     public int randomColor() {
         Random randomForColors = this.randomForColors != null ? this.randomForColors : sharedRandomForColors;
         return Color.argb(255, randomForColors.nextInt(256), randomForColors.nextInt(256), randomForColors.nextInt(256));
+    }
+
+    public void setOnChartGestureListener(OnChartGestureListener onChartGestureListener) {
+        pieChart.setOnChartGestureListener(onChartGestureListener);
     }
 }
