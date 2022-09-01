@@ -21,21 +21,24 @@ import java.util.Map;
 import java.util.Random;
 
 public class PieChartManager {
-    private final static Random random;
+    private final static Random sharedRandomForColors;
     PieChart pieChart;
     List<PieEntry> pieEntries;
     List<Integer> pieEntriesColors;
     List<Integer> pieValuesColors;
     ViewGroup parent;
     Map<String, Integer> colorForLabel;
+    Random randomForColors;
 
     static {
-        random = new Random();
-        //Nice seeds: 244
-        random.setSeed(LocalDateTime.now().getDayOfYear());
+        sharedRandomForColors = buildRandom();
     }
 
     public PieChartManager(PieChart pieChart, boolean percentage) {
+        this(pieChart, percentage, null);
+    }
+
+    public PieChartManager(PieChart pieChart, boolean percentage, Long seedForRandom) {
         this.pieChart = pieChart;
         pieEntries = new ArrayList<>();
         pieEntriesColors = new ArrayList<>();
@@ -79,6 +82,20 @@ public class PieChartManager {
             });
         }
         colorForLabel = new LinkedHashMap<>();
+        if (seedForRandom != null) {
+            randomForColors = buildRandom(seedForRandom);
+        }
+    }
+
+    private static Random buildRandom() {
+        return buildRandom(null);
+    }
+
+    private static Random buildRandom(Long seed) {
+        Random random = new Random();
+        //Nice seeds: 244
+        random.setSeed(seed != null ? seed : LocalDateTime.now().getDayOfYear());
+        return random;
     }
 
     public void setup(Map<String, Integer> labelsAndColors) {
@@ -125,7 +142,8 @@ public class PieChartManager {
         return color;
     }
 
-    public final static int randomColor() {
-        return Color.argb(255, random.nextInt(256), random.nextInt(256), random.nextInt(256));
+    public int randomColor() {
+        Random randomForColors = this.randomForColors != null ? this.randomForColors : sharedRandomForColors;
+        return Color.argb(255, randomForColors.nextInt(256), randomForColors.nextInt(256), randomForColors.nextInt(256));
     }
 }

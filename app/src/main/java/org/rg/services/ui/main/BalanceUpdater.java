@@ -17,6 +17,7 @@ import org.rg.services.R;
 import org.rg.util.AsyncLooper;
 import org.rg.util.LoggerChain;
 
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.LinkedHashMap;
@@ -63,14 +64,14 @@ class BalanceUpdater {
         ProgressBar progressBar = fragment.getView().findViewById(R.id.loadingProgressBar);
         View coinsView = fragment.getView().findViewById(R.id.coinsView);
         if (fragment.appPreferences.getBoolean("showClearedBalance", true)) {
-            balancesChartManager = new PieChartManager(fragment.getView().findViewById(R.id.balancesChart), true);
+            balancesChartManager = new PieChartManager(fragment.getView().findViewById(R.id.balancesChart), true, Integer.valueOf(LocalDateTime.now().getDayOfYear()).longValue());
             if (fragment.coinViewManager.getTotalInvestment() != null && fragment.coinViewManager.getClearedAmount() != null) {
                 setBalancesChartData(fragment.coinViewManager.getTotalInvestment(), fragment.coinViewManager.getClearedAmount(), fragment.coinViewManager.getAllCoinClearedValues());
             }
         } else {
             chartsTable.removeView(balancesChart);
         }
-        coinsChartManager = new PieChartManager(fragment.getView().findViewById(R.id.coinsChart), true);
+        coinsChartManager = new PieChartManager(fragment.getView().findViewById(R.id.coinsChart), true, Integer.valueOf(LocalDateTime.now().getDayOfYear()).longValue());
         updateTask = new AsyncLooper(() -> {
             CoinViewManager coinViewManager = fragment.coinViewManager;
             if (coinViewManager == null) {
@@ -186,7 +187,7 @@ class BalanceUpdater {
                 data.add(totalInvestment.floatValue());
                 data.add(clearedBalanceValue.floatValue());
             } else {
-                labelsAndColors.put("Cl. coin am.", null);
+                labelsAndColors.put("Cl. coin am.", ResourcesCompat.getColor(fragment.getResources(), R.color.yellow, null));
                 labelsAndColors.put("Loss", ResourcesCompat.getColor(fragment.getResources(), R.color.red, null));
                 data.add(clearedAmount.floatValue());
                 data.add(clearedBalanceValue.floatValue());
