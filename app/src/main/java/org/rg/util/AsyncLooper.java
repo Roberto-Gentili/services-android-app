@@ -3,6 +3,7 @@ package org.rg.util;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Executor;
 import java.util.function.BiPredicate;
+import java.util.function.Predicate;
 import java.util.function.Supplier;
 
 public class AsyncLooper {
@@ -26,6 +27,11 @@ public class AsyncLooper {
         this.executorSupplier = executorSupplier;
     }
 
+    public AsyncLooper(Predicate<AsyncLooper> stoppableAction, Supplier<Executor> executorSupplier) {
+        this.action = () -> isAlive = stoppableAction.test(this);
+        this.executorSupplier = executorSupplier;
+    }
+
     public synchronized AsyncLooper activate() {
         if (isAlive == null) {
             isAlive = true;
@@ -38,9 +44,9 @@ public class AsyncLooper {
             }
             while(isAlive) {
                 try {
-                    waitFor(waitingTimeAtTheStartOfEveryIteration);
+                    waitForIfNotNullAndGreaterThan0(waitingTimeAtTheStartOfEveryIteration);
                     action.run();
-                    waitFor(waitingTimeAtTheEndOfEveryIteration);
+                    waitForIfNotNullAndGreaterThan0(waitingTimeAtTheEndOfEveryIteration);
                 } catch (Throwable exc) {
                     isAlive = excpetionHandler != null && excpetionHandler.test(this, exc);
                 }
@@ -52,7 +58,7 @@ public class AsyncLooper {
         return this;
     }
 
-    private void waitFor(Long timeMillis) {
+    private void waitForIfNotNullAndGreaterThan0(Long timeMillis) {
         if (timeMillis != null && timeMillis > 0) {
             synchronized (timeMillis) {
                 try {
