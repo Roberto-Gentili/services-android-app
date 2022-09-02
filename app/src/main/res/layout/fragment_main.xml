@@ -232,13 +232,13 @@
                     android:orientation="horizontal">
                     <com.github.mikephil.charting.charts.PieChart
                         android:id="@+id/balancesChart"
-                        android:layout_width="325dp"
-                        android:layout_height="325dp"
+                        android:layout_width="@dimen/balances_chart_size"
+                        android:layout_height="@dimen/balances_chart_size"
                         android:visibility="invisible" />
                     <com.github.mikephil.charting.charts.PieChart
                         android:id="@+id/coinsChart"
-                        android:layout_width="325dp"
-                        android:layout_height="325dp"
+                        android:layout_width="@dimen/balances_chart_size"
+                        android:layout_height="@dimen/balances_chart_size"
                         android:visibility="invisible" />
                 </LinearLayout>
             </HorizontalScrollView>
