@@ -34,7 +34,7 @@ import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Function;
 
 class BalanceUpdater {
-    private static Long seedForCharts;
+    private /*static*/ Long seedForCharts;
     private final MainFragment fragment;
     private AsyncLooper updateTask;
     private PieChartManager balancesChartManager;
