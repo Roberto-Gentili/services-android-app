@@ -602,7 +602,7 @@ class CoinViewManager {
             unitPrice = sum(unitPrice, unitPriceForCoinInWallet);
             coinQuantity = sum(coinQuantity, coinQuantityForCoinInWallet);
             coinAmount = sum(coinAmount, coinQuantityForCoinInWallet * unitPriceForCoinInWallet);
-            updateTime = updateTime == null? updateTimeForCoin : updateTimeForCoin.compareTo(updateTime) == 1 ? updateTimeForCoin : updateTime;
+            updateTime = updateTime == null? updateTimeForCoin : updateTimeForCoin.compareTo(updateTime) > 0 ? updateTimeForCoin : updateTime;
         }
         if (coinAmount != 0D && coinQuantity != 0D) {
             unitPrice = coinAmount / coinQuantity;
