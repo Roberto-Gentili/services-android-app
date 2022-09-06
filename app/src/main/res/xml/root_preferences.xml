@@ -112,10 +112,16 @@
             app:entryValues="@array/dateTimeFormats"
             app:defaultValue="@string/default_date_time_format"
             app:useSimpleSummaryProvider="true" />
+        <CheckBoxPreference
+            app:key="chartsRotationEnabled"
+            app:title="@string/chartsRotationEnabledLabelText"
+            app:defaultValue="true"
+            app:singleLineTitle="false" />
         <EditTextPreference
             app:key="seedForChartColors"
             app:title="@string/seedForChartColorsLabelText"
             app:useSimpleSummaryProvider="true" />
+
     </PreferenceCategory>
 
     <PreferenceCategory app:title="Technical settings">

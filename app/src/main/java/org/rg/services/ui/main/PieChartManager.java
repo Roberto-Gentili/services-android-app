@@ -67,7 +67,6 @@ public class PieChartManager {
         pieChart.setEntryLabelTypeface(Typeface.defaultFromStyle(Typeface.BOLD_ITALIC));
         pieChart.getLegend().setEnabled(false);
         pieChart.getDescription().setEnabled(false);
-        //pieChart.setRotationEnabled(false);
         if (percentage) {
             pieChart.setUsePercentValues(true);
             pieData.setValueFormatter(new PercentFormatter() {
@@ -86,6 +85,14 @@ public class PieChartManager {
         if (seedForRandom != null) {
             randomForColors = buildRandom(seedForRandom);
         }
+    }
+
+    public void enableChartRotation() {
+        pieChart.setRotationEnabled(true);
+    }
+
+    public void disableChartRotation() {
+        pieChart.setRotationEnabled(false);
     }
 
     private static Random buildRandom() {

@@ -97,8 +97,7 @@ class BalanceUpdater {
                     boolean allCoinClearedValuesIsNotEmpty = !allCoinClearedValues.isEmpty();
                     if (allCoinClearedValuesIsNotEmpty) {
                         if (coinsChartManager == null) {
-                            coinsChartManager = new PieChartManager(fragment.getView().findViewById(R.id.coinsChart), true, seedForCharts);
-                            setOnChartGestureListener(coinsChartManager);
+                            coinsChartManager = buildAndSetupChartManager(R.id.coinsChart);
                         }
                         setCoinsChartData(allCoinClearedValues, clearedAmount);
                         if (coinsChart.getParent() == null) {
@@ -131,7 +130,7 @@ class BalanceUpdater {
                         clearedCryptoAmountBar.setVisibility(View.VISIBLE);
                         if (coinViewManager.getTotalInvestmentFromPreferences() != null && fragment.appPreferences.getBoolean("showClearedBalance", true)) {
                             balanceBar.setVisibility(View.VISIBLE);
-                            balancesChartManager = new PieChartManager(fragment.getView().findViewById(R.id.balancesChart), true, seedForCharts);
+                            balancesChartManager = buildAndSetupChartManager(R.id.balancesChart);
                             setBalancesChartData(fragment.coinViewManager.getTotalInvestmentFromPreferences(), fragment.coinViewManager.getClearedAmount(), fragment.coinViewManager.getAllCoinClearedValues());
                             setOnChartGestureListener(balancesChartManager);
                             balancesChartManager.visible();
@@ -167,6 +166,17 @@ class BalanceUpdater {
             }
             return isActivityNotNull;
         }).activate();
+    }
+
+    private PieChartManager buildAndSetupChartManager(int id) {
+        PieChartManager chartManager = new PieChartManager(fragment.getView().findViewById(id), true, seedForCharts);
+        setOnChartGestureListener(chartManager);
+        if (fragment.appPreferences.getBoolean("chartsRotationEnabled", true)) {
+            chartManager.enableChartRotation();
+        } else {
+            chartManager.disableChartRotation();
+        }
+        return chartManager;
     }
 
     void stop() {
