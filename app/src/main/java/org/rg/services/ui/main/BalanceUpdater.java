@@ -76,8 +76,6 @@ class BalanceUpdater {
             seedForCharts = fragment.getMainActivity().getLongValueFromAppPreferencesOrDefault("seedForChartColors", LocalDateTime.now().atZone(ZoneId.systemDefault()).toInstant().toEpochMilli());
         }
         fragment.appPreferences.getString("seedForChartColors", null);
-        coinsChartManager = new PieChartManager(fragment.getView().findViewById(R.id.coinsChart), true, seedForCharts);
-        setOnChartGestureListener(coinsChartManager);
         updateTask = new AsyncLooper(() -> {
             CoinViewManager coinViewManager = fragment.coinViewManager;
             if (coinViewManager == null) {
@@ -98,6 +96,10 @@ class BalanceUpdater {
                     Map<String, Map<String, Object>> allCoinClearedValues = coinViewManager.getAllCoinClearedValues();
                     boolean allCoinClearedValuesIsNotEmpty = !allCoinClearedValues.isEmpty();
                     if (allCoinClearedValuesIsNotEmpty) {
+                        if (coinsChartManager == null) {
+                            coinsChartManager = new PieChartManager(fragment.getView().findViewById(R.id.coinsChart), true, seedForCharts);
+                            setOnChartGestureListener(coinsChartManager);
+                        }
                         setCoinsChartData(allCoinClearedValues, clearedAmount);
                         if (coinsChart.getParent() == null) {
                             chartsTable.addView(coinsChart);
