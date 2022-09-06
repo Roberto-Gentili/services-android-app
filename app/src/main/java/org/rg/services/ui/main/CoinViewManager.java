@@ -677,27 +677,6 @@ class CoinViewManager {
         return fragment.isUseAlwaysTheDollarCurrencyForBalancesDisabled() && eurValue != null && !eurValue.isNaN();
     }
 
-    /*public Double getTotalInvestment() {
-        return (Double) MainActivity.Model.balancesValues.get("totalInvestment");
-    }
-
-    public void setTotalInvestment(Double value) {
-        if (value != null) {
-            MainActivity.Model.balancesValues.put("totalInvestment", value);
-        } else {
-            MainActivity.Model.balancesValues.remove("totalInvestment");
-        }
-    }
-
-    public void setTotalInvestmentFromPreferences() {
-        String totalInvestmentAsString = fragment.appPreferences.getString("totalInvestment", null);
-        Double value = null;
-        if (fragment.isStringNotEmpty(totalInvestmentAsString)) {
-            value = Double.valueOf(totalInvestmentAsString);
-        }
-        setTotalInvestment(value);
-    }*/
-
     public Double getTotalInvestmentFromPreferences() {
         String totalInvestmentAsString = fragment.appPreferences.getString("totalInvestment", null);
         if (fragment.isStringNotEmpty(totalInvestmentAsString)) {
