@@ -484,8 +484,8 @@ class CoinViewManager {
             Map<String, Object> values = valuesRetriever.apply(allCoinValuesFromCurrentOrderedSnapshot);
             Double coinQuantity = (Double)values.get("coinQuantity");
             Double coinAmount = (Double)values.get("coinAmount");
-            Double coinClearedAmountRaw = ((((((coinAmount * 99.6D) / 100D) - 1D) * 99.9D) / 100D) - currencyUnit) / currencyUnit;
-            Double coinClearedAmount = coinClearedAmountRaw >= 0 ? coinClearedAmountRaw : 0D;
+            Double coinClearedAmountRaw = (((((coinAmount * 99.6D) / 100D) - 1D) * 99.9D) / 100D) - currencyUnit;
+            Double coinClearedAmount = (coinClearedAmountRaw / currencyUnit) >= 0 ? coinClearedAmountRaw : 0D;
             if ((!coinAmount.isNaN() && (coinAmount > 0 || coinsToBeAlwaysDisplayed.contains(allCoinValuesFromCurrentOrderedSnapshot.getKey()))) ||
                     (fragment.appPreferences.getBoolean("showNaNAmounts", true) && coinQuantity != 0D)) {
                 coinTableUpdaters.add(() -> {
