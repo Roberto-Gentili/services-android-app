@@ -303,14 +303,13 @@ class CoinViewManager {
     }
 
     private AsyncLooper retrieveCoinValues() {
-        Map<String, Map<String, Map<String, Object>>> currentCoinValues = MainActivity.Model.currentCoinRawValues;
+        Map<String, Map<String, Map<String, Object>>> allCurrentCoinValues = MainActivity.Model.currentCoinRawValues;
         launchOwnedCoinRetrievers(ownedCoinsSuppliers);
         AsyncLooper coinsToBeScannedRetriever = new AsyncLooper(() -> {
             launchOwnedCoinRetrievers(ownedCoinsSuppliers);
         }, fragment::getExecutorService).atTheStartOfEveryIterationWaitFor(30000L);
         MainActivity mainActivity = fragment.getMainActivity();
         return new AsyncLooper(() -> {
-            Collection<String> scannedCoins = ConcurrentHashMap.newKeySet();
             Collection<CompletableFuture<Collection<String>>> retrievingCoinValueTasks = new CopyOnWriteArrayList<>();
             Map<Supplier<String>, Function<Throwable, String>> delayedTasks = new HashMap<>();
             for (Wallet wallet : fragment.wallets) {
@@ -321,12 +320,17 @@ class CoinViewManager {
                                     Collection<String> ownedCoins = ownedCoinsSuppliers.get(wallet).join();
                                     Collection<String> coinsToBeScanned = new HashSet<>(ownedCoins);
                                     coinsToBeScanned.addAll(coinsToBeAlwaysDisplayed);
-                                    scannedCoins.addAll(coinsToBeScanned);
+                                    //Cleaning up the coin collection
+                                    for (Map.Entry<String, Map<String, Map<String, Object>>> currentCoinValues : allCurrentCoinValues.entrySet()) {
+                                        if (!coinsToBeScanned.contains(currentCoinValues.getKey()) && currentCoinValues.getValue().get(wallet.getName()) != null) {
+                                            currentCoinValues.getValue().remove(wallet.getName());
+                                        }
+                                    }
                                     for (String coinName : coinsToBeScanned) {
                                         Supplier<String> task = () -> {
                                             Double unitPriceInDollar = wallet.getValueForCoin(coinName);
                                             Double quantity = wallet.getQuantityForCoin(coinName);
-                                            Map<String, Map<String, Object>> allCoinValues = currentCoinValues.computeIfAbsent(coinName, key -> new ConcurrentHashMap<>());
+                                            Map<String, Map<String, Object>> allCoinValues = allCurrentCoinValues.computeIfAbsent(coinName, key -> new ConcurrentHashMap<>());
                                             Map<String, Object> coinValues = allCoinValues.computeIfAbsent(wallet.getName(), key -> new ConcurrentHashMap<>());
                                             coinValues.put("unitPrice", unitPriceInDollar);
                                             Optional.ofNullable(mainActivity).map(mA -> MainActivity.Model.setLastUpdateTime()).ifPresent(lUT -> coinValues.put("lastUpdate", lUT));
@@ -359,7 +363,6 @@ class CoinViewManager {
                 tasks.add(buildTask(task.getKey(), task.getValue()));
             }
             tasks.stream().forEach(CompletableFuture::join);
-            currentCoinValues.keySet().stream().filter(coinName -> !scannedCoins.contains(coinName)).forEach(currentCoinValues::remove);
         }, fragment::getExecutorService)
                 .whenStarted(coinsToBeScannedRetriever::activate)
                 .whenKilled(coinsToBeScannedRetriever::kill)
