@@ -304,6 +304,17 @@ class CoinViewManager {
 
     private AsyncLooper retrieveCoinValues() {
         Map<String, Map<String, Map<String, Object>>> allCurrentCoinValues = MainActivity.Model.currentCoinRawValues;
+        for (Map.Entry<String, Map<String, Map<String, Object>>> currentCoinValues : allCurrentCoinValues.entrySet()) {
+            if (currentCoinValues.getValue().isEmpty()) {
+                allCurrentCoinValues.remove(currentCoinValues.getKey());
+            } else {
+                for (Map.Entry<String, Map<String, Object>> currentCoinValuesForWallet : currentCoinValues.getValue().entrySet()) {
+                    if (!fragment.wallets.stream().anyMatch(wallet -> wallet.getName().equals(currentCoinValuesForWallet.getKey()))) {
+                        currentCoinValues.getValue().remove(currentCoinValuesForWallet.getKey());
+                    }
+                }
+            }
+        }
         launchOwnedCoinRetrievers(ownedCoinsSuppliers);
         AsyncLooper coinsToBeScannedRetriever = new AsyncLooper(() -> {
             launchOwnedCoinRetrievers(ownedCoinsSuppliers);
