@@ -203,8 +203,8 @@ class BalanceUpdater {
         if (clearedBalanceValue >= 0) {
             if (allCoinClearedValues != null && !allCoinClearedValues.isEmpty()) {
                 Pair<Map<String, Integer>, List<Float>> valuesForPieChart = getValuesForPieChart(
-                        balancesChartManager, allCoinClearedValues, clearedAmount / 100,
-                        coinAmount -> (totalInvestment / 100) * ((coinAmount * 100) / clearedAmount)
+                    balancesChartManager, allCoinClearedValues, clearedAmount / 100,
+                    coinAmount -> (totalInvestment / 100) * ((coinAmount * 100) / clearedAmount),false
                 );
                 labelsAndColors = valuesForPieChart.first;
                 data = valuesForPieChart.second;
@@ -218,7 +218,10 @@ class BalanceUpdater {
             }
         } else {
             if (allCoinClearedValues != null && !allCoinClearedValues.isEmpty()) {
-                Pair<Map<String, Integer>, List<Float>> valuesForPieChart = getValuesForPieChart(balancesChartManager, allCoinClearedValues, clearedAmount / 100);
+                Pair<Map<String, Integer>, List<Float>> valuesForPieChart = getValuesForPieChart(
+                    balancesChartManager, allCoinClearedValues, clearedAmount / 100,
+                    coinAmount -> coinAmount,false
+                );
                 labelsAndColors = valuesForPieChart.first;
                 data = valuesForPieChart.second;
                 labelsAndColors.put("Loss", ResourcesCompat.getColor(fragment.getResources(), R.color.red, null));
@@ -235,29 +238,28 @@ class BalanceUpdater {
     }
 
     private void setCoinsChartData(Map<String, Map<String, Object>> allCoinClearedValues, Double clearedAmount) {
-        Pair<Map<String, Integer>, List<Float>> valuesForPieChart = getValuesForPieChart(coinsChartManager, allCoinClearedValues, clearedAmount / 100);
+        Pair<Map<String, Integer>, List<Float>> valuesForPieChart = getValuesForPieChart(coinsChartManager, allCoinClearedValues, clearedAmount / 100, coinAmount -> coinAmount, true);
         coinsChartManager.setup(valuesForPieChart.first);
         coinsChartManager.setData(valuesForPieChart.second);
     }
 
     private Pair<Map<String, Integer>, List<Float>> getValuesForPieChart(
-            PieChartManager chartManager, Map<String, Map<String, Object>> allCoinClearedValues, Double minValue
-    ) {
-        return getValuesForPieChart(chartManager, allCoinClearedValues, minValue, coinAmount -> coinAmount);
-    }
-
-    private Pair<Map<String, Integer>, List<Float>> getValuesForPieChart(
-        PieChartManager chartManager, Map<String, Map<String, Object>> allCoinClearedValues, Double minValue, Function<Double, Double> coinAmountProcessor
+        PieChartManager chartManager,
+        Map<String, Map<String, Object>> allCoinClearedValues,
+        Double minValue,
+        Function<Double, Double> coinAmountProcessor,
+        boolean groupedValuesFirst
     ) {
         Map<String, Integer> labelsAndColors = new LinkedHashMap();
         List<Float> data = new ArrayList<>();
-        Pair<Map<String, Integer>, List<Float>> valuesForPieChart = new Pair<>(labelsAndColors, data);
         AtomicReference<Double> groupedValues = new AtomicReference<>(0D);
+        if (groupedValuesFirst) {
+            labelsAndColors.put("Others", null);
+        }
         allCoinClearedValues.entrySet().stream().filter(entry -> !((Double)entry.getValue().get("coinAmount")).isNaN())
         .sorted(Comparator.comparingDouble(entry ->
             (Double)((Map.Entry<String, Map<String, Object>>)entry).getValue().get("coinAmount")
-        ))
-        .forEach(entry -> {
+        )).forEach(entry -> {
             Double coinAmount = coinAmountProcessor.apply((Double)entry.getValue().get("coinAmount"));
             if (coinAmount > minValue) {
                 labelsAndColors.put(entry.getKey(), chartManager.getOrGenerateColorFor(entry.getKey()));
@@ -267,10 +269,15 @@ class BalanceUpdater {
             }
         });
         if (groupedValues.get() > 0) {
-            labelsAndColors.put("Others", chartManager.getOrGenerateColorFor("Others"));
-            data.add(groupedValues.get().floatValue());
+            if (groupedValuesFirst) {
+                labelsAndColors.put("Others", chartManager.getOrGenerateColorFor("Others"));
+                data.add(0, groupedValues.get().floatValue());
+            } else {
+                labelsAndColors.put("Others", chartManager.getOrGenerateColorFor("Others"));
+                data.add(groupedValues.get().floatValue());
+            }
         }
-        return valuesForPieChart;
+        return new Pair<>(labelsAndColors, data);
     }
 
     private void setOnChartGestureListener(PieChartManager pieChartManager) {
