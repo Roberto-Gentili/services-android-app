@@ -276,6 +276,8 @@ class BalanceUpdater {
                 labelsAndColors.put("Others", chartManager.getOrGenerateColorFor("Others"));
                 data.add(groupedValues.get().floatValue());
             }
+        } else if (groupedValuesFirst) {
+            labelsAndColors.remove("Others");
         }
         return new Pair<>(labelsAndColors, data);
     }

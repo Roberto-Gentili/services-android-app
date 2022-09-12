@@ -303,18 +303,8 @@ class CoinViewManager {
     }
 
     private AsyncLooper retrieveCoinValues() {
-        Map<String, Map<String, Map<String, Object>>> allCurrentCoinValues = MainActivity.Model.currentCoinRawValues;
-        for (Map.Entry<String, Map<String, Map<String, Object>>> currentCoinValues : allCurrentCoinValues.entrySet()) {
-            if (currentCoinValues.getValue().isEmpty()) {
-                allCurrentCoinValues.remove(currentCoinValues.getKey());
-            } else {
-                for (Map.Entry<String, Map<String, Object>> currentCoinValuesForWallet : currentCoinValues.getValue().entrySet()) {
-                    if (!fragment.wallets.stream().anyMatch(wallet -> wallet.getName().equals(currentCoinValuesForWallet.getKey()))) {
-                        currentCoinValues.getValue().remove(currentCoinValuesForWallet.getKey());
-                    }
-                }
-            }
-        }
+        Map<String, Map<String, Map<String, Object>>> currentCoinRawValues = MainActivity.Model.currentCoinRawValues;
+        cleanUpCurrentCoinRawValues(currentCoinRawValues);
         launchOwnedCoinRetrievers(ownedCoinsSuppliers);
         AsyncLooper coinsToBeScannedRetriever = new AsyncLooper(() -> {
             launchOwnedCoinRetrievers(ownedCoinsSuppliers);
@@ -332,7 +322,7 @@ class CoinViewManager {
                                     Collection<String> coinsToBeScanned = new HashSet<>(ownedCoins);
                                     coinsToBeScanned.addAll(coinsToBeAlwaysDisplayed);
                                     //Cleaning up the coin collection
-                                    for (Map.Entry<String, Map<String, Map<String, Object>>> currentCoinValues : allCurrentCoinValues.entrySet()) {
+                                    for (Map.Entry<String, Map<String, Map<String, Object>>> currentCoinValues : currentCoinRawValues.entrySet()) {
                                         if (!coinsToBeScanned.contains(currentCoinValues.getKey()) && currentCoinValues.getValue().get(wallet.getName()) != null) {
                                             currentCoinValues.getValue().remove(wallet.getName());
                                         }
@@ -341,7 +331,7 @@ class CoinViewManager {
                                         Supplier<String> task = () -> {
                                             Double unitPriceInDollar = wallet.getValueForCoin(coinName);
                                             Double quantity = wallet.getQuantityForCoin(coinName);
-                                            Map<String, Map<String, Object>> allCoinValues = allCurrentCoinValues.computeIfAbsent(coinName, key -> new ConcurrentHashMap<>());
+                                            Map<String, Map<String, Object>> allCoinValues = currentCoinRawValues.computeIfAbsent(coinName, key -> new ConcurrentHashMap<>());
                                             Map<String, Object> coinValues = allCoinValues.computeIfAbsent(wallet.getName(), key -> new ConcurrentHashMap<>());
                                             coinValues.put("unitPrice", unitPriceInDollar);
                                             Optional.ofNullable(mainActivity).map(mA -> MainActivity.Model.setLastUpdateTime()).ifPresent(lUT -> coinValues.put("lastUpdate", lUT));
@@ -379,6 +369,37 @@ class CoinViewManager {
                 .whenKilled(coinsToBeScannedRetriever::kill)
                 .atTheEndOfEveryIterationWaitFor(fragment.getMainActivity().getLongValueFromAppPreferencesOrDefaultFromResources("intervalBetweenRequestGroups", R.integer.default_interval_between_request_groups_value))
                 .activate();
+    }
+
+    private void cleanUpCurrentCoinRawValues(Map<String, Map<String, Map<String, Object>>> allCurrentCoinValues) {
+        for (Map.Entry<String, Map<String, Map<String, Object>>> currentCoinValues : allCurrentCoinValues.entrySet()) {
+            if (currentCoinValues.getValue().isEmpty()) {
+                allCurrentCoinValues.remove(currentCoinValues.getKey());
+            } else {
+                for (Map.Entry<String, Map<String, Object>> currentCoinValuesForWallet : currentCoinValues.getValue().entrySet()) {
+                    if (!fragment.wallets.stream().anyMatch(wallet -> wallet.getName().equals(currentCoinValuesForWallet.getKey()))) {
+                        currentCoinValues.getValue().remove(currentCoinValuesForWallet.getKey());
+                        MainActivity.Model.isReadyToBeShown = false;
+                    }
+                }
+            }
+        }
+        Map<String, Map<String, Object>> euroValues = allCurrentCoinValues.get("EUR");
+        if (euroValues != null) {
+            boolean foundEuroValue = false;
+            for (Map.Entry<String, Map<String, Object>> currentCoinValuesForWallet : euroValues.entrySet()) {
+                if (!((Double)currentCoinValuesForWallet.getValue().get("unitPrice")).isNaN()) {
+                    foundEuroValue = true;
+                    break;
+                }
+            }
+            if (!foundEuroValue) {
+                setEuroValue(null);
+                if (fragment.isUseAlwaysTheDollarCurrencyForBalancesDisabled()) {
+                    MainActivity.Model.isReadyToBeShown = false;
+                }
+            }
+        }
     }
 
     private CompletableFuture<String> buildTask(Supplier<String> task, Function<Throwable, String> exceptionHandler) {
