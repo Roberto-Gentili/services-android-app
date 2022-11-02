@@ -339,7 +339,7 @@ class CoinViewManager {
                                             return (String)null;
                                         };
                                         Function<Throwable, String> exceptionHandler = exc -> {
-                                            String exceptionMessage = wallet.getName() + " exception occurred: " + exc.getMessage();
+                                            String exceptionMessage = wallet.getName() + " exception while retrieving data for coin " + coinName + ": "+ exc.getMessage();
                                             LoggerChain.getInstance().logError(exceptionMessage);
                                             return exceptionMessage;
                                         };

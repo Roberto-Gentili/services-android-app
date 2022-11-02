@@ -185,7 +185,10 @@ public class MainActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         Consumer<String> logger = message -> {
-            if (!message.toLowerCase().contains("invalid symbol")) {
+            if (!message.toLowerCase().contains("invalid symbol") &&
+                //For Crypto.com wallet that now throws a bad request when getAccountSummary is called
+                //with a coin that not exists in the catalog
+                !message.toLowerCase().contains("bad request")) {
                 runOnUiThread(() ->
                     Toast.makeText(this, message, Toast.LENGTH_LONG).show()
                 );

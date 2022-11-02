@@ -4,6 +4,7 @@ import java.math.BigDecimal;
 import java.nio.charset.StandardCharsets;
 import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
@@ -24,7 +25,9 @@ import org.rg.util.Throwables;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.util.UriComponents;
 import org.springframework.web.util.UriComponentsBuilder;
@@ -137,7 +140,11 @@ public class CryptoComWallet extends Wallet.Abst {
         ResponseEntity<Map> response = restTemplate.exchange(
                 uriComponents.toString(), HttpMethod.GET,
                 new HttpEntity<ApiRequest>(apiRequestJson, new HttpHeaders()), Map.class);
-		Number value = Double.valueOf((String)((Collection<Map<Object, Object>>) ((Map<Object, Object>) response.getBody()
+		Map<Object, Object> responseBody = response.getBody();
+		if (((Integer)responseBody.get("code")) != 0)  {
+			throw new NoSuchElementException("No value found for coin" + coinName);
+		}
+		Number value = Double.valueOf((String)((Collection<Map<Object, Object>>) ((Map<Object, Object>) responseBody
 				.get("result")).get("data")).iterator().next().get("p"));
 		return value.doubleValue();
 	}
@@ -149,8 +156,10 @@ public class CryptoComWallet extends Wallet.Abst {
 
 	@Override
 	protected Double getQuantityForEffectiveCoinName(String coinName) {
-        Number value = (Number) ((Collection<Map<Object, Object>>)((Map<Object, Object>)getAccountSummary(coinName)
-                .get("result")).get("accounts")).iterator().next().get("balance");
+		Map<Object, Object> responseBody = getAccountSummary(coinName);
+		Collection<Map<Object, Object>> accounts = (Collection<Map<Object, Object>>)
+			((Map<Object, Object>)responseBody.get("result")).get("accounts");
+        Number value = (Number)accounts.stream().findFirst().map(accountsMap -> accountsMap.get("balance")).orElseGet(() -> 0D);
         return value.doubleValue();
 	}
 
@@ -177,9 +186,20 @@ public class CryptoComWallet extends Wallet.Abst {
 		} catch (Throwable exc) {
 			Throwables.sneakyThrow(exc);
 		}
-        return restTemplate.exchange(
-            uriComponents.toString(), HttpMethod.POST,
-            new HttpEntity<ApiRequest>(apiRequestJson, new HttpHeaders()), Map.class).getBody();
+		try {
+			return restTemplate.exchange(
+					uriComponents.toString(), HttpMethod.POST,
+					new HttpEntity<ApiRequest>(apiRequestJson, new HttpHeaders()), Map.class).getBody();
+		} catch (HttpClientErrorException exc) {
+			if (exc.getStatusCode().equals(HttpStatus.BAD_REQUEST)) {
+				Map<Object, Object> responseBody = new LinkedHashMap<>();
+				Map<Object, Object> result = new LinkedHashMap<>();
+				responseBody.put("result", result);
+				result.put("accounts", new ArrayList<>());
+				return responseBody;
+			}
+			return Throwables.sneakyThrow(exc);
+		}
 	}
 
 	private static class Signer {
