@@ -137,8 +137,8 @@ public class CryptoComWallet extends Wallet.Abst {
         ResponseEntity<Map> response = restTemplate.exchange(
                 uriComponents.toString(), HttpMethod.GET,
                 new HttpEntity<ApiRequest>(apiRequestJson, new HttpHeaders()), Map.class);
-		Number value = (Number) ((Collection<Map<Object, Object>>) ((Map<Object, Object>) response.getBody()
-				.get("result")).get("data")).iterator().next().get("p");
+		Number value = Double.valueOf((String)((Collection<Map<Object, Object>>) ((Map<Object, Object>) response.getBody()
+				.get("result")).get("data")).iterator().next().get("p"));
 		return value.doubleValue();
 	}
 
