@@ -7,6 +7,7 @@ import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -115,8 +116,9 @@ public class CryptoComWallet extends Wallet.Abst {
                 .get("result")).get("accounts"));
         Collection<String> coinNames = new TreeSet<>();
         for (Map<Object, Object> coinBalance : coinBalances) {
-            Number quantity = (Number)coinBalance.get("balance");
-        	if (quantity.doubleValue() > 0) {
+            Number spotQuantity = (Number)coinBalance.get("balance");
+			Number stakeQuantity = (Number)coinBalance.get("stake");
+        	if (spotQuantity.doubleValue() + stakeQuantity.doubleValue() > 0) {
         		coinNames.add((String)coinBalance.get("currency"));
         	}
         }
@@ -168,38 +170,43 @@ public class CryptoComWallet extends Wallet.Abst {
 	}
 
 	private Map<Object, Object> getAccountSummary(String coinName) {
-        Long currentTimeMillis = currentTimeMillis();
-        UriComponents uriComponents = UriComponentsBuilder.newInstance().scheme("https").host("api.crypto.com")
-                .pathSegment("v2").pathSegment("private").pathSegment("get-account-summary").build();
-        Map<String, Object> params = new HashMap<>();
-        if (coinName != null) {
+		Long currentTimeMillis = currentTimeMillis();
+		UriComponents uriComponents = UriComponentsBuilder.newInstance().scheme("https").host("api.crypto.com")
+				.pathSegment("v2").pathSegment("private").pathSegment("get-account-summary").build();
+		Map<String, Object> params = new HashMap<>();
+		//Il filtraggio ora avviene nella Patch più sotto nel codice
+        /*if (coinName != null) {
         	params.put("currency", coinName);
-        }
-        ApiRequest apiRequestJson = new ApiRequest();
-        apiRequestJson.setId(currentTimeMillis);
-        apiRequestJson.setApiKey(apiKey);
-        apiRequestJson.setMethod(uriComponents.getPathSegments().get(1) + "/" + uriComponents.getPathSegments().get(2));
-        apiRequestJson.setNonce(currentTimeMillis);
-        apiRequestJson.setParams(params);
-        try {
+        }*/
+		ApiRequest apiRequestJson = new ApiRequest();
+		apiRequestJson.setId(currentTimeMillis);
+		apiRequestJson.setApiKey(apiKey);
+		apiRequestJson.setMethod(uriComponents.getPathSegments().get(1) + "/" + uriComponents.getPathSegments().get(2));
+		apiRequestJson.setNonce(currentTimeMillis);
+		apiRequestJson.setParams(params);
+		try {
 			Signer.sign(apiRequestJson, apiSecret);
 		} catch (Throwable exc) {
 			Throwables.sneakyThrow(exc);
 		}
-		try {
-			return restTemplate.exchange(
-					uriComponents.toString(), HttpMethod.POST,
-					new HttpEntity<ApiRequest>(apiRequestJson, new HttpHeaders()), Map.class).getBody();
-		} catch (HttpClientErrorException exc) {
-			if (exc.getStatusCode().equals(HttpStatus.BAD_REQUEST)) {
-				Map<Object, Object> responseBody = new LinkedHashMap<>();
-				Map<Object, Object> result = new LinkedHashMap<>();
-				responseBody.put("result", result);
-				result.put("accounts", new ArrayList<>());
-				return responseBody;
+		Map<Object, Object> responseBody = restTemplate.exchange(
+				uriComponents.toString(), HttpMethod.POST,
+				new HttpEntity<ApiRequest>(apiRequestJson, new HttpHeaders()), Map.class).getBody();
+		//Patch per bug nuova API
+		if (coinName != null) {
+			Collection<Map<Object, Object>> coinBalances = ((Collection<Map<Object, Object>>)((Map<Object, Object>)responseBody
+					.get("result")).get("accounts"));
+			Iterator<Map<Object, Object>> coinBalancesIterator = coinBalances.iterator();
+			while(coinBalancesIterator.hasNext()) {
+				Map<Object, Object> coinInfo = coinBalancesIterator.next();
+				if (!(coinName.equals(coinInfo.get("currency")))) {
+					coinBalancesIterator.remove();
+				}
 			}
-			return Throwables.sneakyThrow(exc);
 		}
+		return responseBody;
+
+
 	}
 
 	private static class Signer {
