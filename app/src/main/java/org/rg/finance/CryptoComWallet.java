@@ -4,7 +4,6 @@ import java.math.BigDecimal;
 import java.nio.charset.StandardCharsets;
 import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -16,6 +15,7 @@ import java.util.Optional;
 import java.util.TreeMap;
 import java.util.TreeSet;
 import java.util.concurrent.ExecutorService;
+import java.util.function.Function;
 import java.util.function.Supplier;
 
 import javax.crypto.Mac;
@@ -26,9 +26,7 @@ import org.rg.util.Throwables;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.util.UriComponents;
 import org.springframework.web.util.UriComponentsBuilder;
@@ -40,108 +38,120 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 public class CryptoComWallet extends Wallet.Abst {
 
 	public CryptoComWallet(
-		RestTemplate restTemplate,
-		Supplier<ExecutorService> executorServiceSupplier,
-		String apiKey,
-		String apiSecret,
-		Map<String, String> aliasesForCoinNames,
-		Map<String, String> coinCollaterals
+			RestTemplate restTemplate,
+			Supplier<ExecutorService> executorServiceSupplier,
+			String apiKey,
+			String apiSecret,
+			Map<String, String> aliasesForCoinNames,
+			Map<String, String> coinCollaterals
 	) {
 		super(restTemplate, executorServiceSupplier, apiKey, apiSecret,
-		Optional.ofNullable(aliasesForCoinNames).orElseGet(()-> {
-			Map<String, String> valueMap = new LinkedHashMap<>();
-			valueMap.put("LUNA", "LUNA2");
-			return valueMap;
-		}),
-		Optional.ofNullable(coinCollaterals).orElseGet(()-> {
-			Map<String, String> valueMap = new LinkedHashMap<>();
-			valueMap.put("DEFAULT", "USDT");
-			valueMap.put("LUNC", "USDC");
-			valueMap.put("LUNA2", "USDC");
-			valueMap.put("BUSD", "USDT");
-			return valueMap;
-		}));
+				Optional.ofNullable(aliasesForCoinNames).orElseGet(()-> {
+					Map<String, String> valueMap = new LinkedHashMap<>();
+					valueMap.put("LUNA", "LUNA2");
+					return valueMap;
+				}),
+				Optional.ofNullable(coinCollaterals).orElseGet(()-> {
+					Map<String, String> valueMap = new LinkedHashMap<>();
+					valueMap.put("DEFAULT", "USDT");
+					valueMap.put("LUNC", "USDC");
+					valueMap.put("LUNA2", "USDC");
+					valueMap.put("BUSD", "USDT");
+					return valueMap;
+				}));
 		this.name = "Crypto.com wallet";
 		this.timeOffset = -1000L;
 	}
 
 	public CryptoComWallet(
-		RestTemplate restTemplate,
-		Supplier<ExecutorService> executorServiceSupplier,
-		String apiKey,
-		String apiSecret
+			RestTemplate restTemplate,
+			Supplier<ExecutorService> executorServiceSupplier,
+			String apiKey,
+			String apiSecret
 	) {
 		this(restTemplate, executorServiceSupplier, apiKey, apiSecret, null, null);
 	}
 
 	public CryptoComWallet(
-		RestTemplate restTemplate,
-		String apiKey,
-		String apiSecret,
-		Map<String, String> aliasesForCoinNames,
-		Map<String, String> coinCollaterals
+			RestTemplate restTemplate,
+			String apiKey,
+			String apiSecret,
+			Map<String, String> aliasesForCoinNames,
+			Map<String, String> coinCollaterals
 	) {
 		this(restTemplate, null, apiKey, apiSecret, aliasesForCoinNames, coinCollaterals);
 	}
 
-    public CryptoComWallet(
-        RestTemplate restTemplate,
-        String apiKey,
-        String apiSecret
-    ) {
-        this(restTemplate, null, apiKey, apiSecret, null, null);
-    }
+	public CryptoComWallet(
+			RestTemplate restTemplate,
+			String apiKey,
+			String apiSecret
+	) {
+		this(restTemplate, null, apiKey, apiSecret, null, null);
+	}
 
 	public CryptoComWallet(
-		String apiKey,
-		String apiSecret
+			String apiKey,
+			String apiSecret
 	) {
 		this(null, null, apiKey, apiSecret, null, null);
 	}
 
 	@Override
 	protected Collection<String> getAvailableCoinsWithEffectiveNames() {
-        Collection<Map<Object, Object>> coinBalances = ((Collection<Map<Object, Object>>)((Map<Object, Object>)getAccountSummary()
-                .get("result")).get("accounts"));
-        Collection<String> coinNames = new TreeSet<>();
-        for (Map<Object, Object> coinBalance : coinBalances) {
-        	coinNames.add((String)coinBalance.get("currency"));
-        }
-        return coinNames;
+		Collection<Map<Object, Object>> coinBalances = ((Collection<Map<Object, Object>>)((Map<Object, Object>)getAccountSummary()
+				.get("result")).get("accounts"));
+		Collection<String> coinNames = new TreeSet<>();
+		for (Map<Object, Object> coinBalance : coinBalances) {
+			String coinName = (String)coinBalance.get("currency");
+			if (isCronosCoin(coinName)) {
+				coinNames.add("CRO");
+			}
+		}
+		return coinNames;
+	}
+
+	private boolean isCronosCoin(String coinName) {
+		return "CRO".equals(coinName) || "CRO-STAKE".equals(coinName) || "CRO-SUPERCHARGER".equals(coinName);
 	}
 
 	@Override
 	protected Collection<String> getOwnedCoinsWithEffectiveNames() {
 		Collection<Map<Object, Object>> coinBalances = ((Collection<Map<Object, Object>>)((Map<Object, Object>)getAccountSummary()
-                .get("result")).get("accounts"));
-        Collection<String> coinNames = new TreeSet<>();
-        for (Map<Object, Object> coinBalance : coinBalances) {
-            Number spotQuantity = (Number)coinBalance.get("balance");
+				.get("result")).get("accounts"));
+		Collection<String> coinNames = new TreeSet<>();
+		for (Map<Object, Object> coinBalance : coinBalances) {
+			Number spotQuantity = (Number)coinBalance.get("balance");
 			Number stakeQuantity = (Number)coinBalance.get("stake");
-        	if (spotQuantity.doubleValue() + stakeQuantity.doubleValue() > 0) {
-        		coinNames.add((String)coinBalance.get("currency"));
-        	}
-        }
-        return coinNames;
+			if (spotQuantity.doubleValue() + stakeQuantity.doubleValue() > 0) {
+				String coinName = (String)coinBalance.get("currency");
+				if (!isCronosCoin(coinName)) {
+					coinNames.add(coinName);
+				} else {
+					coinNames.add("CRO");
+				}
+			}
+		}
+		return coinNames;
 	}
 
 	@Override
 	protected Double getValueForCoin(String coinName, String collateral) {
-        Long currentTimeMillis = currentTimeMillis();
-        UriComponents uriComponents = UriComponentsBuilder.newInstance().scheme("https").host("api.crypto.com")
-            .pathSegment("v2").pathSegment("public").pathSegment("get-trades").queryParam("instrument_name", coinName + "_" + getCollateralForCoin(coinName))
-            .build();
-        Map<String, Object> params = new HashMap<>();
-        params.put("currency", coinName);
-        ApiRequest apiRequestJson = new ApiRequest();
-        apiRequestJson.setId(currentTimeMillis);
-        apiRequestJson.setApiKey(apiKey);
-        apiRequestJson.setMethod(uriComponents.getPathSegments().get(1) + "/" + uriComponents.getPathSegments().get(2));
-        apiRequestJson.setNonce(currentTimeMillis);
-        apiRequestJson.setParams(params);
-        ResponseEntity<Map> response = restTemplate.exchange(
-                uriComponents.toString(), HttpMethod.GET,
-                new HttpEntity<ApiRequest>(apiRequestJson, new HttpHeaders()), Map.class);
+		Long currentTimeMillis = currentTimeMillis();
+		UriComponents uriComponents = UriComponentsBuilder.newInstance().scheme("https").host("api.crypto.com")
+				.pathSegment("v2").pathSegment("public").pathSegment("get-trades").queryParam("instrument_name", coinName + "_" + getCollateralForCoin(coinName))
+				.build();
+		Map<String, Object> params = new HashMap<>();
+		params.put("currency", coinName);
+		ApiRequest apiRequestJson = new ApiRequest();
+		apiRequestJson.setId(currentTimeMillis);
+		apiRequestJson.setApiKey(apiKey);
+		apiRequestJson.setMethod(uriComponents.getPathSegments().get(1) + "/" + uriComponents.getPathSegments().get(2));
+		apiRequestJson.setNonce(currentTimeMillis);
+		apiRequestJson.setParams(params);
+		ResponseEntity<Map> response = restTemplate.exchange(
+				uriComponents.toString(), HttpMethod.GET,
+				new HttpEntity<ApiRequest>(apiRequestJson, new HttpHeaders()), Map.class);
 		Map<Object, Object> responseBody = response.getBody();
 		if (((Integer)responseBody.get("code")) != 0)  {
 			throw new NoSuchElementException("No value found for coin" + coinName);
@@ -158,11 +168,19 @@ public class CryptoComWallet extends Wallet.Abst {
 
 	@Override
 	protected Double getQuantityForEffectiveCoinName(String coinName) {
-		Map<Object, Object> responseBody = getAccountSummary(coinName);
-		Collection<Map<Object, Object>> accounts = (Collection<Map<Object, Object>>)
-			((Map<Object, Object>)responseBody.get("result")).get("accounts");
-        Number value = (Number)accounts.stream().findFirst().map(accountsMap -> accountsMap.get("balance")).orElseGet(() -> 0D);
-        return value.doubleValue();
+		Function<String, Double> coinQuantitySupplier = cName -> {
+			Map<Object, Object> responseBody = getAccountSummary(cName);
+			Collection<Map<Object, Object>> accounts = (Collection<Map<Object, Object>>)
+					((Map<Object, Object>)responseBody.get("result")).get("accounts");
+			Number value = (Number)accounts.stream().findFirst().map(accountsMap -> accountsMap.get("balance")).orElseGet(() -> 0D);
+			return value.doubleValue();
+		};
+		if ("CRO".equals(coinName)) {
+			return coinQuantitySupplier.andThen(
+					quantity -> quantity.doubleValue() + coinQuantitySupplier.apply("CRO-STAKE")
+			).andThen(quantity -> quantity.doubleValue() + coinQuantitySupplier.apply("CRO-SUPERCHARGER")).apply(coinName);
+		}
+		return coinQuantitySupplier.apply(coinName);
 	}
 
 	private Map<Object, Object> getAccountSummary() {
@@ -229,7 +247,7 @@ public class CryptoComWallet extends Wallet.Abst {
 		}
 
 		private static void appendParamString(final StringBuilder paramsStringBuilder, final Object paramObject,
-				final int level) {
+											  final int level) {
 			if (level >= MAX_LEVEL) {
 				paramsStringBuilder.append(paramObject.toString());
 				return;
