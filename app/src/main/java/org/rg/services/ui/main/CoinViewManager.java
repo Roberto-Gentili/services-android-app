@@ -64,7 +64,7 @@ class CoinViewManager {
             headerLabels.add(fragment.getResources().getString(R.string.amountInUSDLabelText));
             headerLabels.add(fragment.getResources().getString(R.string.clearedAmountInUSDLabelText));
         }
-        if (getTotalInvestmentFromPreferences() != null) {
+        if (getTotalInvestment() != null) {
             if (fragment.appPreferences.getBoolean("showRUPEI", true)) {
                 headerLabels.add(fragment.getResources().getString(R.string.rUPEIInUSDLabelText));
             }
@@ -551,7 +551,7 @@ class CoinViewManager {
         boolean showDifferenceBetweenUPAndRUPEI = fragment.appPreferences.getBoolean("showDifferenceBetweenUPAndRUPEI", false);
         boolean showAUPEI = fragment.appPreferences.getBoolean("showAUPEI", false);
         boolean showDifferenceBetweenUPAndAUPEI = fragment.appPreferences.getBoolean("showDifferenceBetweenUPAndAUPEI", false);
-        Double totalInvestment = getTotalInvestmentFromPreferences();
+        Double totalInvestment = getTotalInvestment();
         if (totalInvestment != null && (showRUPEI || showDifferenceBetweenUPAndRUPEI || showAUPEI || showDifferenceBetweenUPAndAUPEI)) {
             Double currencyValue = isCurrencyInEuro() ? euroValue : 1D;
             for (Map.Entry<String, Map<String, Object>> allCoinValues : allCoinsValues.entrySet()) {
@@ -712,10 +712,44 @@ class CoinViewManager {
         return fragment.isUseAlwaysTheDollarCurrencyForBalancesDisabled() && eurValue != null && !eurValue.isNaN();
     }
 
+    public Double getTotalInvestment() {
+        Double totalInvestment = getTotalInvestmentFromPreferences();
+        Double taxAmount = getTaxAmount();
+        if (totalInvestment == null) {
+            return taxAmount;
+        } else if (taxAmount == null) {
+            return totalInvestment;
+        }
+        return totalInvestment + taxAmount;
+    }
+
     public Double getTotalInvestmentFromPreferences() {
         String totalInvestmentAsString = fragment.appPreferences.getString("totalInvestment", null);
         if (fragment.isStringNotEmpty(totalInvestmentAsString)) {
             return Double.valueOf(totalInvestmentAsString);
+        }
+        return null;
+    }
+
+    public Double getTaxPercentageFromPreferences() {
+        String taxAsString = fragment.appPreferences.getString("tax", null);
+        if (fragment.isStringNotEmpty(taxAsString)) {
+            return Double.valueOf(taxAsString);
+        }
+        return null;
+    }
+
+    public Double getTaxAmount() {
+        Double taxPercentage = getTaxPercentageFromPreferences();
+        if (taxPercentage != null) {
+            Double totalInvestment = getTotalInvestmentFromPreferences();
+            if (totalInvestment != null) {
+                return ((totalInvestment * 100D) / (100D - taxPercentage)) - totalInvestment;
+            }
+            Double amount = getAmount();
+            if (amount != null) {
+                return (amount / 100D) * taxPercentage;
+            }
         }
         return null;
     }

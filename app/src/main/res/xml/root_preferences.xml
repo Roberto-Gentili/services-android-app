@@ -81,6 +81,10 @@
             app:key="totalInvestment"
             app:title="@string/totalInvestmentLabelText"
             app:useSimpleSummaryProvider="true" />
+        <EditTextPreference
+            app:key="tax"
+            app:title="@string/taxLabelText"
+            app:useSimpleSummaryProvider="true" />
         <CheckBoxPreference
             app:key="showClearedBalance"
             app:title="@string/showClearedBalanceLabelText"

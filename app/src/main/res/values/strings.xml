@@ -31,6 +31,7 @@
     <string name="showDifferenceBetweenUPAndAUPEILabelText">Show the difference between the unit price and the absolute unit price to equalize the investment</string>
     <string name="showDifferenceBetweenUPAndRUPEILabelText">Show the difference between the unit price and the relative unit price to equalize the investment</string>
     <string name="showRUPEILabelText">Show the relative unit price to equalize the investment</string>
+    <string name="taxLabelText">Tax %</string>
     <string name="totalInvestmentLabelText">Total investment</string>
     <string name="timeOffsetLabelText">Time offset (in milliseconds)</string>
     <string name="threadPoolSizeTextLabel">Thread pool size</string>

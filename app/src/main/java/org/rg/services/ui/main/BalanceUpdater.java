@@ -86,7 +86,7 @@ class BalanceUpdater {
                     fragment.setHighlightedValue(cryptoAmount, fragment.numberFormatterWithTwoDecimals, fragment.coinViewManager.getAmount());
                     Double clearedAmount = fragment.coinViewManager.getClearedAmount();
                     fragment.setHighlightedValue(clearedCryptoAmount, fragment.numberFormatterWithTwoDecimals, clearedAmount);
-                    Double totalInvestment = coinViewManager.getTotalInvestmentFromPreferences();
+                    Double totalInvestment = coinViewManager.getTotalInvestment();
                     if (totalInvestment != null && fragment.appPreferences.getBoolean("showClearedBalance", true)) {
                         fragment.setFixedHighlightedValue(clearedBalance, fragment.numberFormatterWithSignAndTwoDecimals, clearedAmount - totalInvestment);
                         if (balancesChartManager != null) {
@@ -128,10 +128,10 @@ class BalanceUpdater {
                         progressBar.setVisibility(View.INVISIBLE);
                         cryptoAmountBar.setVisibility(View.VISIBLE);
                         clearedCryptoAmountBar.setVisibility(View.VISIBLE);
-                        if (coinViewManager.getTotalInvestmentFromPreferences() != null && fragment.appPreferences.getBoolean("showClearedBalance", true)) {
+                        if (coinViewManager.getTotalInvestment() != null && fragment.appPreferences.getBoolean("showClearedBalance", true)) {
                             balanceBar.setVisibility(View.VISIBLE);
                             balancesChartManager = buildAndSetupChartManager(R.id.balancesChart);
-                            setBalancesChartData(fragment.coinViewManager.getTotalInvestmentFromPreferences(), fragment.coinViewManager.getClearedAmount(), fragment.coinViewManager.getAllCoinClearedValues());
+                            setBalancesChartData(fragment.coinViewManager.getTotalInvestment(), fragment.coinViewManager.getClearedAmount(), fragment.coinViewManager.getAllCoinClearedValues());
                             setOnChartGestureListener(balancesChartManager);
                             balancesChartManager.visible();
                         } else {
