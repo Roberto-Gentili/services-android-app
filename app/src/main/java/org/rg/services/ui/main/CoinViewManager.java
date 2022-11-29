@@ -559,9 +559,9 @@ class CoinViewManager {
                 Double coinQuantity = (Double)values.get("coinQuantity");
                 Double coinAmount = (Double)values.get("coinAmount");
                 Double rUPEI = coinAmount.isNaN() /*|| coinAmount == 0D*/ ? Double.NaN :
-                        (((((((totalInvestment + 1D) * 100D) / 99.9D) + 1D) * 100D) / 99.6) - ((amount - coinAmount) / currencyValue)) / coinQuantity;
+                        ((((((((totalInvestment * currencyValue) + 1D) * 100D) / 99.9D) + 1D) * 100D) / 99.6) - ((amount - coinAmount) / currencyValue)) / coinQuantity;
                 Double aUPEI = coinAmount.isNaN() /*|| coinAmount == 0D*/ ? Double.NaN :
-                        ((((((totalInvestment + 1D) * 100D) / 99.9D) + 1D) * 100D) / 99.6) / coinQuantity;
+                        (((((((totalInvestment * currencyValue) + 1D) * 100D) / 99.9D) + 1D) * 100D) / 99.6) / coinQuantity;
                 if (showRUPEI) {
                     setRUPEIForCoin(allCoinValues.getKey(), rUPEI);
                 }
