@@ -317,9 +317,10 @@ public class BinanceWallet extends Wallet.Abst {
                 .queryParam("signature", signature).build();
         HttpHeaders headers = new HttpHeaders();
         headers.add("X-MBX-APIKEY", apiKey);
-        return restTemplate
+        return new ArrayList<>();
+        /*return restTemplate
                 .exchange(uriComponents.toString(), HttpMethod.GET, new HttpEntity<String>(headers), Collection.class)
-                .getBody();
+                .getBody();*/
     }
 
     private static class Signer {
